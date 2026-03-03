@@ -1,0 +1,122 @@
+[
+  {
+    "id": "hunter_arcane_shot",
+    "name": "奥术射击",
+    "type": "spell",
+    "cost": 1,
+    "rarity": "common",
+    "description": "造成2点伤害",
+    "effect": { "type": "damage", "value": 2 },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_timber_wolf",
+    "name": "森林狼",
+    "type": "minion",
+    "cost": 2,
+    "rarity": "common",
+    "description": "2/1，战吼：其他野兽获得+1攻击力",
+    "effect": { "type": "summon", "attack": 2, "health": 1, "battlecry": { "type": "buff", "value": 1 } },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_animal_companion",
+    "name": "动物伙伴",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "common",
+    "description": "召唤一个随机野兽伙伴",
+    "effect": { "type": "summon", "card_id": "hunter_misha" },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_misha",
+    "name": "米莎",
+    "type": "minion",
+    "cost": 3,
+    "rarity": "common",
+    "description": "4/4，嘲讽",
+    "effect": { "type": "summon", "attack": 4, "health": 4, "taunt": true },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_kill_command",
+    "name": "杀戮命令",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "common",
+    "description": "造成3点伤害",
+    "effect": { "type": "damage", "value": 3 },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_snipe",
+    "name": "狙击",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "rare",
+    "description": "奥秘：在敌人使用随从后，对其造成4点伤害",
+    "effect": { "type": "secret", "trigger": "enemy_minion_played" },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_explosive_trap",
+    "name": "爆炸陷阱",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "description": "奥秘：当敌人攻击时，对所有敌人造成2点伤害",
+    "effect": { "type": "secret", "trigger": "enemy_attack" },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_freezing_trap",
+    "name": "冰冻陷阱",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "rare",
+    "description": "奥秘：敌人攻击随从时，将其移回手牌并冻结",
+    "effect": { "type": "secret", "trigger": "enemy_attack" },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_web_spider",
+    "name": "网蛛",
+    "type": "minion",
+    "cost": 2,
+    "rarity": "common",
+    "description": "1/2，亡语：抽一张牌",
+    "effect": { "type": "summon", "attack": 1, "health": 2, "deathrattle": { "type": "draw_card", "value": 1 } },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_houndmaster",
+    "name": "驯兽师",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "common",
+    "description": "3/3，战吼：使一个野兽获得+2/+2和嘲讽",
+    "effect": { "type": "summon", "attack": 3, "health": 3, "battlecry": { "type": "buff", "value": 2, "health": 2, "taunt": true } },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_tirion",
+    "name": "提里奥·弗丁",
+    "type": "minion",
+    "cost": 8,
+    "rarity": "legendary",
+    "description": "6/6，圣盾，嘲讽，亡语：装备一把4/2的灰烬使者",
+    "effect": { "type": "summon", "attack": 6, "health": 6, "taunt": true, "divine_shield": true, "deathrattle": { "type": "armor", "value": 5 } },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_ragnaros",
+    "name": "拉格纳罗斯",
+    "type": "minion",
+    "cost": 8,
+    "rarity": "legendary",
+    "description": "8/8，无法攻击。在你的回合结束时，随机对一个敌人造成8点伤害",
+    "effect": { "type": "summon", "attack": 8, "health": 8 },
+    "classes": ["hunter"]
+  }
+]

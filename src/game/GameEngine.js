@@ -5,6 +5,7 @@
 const CardData = require('../data/CardData');
 const ConfigData = require('../data/ConfigData');
 const TurnManager = require('./TurnManager');
+const CardEffect = require('./CardEffect');
 const Logger = require('../utils/logger');
 
 class GameEngine {
@@ -274,10 +275,20 @@ class GameEngine {
 
   /**
    * 召唤随从
-   * @param {object} player 
-   * @param {object} card 
+   * @param {object} player
+   * @param {object} card
    */
   summonMinion(player, card) {
+    // 参数验证
+    if (!player || !card) {
+      Logger.error('召唤随从失败: 缺少必要参数');
+      return false;
+    }
+    if (!card.id || !card.name) {
+      Logger.error('召唤随从失败: 卡牌数据不完整');
+      return false;
+    }
+
     const gameConfig = ConfigData.getGameConfig();
     const maxField = gameConfig?.maxFieldSize || 7;
 
@@ -301,7 +312,18 @@ class GameEngine {
       effects: []
     };
 
+    // 存储战吼和亡语到随从对象
+    minion.battlecry = card.effect?.battlecry || null;
+    minion.deathrattle = card.effect?.deathrattle || null;
+
     player.field.push(minion);
+
+    // 触发战吼
+    if (minion.battlecry) {
+      const cardEffect = new CardEffect(this);
+      cardEffect.executeBattlecry(card, { player, target: player, card });
+    }
+
     return true;
   }
 
@@ -317,8 +339,28 @@ class GameEngine {
     const playerCount = player.field.length;
     const aiCount = ai.field.length;
 
+    // 分离死亡和存活的随从
+    const deadPlayerMinions = player.field.filter(m => m.health <= 0);
+    const deadAiMinions = ai.field.filter(m => m.health <= 0);
+
     player.field = player.field.filter(m => m.health > 0);
     ai.field = ai.field.filter(m => m.health > 0);
+
+    // 触发玩家随从亡语
+    deadPlayerMinions.forEach(minion => {
+      if (minion.deathrattle) {
+        const cardEffect = new CardEffect(this);
+        cardEffect.executeDeathrattle(minion, { player, target: ai, card: minion });
+      }
+    });
+
+    // 触发敌方随从亡语
+    deadAiMinions.forEach(minion => {
+      if (minion.deathrattle) {
+        const cardEffect = new CardEffect(this);
+        cardEffect.executeDeathrattle(minion, { player: ai, target: player, card: minion });
+      }
+    });
 
     if (player.field.length < playerCount) {
       Logger.info('你的随从阵亡');

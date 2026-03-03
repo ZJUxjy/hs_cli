@@ -23,6 +23,78 @@
         "description": "获得2点护甲",
         "effect": { "type": "armor", "value": 2 }
       }
+    },
+    "hunter": {
+      "id": "hunter",
+      "name": "猎人",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "hunter_hero_power",
+        "name": "稳固射击",
+        "cost": 2,
+        "description": "造成1点伤害",
+        "effect": { "type": "damage", "value": 1 }
+      }
+    },
+    "paladin": {
+      "id": "paladin",
+      "name": "圣骑士",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "paladin_hero_power",
+        "name": "保护之手",
+        "cost": 2,
+        "description": "获得2点护甲",
+        "effect": { "type": "armor", "value": 2 }
+      }
+    },
+    "shaman": {
+      "id": "shaman",
+      "name": "萨满",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "shaman_hero_power",
+        "name": "图腾召唤",
+        "cost": 2,
+        "description": "召唤一个图腾",
+        "effect": { "type": "totem", "value": 1 }
+      }
+    },
+    "priest": {
+      "id": "priest",
+      "name": "牧师",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "priest_hero_power",
+        "name": "暗影形态",
+        "cost": 2,
+        "description": "造成1点伤害",
+        "effect": { "type": "damage", "value": 1 }
+      }
+    },
+    "rogue": {
+      "id": "rogue",
+      "name": "盗贼",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "rogue_hero_power",
+        "name": "疾跑",
+        "cost": 2,
+        "description": "抽2张牌",
+        "effect": { "type": "draw", "value": 2 }
+      }
+    },
+    "druid": {
+      "id": "druid",
+      "name": "德鲁伊",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "druid_hero_power",
+        "name": "月火术",
+        "cost": 2,
+        "description": "造成1点伤害",
+        "effect": { "type": "damage", "value": 1 }
+      }
     }
   },
   "game": {

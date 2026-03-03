@@ -1,0 +1,14 @@
+[
+  { "id": "rogue_shadowstep", "name": "暗影步", "type": "spell", "cost": 0, "rarity": "common", "description": "使一个随从返回你的手牌", "effect": { "type": "bounce" }, "classes": ["rogue"] },
+  { "id": "rogue_deadly_poison", "name": "致命毒药", "type": "spell", "cost": 1, "rarity": "common", "description": "使你的武器获得+2攻击力", "effect": { "type": "weapon_buff", "value": 2 }, "classes": ["rogue"] },
+  { "id": "rogue_blade_flurry", "name": "刀扇", "type": "spell", "cost": 2, "rarity": "rare", "description": "对你的敌人造成等同于你的武器攻击力的伤害", "effect": { "type": "weapon_attack" }, "classes": ["rogue"] },
+  { "id": "rogue_sprint", "name": "疾跑", "type": "spell", "cost": 7, "rarity": "common", "description": "抽4张牌", "effect": { "type": "draw_card", "value": 4 }, "classes": ["rogue"] },
+  { "id": "rogue_eddarn_warrior", "name": "艾德温·范克里夫", "type": "minion", "cost": 3, "rarity": "legendary", "description": "5/5，连击：获得+2/+2", "effect": { "type": "summon", "attack": 5, "health": 5 }, "classes": ["rogue"] },
+  { "id": "rogue_cold_blood", "name": "冷血", "type": "spell", "cost": 2, "rarity": "common", "description": "使一个随从获得+4攻击力，连击：+8", "effect": { "type": "buff", "value": 4 }, "classes": ["rogue"] },
+  { "id": "rogue_sinister_strike", "name": " sinister打击", "type": "spell", "cost": 1, "rarity": "common", "description": "对你的敌人造成3点伤害", "effect": { "type": "damage", "value": 3 }, "classes": ["rogue"] },
+  { "id": "rogue_assassinate", "name": "刺杀", "type": "spell", "cost": 5, "rarity": "common", "description": "消灭一个敌方随从", "effect": { "type": "execute" }, "classes": ["rogue"] },
+  { "id": "rogue_betrayal", "name": "背叛", "type": "spell", "cost": 2, "rarity": "common", "description": "迫使一个敌方随从对其相邻的随从造成等同于其攻击力的伤害", "effect": { "type": "cleave" }, "classes": ["rogue"] },
+  { "id": "rogue_preparation", "name": "准备", "type": "spell", "cost": 0, "rarity": "epic", "description": "下个回合你的法术费用减少3点", "effect": { "type": "buff", "spell_cost": -3 }, "classes": ["rogue"] },
+  { "id": "rogue_conceal", "name": "隐藏", "type": "spell", "cost": 3, "rarity": "common", "description": "使你的所有随从获得潜行直到下回合", "effect": { "type": "stealth" }, "classes": ["rogue"] },
+  { "id": "rogue_fan_of_knives", "name": "刀扇", "type": "spell", "cost": 3, "rarity": "common", "description": "对所有敌人造成1点伤害，抽一张牌", "effect": { "type": "aoe_damage", "value": 1, "draw_card": 1 }, "classes": ["rogue"] }
+]

@@ -4,6 +4,7 @@
 
 const BattleCalculator = require('./BattleCalculator');
 const Logger = require('../utils/logger');
+const CardData = require('../data/CardData');
 
 class CardEffect {
   static TYPES = {
@@ -425,41 +426,42 @@ class CardEffect {
    */
   executeBattlecry(card, context) {
     const battlecry = card.effect?.battlecry;
-    if (!battlecry) return;
+    if (!battlecry) return false;
 
     const effect = { ...battlecry };
     // 处理特殊参数
     if (effect.card_id) {
-      const CardData = require('../data/CardData');
       const summonCard = CardData.getCard(effect.card_id);
       if (summonCard) {
         effect.summonCard = summonCard;
       }
     }
 
+    let result = false;
     switch (effect.type) {
       case 'damage':
-        this.executeDamage(effect, context);
+        result = this.executeDamage(effect, context);
         break;
       case 'heal':
-        this.executeHeal(effect, context);
+        result = this.executeHeal(effect, context);
         break;
       case 'draw_card':
-        this.executeDrawCard(effect, context);
+        result = this.executeDrawCard(effect, context);
         break;
       case 'armor':
-        this.executeArmor(effect, context);
+        result = this.executeArmor(effect, context);
         break;
       case 'summon':
-        this.executeSummon(effect.summonCard || effect, effect, context);
+        result = this.executeSummon(effect.summonCard || effect, effect, context);
         break;
       case 'buff':
-        this.executeBuff(effect, context);
+        result = this.executeBuff(effect, context);
         break;
       case 'silence':
-        this.executeSilence(effect, context);
+        result = this.executeSilence(effect, context);
         break;
     }
+    return result;
   }
 
   /**
@@ -467,26 +469,30 @@ class CardEffect {
    */
   executeDeathrattle(minion, context) {
     const deathrattle = minion.deathrattle;
-    if (!deathrattle) return;
+    if (!deathrattle) return false;
+
+    const opponent = this.game.getOpponent();
+    let result = false;
 
     switch (deathrattle.type) {
       case 'summon':
         if (deathrattle.card_id) {
-          const CardData = require('../data/CardData');
           const summonCard = CardData.getCard(deathrattle.card_id);
           if (summonCard) {
             this.game.summonMinion(context.player, summonCard);
+            result = true;
           }
         }
         break;
       case 'damage':
-        const opponent = context.player === this.game.state.player
-          ? this.game.state.ai
-          : this.game.state.player;
-        opponent.health -= deathrattle.value;
+        if (opponent && deathrattle.value) {
+          opponent.health -= deathrattle.value;
+          result = true;
+        }
         break;
       case 'draw_card':
         this.game.drawCard(context.player, deathrattle.value || 1);
+        result = true;
         break;
       case 'buff':
         context.player.field.forEach(m => {
@@ -494,8 +500,10 @@ class CardEffect {
           m.health += (deathrattle.health || 0);
           m.maxHealth = Math.max(m.maxHealth, m.health);
         });
+        result = true;
         break;
     }
+    return result;
   }
 
   /**
@@ -504,19 +512,26 @@ class CardEffect {
   executeBuff(effect, context) {
     if (!context.target || context.target.health === undefined) {
       Logger.warn('Buff目标无效');
-      return;
+      return false;
     }
 
     if (effect.value !== undefined) {
-      context.target.attack += effect.value;
+      const value = typeof effect.value === 'number' ? effect.value : parseInt(effect.value, 10);
+      if (!isNaN(value)) {
+        context.target.attack += value;
+      }
     }
     if (effect.health !== undefined) {
-      context.target.health += effect.health;
-      context.target.maxHealth = Math.max(context.target.maxHealth, context.target.health);
+      const health = typeof effect.health === 'number' ? effect.health : parseInt(effect.health, 10);
+      if (!isNaN(health)) {
+        context.target.health += health;
+        context.target.maxHealth = Math.max(context.target.maxHealth, context.target.health);
+      }
     }
     if (effect.taunt) {
       context.target.taunt = true;
     }
+    return true;
   }
 
   /**
@@ -525,13 +540,39 @@ class CardEffect {
   executeSilence(effect, context) {
     if (!context.target || context.target.health === undefined) {
       Logger.warn('Silence目标无效');
-      return;
+      return false;
     }
 
+    // 清除所有关键词效果
     context.target.taunt = false;
     context.target.frozen = false;
     context.target.sleeping = false;
     context.target.buffs = [];
+
+    // 清除战吼和亡语
+    context.target.battlecry = null;
+    context.target.deathrattle = null;
+
+    // 清除冲锋
+    context.target.charge = false;
+
+    // 清除圣盾
+    context.target.divine_shield = false;
+
+    // 清除剧毒
+    context.target.poisonous = false;
+
+    // 清除潜行
+    context.target.stealth = false;
+
+    // 清除免疫
+    context.target.immune = false;
+
+    // 清除风怒
+    context.target.windfury = false;
+
+    Logger.info(`沉默效果已应用于 ${context.target.name}`);
+    return true;
   }
 }
 

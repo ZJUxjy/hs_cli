@@ -1,0 +1,14 @@
+[
+  { "id": "shaman_earth_shock", "name": "大地震击", "type": "spell", "cost": 1, "rarity": "common", "description": "沉默一个随从并造成1点伤害", "effect": { "type": "damage", "value": 1, "silence": true }, "classes": ["shaman"] },
+  { "id": "shaman_feral_spirit", "name": "野性狼魂", "type": "spell", "cost": 3, "rarity": "rare", "description": "召唤两个2/3并具有嘲讽的狼", "effect": { "type": "summon", "attack": 2, "health": 3, "taunt": true }, "classes": ["shaman"] },
+  { "id": "shaman_lightning_bolt", "name": "闪电箭", "type": "spell", "cost": 2, "rarity": "common", "description": "造成3点伤害，过载(1)", "effect": { "type": "damage", "value": 3 }, "classes": ["shaman"] },
+  { "id": "shaman_lightning_storm", "name": "闪电风暴", "type": "spell", "cost": 3, "rarity": "rare", "description": "对所有敌人造成2-3点伤害，过载(2)", "effect": { "type": "aoe_damage", "value": 2 }, "classes": ["shaman"] },
+  { "id": "shaman_fire_elemental", "name": "火元素", "type": "minion", "cost": 6, "rarity": "common", "description": "6/5，战吼：造成2点伤害", "effect": { "type": "summon", "attack": 6, "health": 5, "battlecry": { "type": "damage", "value": 2 } }, "classes": ["shaman"] },
+  { "id": "shaman_earth_elemental", "name": "土元素", "type": "minion", "cost": 5, "rarity": "rare", "description": "5/7，嘲讽，过载(2)", "effect": { "type": "summon", "attack": 5, "health": 7, "taunt": true }, "classes": ["shaman"] },
+  { "id": "shaman_hex", "name": "变羊术", "type": "spell", "cost": 3, "rarity": "common", "description": "使一个随从变形成为1/1的绵羊", "effect": { "type": "transform", "target": "minion" }, "classes": ["shaman"] },
+  { "id": "shaman_bloodlust", "name": "嗜血", "type": "spell", "cost": 5, "rarity": "common", "description": "使你的所有随从获得+3攻击力", "effect": { "type": "buff", "value": 3 }, "classes": ["shaman"] },
+  { "id": "shaman_unbound_elemental", "name": "不羁元素", "type": "minion", "cost": 4, "rarity": "common", "description": "4/5，每当你过载时，获得+2攻击力", "effect": { "type": "summon", "attack": 4, "health": 5 }, "classes": ["shaman"] },
+  { "id": "shaman_ancestor_calling", "name": "先祖召唤", "type": "spell", "cost": 7, "rarity": "epic", "description": "战吼：召唤两个随机图腾", "effect": { "type": "summon", "value": 2 }, "classes": ["shaman"] },
+  { "id": "shaman_windfury", "name": "风怒", "type": "spell", "cost": 3, "rarity": "common", "description": "使一个随从获得风怒", "effect": { "type": "buff", "windfury": true }, "classes": ["shaman"] },
+  { "id": "shaman_earth_shield", "name": "大地之盾", "type": "spell", "cost": 2, "rarity": "common", "description": "使一个随从获得+3生命值并获得嘲讽", "effect": { "type": "buff", "health": 3, "taunt": true }, "classes": ["shaman"] }
+]

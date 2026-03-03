@@ -241,9 +241,10 @@ class AIEngine {
    * 执行英雄技能
    */
   executeHeroPower(player) {
+    const opponent = this.game.getOpponent();
+
     if (player.hero === 'mage') {
       // 法师: 造成1点伤害
-      const opponent = this.game.getOpponent();
       if (opponent.field.length > 0) {
         const target = this.selectLowestHealthTarget(opponent.field);
         this.cardEffect.execute(
@@ -261,6 +262,43 @@ class AIEngine {
       this.cardEffect.execute(
         { effect: { type: 'armor', value: 2 } },
         { player }
+      );
+    } else if (player.hero === 'hunter') {
+      // 猎人: 稳固射击 - 造成1点伤害
+      this.cardEffect.execute(
+        { effect: { type: 'damage', value: 1 } },
+        { target: opponent, player }
+      );
+    } else if (player.hero === 'paladin') {
+      // 圣骑士: 保护之手 - 获得2点护甲
+      this.cardEffect.execute(
+        { effect: { type: 'armor', value: 2 } },
+        { player }
+      );
+    } else if (player.hero === 'shaman') {
+      // 萨满: 图腾召唤 - 随机召唤图腾
+      const CardData = require('../data/CardData');
+      const totems = ['shaman_healing_totem', 'shaman_searing_totem', 'shaman_stoneclaw_totem'];
+      const randomTotem = totems[Math.floor(Math.random() * totems.length)];
+      // 简化为直接造成1点伤害
+      this.cardEffect.execute(
+        { effect: { type: 'damage', value: 1 } },
+        { target: opponent, player }
+      );
+    } else if (player.hero === 'priest') {
+      // 牧师: 暗影形态 - 造成1点伤害
+      this.cardEffect.execute(
+        { effect: { type: 'damage', value: 1 } },
+        { target: opponent, player }
+      );
+    } else if (player.hero === 'rogue') {
+      // 盗贼: 疾跑 - 抽2张牌
+      this.game.drawCard(player, 2);
+    } else if (player.hero === 'druid') {
+      // 德鲁伊: 月火术 - 造成1点伤害
+      this.cardEffect.execute(
+        { effect: { type: 'damage', value: 1 } },
+        { target: opponent, player }
       );
     }
 

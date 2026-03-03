@@ -1,0 +1,14 @@
+[
+  { "id": "paladin_blessed_champion", "name": "力量祝福", "type": "spell", "cost": 1, "rarity": "common", "description": "使一个随从获得+5攻击力", "effect": { "type": "buff", "value": 5 }, "classes": ["paladin"] },
+  { "id": "paladin_noble_sacrifice", "name": "崇高牺牲", "type": "spell", "cost": 1, "rarity": "rare", "description": "奥秘：当敌人攻击时，召唤一个2/1的防御者", "effect": { "type": "secret", "trigger": "enemy_attack" }, "classes": ["paladin"] },
+  { "id": "paladin_redemption", "name": "救赎", "type": "spell", "cost": 1, "rarity": "rare", "description": "奥秘：当你的随从死亡后，使其回到战场并获得圣盾", "effect": { "type": "secret", "trigger": "own_minion_died" }, "classes": ["paladin"] },
+  { "id": "paladin_ironforge_guardian", "name": "铁甲守卫", "type": "minion", "cost": 2, "rarity": "common", "description": "2/3，嘲讽，亡语：获得4点护甲", "effect": { "type": "summon", "attack": 2, "health": 3, "taunt": true, "deathrattle": { "type": "armor", "value": 4 } }, "classes": ["paladin"] },
+  { "id": "paladin_equality", "name": "平等", "type": "spell", "cost": 2, "rarity": "epic", "description": "将所有随从的生命值变为1", "effect": { "type": "aoe_damage", "value": 99 }, "classes": ["paladin"] },
+  { "id": "paladin_consecration", "name": "奉献", "type": "spell", "cost": 4, "rarity": "common", "description": "对所有敌人造成2点伤害", "effect": { "type": "aoe_damage", "value": 2 }, "classes": ["paladin"] },
+  { "id": "paladin_blessing_of_kings", "name": "王者祝福", "type": "spell", "cost": 4, "rarity": "common", "description": "使一个随从获得+4/+4", "effect": { "type": "buff", "value": 4, "health": 4 }, "classes": ["paladin"] },
+  { "id": "paladin_holy_wrath", "name": "圣光 wrath", "type": "spell", "cost": 5, "rarity": "rare", "description": "造成等同于你的护甲值的伤害", "effect": { "type": "damage", "value": 5 }, "classes": ["paladin"] },
+  { "id": "paladin_tirion", "name": "提里奥·弗丁", "type": "minion", "cost": 7, "rarity": "legendary", "description": "6/6，嘲讽，圣盾，战吼：装备一把4/2的灰烬使者", "effect": { "type": "summon", "attack": 6, "health": 6, "taunt": true, "divine_shield": true, "battlecry": { "type": "armor", "value": 5 } }, "classes": ["paladin"] },
+  { "id": "paladin_lay_on_hands", "name": "圣光术", "type": "spell", "cost": 8, "rarity": "epic", "description": "为一个角色恢复8点生命值并抽3张牌", "effect": { "type": "heal", "value": 8, "draw_card": 3 }, "classes": ["paladin"] },
+  { "id": "paladin_tuskar_totem", "name": "海象人图腾师", "type": "minion", "cost": 3, "rarity": "rare", "description": "3/3，战吼：召唤一个随机图腾", "effect": { "type": "summon", "attack": 3, "health": 3, "battlecry": { "type": "summon", "value": 1 } }, "classes": ["paladin"] },
+  { "id": "paladin_steward", "name": "圣地守卫", "type": "minion", "cost": 3, "rarity": "common", "description": "3/3，战吼：获得4点护甲", "effect": { "type": "summon", "attack": 3, "health": 3, "battlecry": { "type": "armor", "value": 4 } }, "classes": ["paladin"] }
+]

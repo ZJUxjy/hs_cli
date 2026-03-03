@@ -1,0 +1,14 @@
+[
+  { "id": "priest_northshire_cleric", "name": "北郡牧师", "type": "minion", "cost": 3, "rarity": "common", "description": "3/3，战吼：恢复3点生命值", "effect": { "type": "summon", "attack": 3, "health": 3, "battlecry": { "type": "heal", "value": 3 } }, "classes": ["priest"] },
+  { "id": "priest_shadow_word_pain", "name": "痛", "type": "spell", "cost": 2, "rarity": "common", "description": "消灭一个攻击力小于或等于3的随从", "effect": { "type": "execute" }, "classes": ["priest"] },
+  { "id": "priest_shadow_word_death", "name": "灭", "type": "spell", "cost": 3, "rarity": "common", "description": "消灭一个攻击力大于或等于5的随从", "effect": { "type": "execute" }, "classes": ["priest"] },
+  { "id": "priest_auchenai_soulpriest", "name": "奥金尼灵魂祭司", "type": "minion", "cost": 4, "rarity": "rare", "description": "4/5，你的治疗转而造成等量伤害", "effect": { "type": "summon", "attack": 4, "health": 5 }, "classes": ["priest"] },
+  { "id": "priest_thoughtsteal", "name": "思维窃取", "type": "spell", "cost": 3, "rarity": "common", "description": "复制对手的两张卡牌加入手牌", "effect": { "type": "draw_card", "value": 2 }, "classes": ["priest"] },
+  { "id": "priest_mind_control", "name": "精神控制", "type": "spell", "cost": 10, "rarity": "epic", "description": "获得一个敌方随从的控制权", "effect": { "type": "steal" }, "classes": ["priest"] },
+  { "id": "priest_holy_nova", "name": "神圣新星", "type": "spell", "cost": 5, "rarity": "common", "description": "对所有敌人造成2点伤害，恢复所有友方角色2点生命值", "effect": { "type": "aoe_damage", "value": 2 }, "classes": ["priest"] },
+  { "id": "priest_cabal_shadow_priest", "name": "暗影形态", "type": "minion", "cost": 6, "rarity": "legendary", "description": "4/4，战吼：使一个随从获得+2/+6", "effect": { "type": "summon", "attack": 4, "health": 4, "battlecry": { "type": "buff", "value": 2, "health": 6 } }, "classes": ["priest"] },
+  { "id": "priest_lightspawn", "name": "光耀之子", "type": "minion", "cost": 4, "rarity": "rare", "description": "4/4，其他光之子随从的攻击力等于其生命值", "effect": { "type": "summon", "attack": 4, "health": 4 }, "classes": ["priest"] },
+  { "id": "priest_shadowbomber", "name": "暗影炸弹", "type": "spell", "cost": 2, "rarity": "rare", "description": "造成3点伤害，为你的英雄恢复3点生命值", "effect": { "type": "damage", "value": 3 }, "classes": ["priest"] },
+  { "id": "priest_auctioneer", "name": "加基森拍卖师", "type": "minion", "cost": 6, "rarity": "rare", "description": "5/4，战吼：抽2张牌", "effect": { "type": "summon", "attack": 5, "health": 4, "battlecry": { "type": "draw_card", "value": 2 } }, "classes": ["priest"] },
+  { "id": "priest_temple_enforcer", "name": "圣殿执行者", "type": "minion", "cost": 5, "rarity": "common", "description": "5/6，战吼：使一个随从获得+3生命值", "effect": { "type": "summon", "attack": 5, "health": 6, "battlecry": { "type": "buff", "health": 3 } }, "classes": ["priest"] }
+]

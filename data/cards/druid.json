@@ -1,0 +1,14 @@
+[
+  { "id": "druid_moonfire", "name": "月火术", "type": "spell", "cost": 0, "rarity": "common", "description": "造成1点伤害", "effect": { "type": "damage", "value": 1 }, "classes": ["druid"] },
+  { "id": "druid_innervate", "name": "激活", "type": "spell", "cost": 0, "rarity": "common", "description": "在本回合获得一个额外的法力水晶", "effect": { "type": "mana", "value": 1 }, "classes": ["druid"] },
+  { "id": "druid_wrath", "name": "愤怒", "type": "spell", "cost": 2, "rarity": "common", "description": "造成2点伤害，抉择：造成3点伤害或获得一个法力水晶", "effect": { "type": "damage", "value": 2 }, "classes": ["druid"] },
+  { "id": "druid_savage_roar", "name": "野性之力", "type": "spell", "cost": 3, "rarity": "common", "description": "使你的所有随从获得+2攻击力", "effect": { "type": "buff", "value": 2 }, "classes": ["druid"] },
+  { "id": "druid_swipe", "name": "横扫", "type": "spell", "cost": 4, "rarity": "common", "description": "对一个敌人造成4点伤害，对其他敌人造成1点伤害", "effect": { "type": "damage", "value": 4 }, "classes": ["druid"] },
+  { "id": "druid_starbfall", "name": "星火术", "type": "spell", "cost": 6, "rarity": "common", "description": "对一个敌人造成5点伤害，对所有其他敌人造成1点伤害", "effect": { "type": "aoe_damage", "value": 5 }, "classes": ["druid"] },
+  { "id": "druid_ancient_of_lore", "name": "知识古树", "type": "minion", "cost": 7, "rarity": "epic", "description": "5/5，战吼：抽2张牌或恢复5点生命值", "effect": { "type": "summon", "attack": 5, "health": 5, "battlecry": { "type": "draw_card", "value": 2 } }, "classes": ["druid"] },
+  { "id": "druid_force_of_nature", "name": "自然之力", "type": "spell", "cost": 5, "rarity": "common", "description": "召唤三个2/2的树人", "effect": { "type": "summon", "attack": 2, "health": 2, "count": 3 }, "classes": ["druid"] },
+  { "id": "druid_ancient_warrior", "name": "战争古树", "type": "minion", "cost": 8, "rarity": "legendary", "description": "8/8，嘲讽，战吼：获得5点护甲", "effect": { "type": "summon", "attack": 8, "health": 8, "taunt": true, "battlecry": { "type": "armor", "value": 5 } }, "classes": ["druid"] },
+  { "id": "druid_druid_of_the_claw", "name": "利爪德鲁伊", "type": "minion", "cost": 5, "rarity": "common", "description": "4/4，抉择：获得+2攻击力或+2生命值和嘲讽", "effect": { "type": "summon", "attack": 4, "health": 4 }, "classes": ["druid"] },
+  { "id": "druid_power_infusion", "name": "能量灌注", "type": "spell", "cost": 3, "rarity": "rare", "description": "使一个随从获得+4/+4", "effect": { "type": "buff", "value": 4, "health": 4 }, "classes": ["druid"] },
+  { "id": "druid_malorne", "name": "玛洛恩", "type": "minion", "cost": 7, "rarity": "legendary", "description": "9/7，亡语：将该随从移回你的手牌", "effect": { "type": "summon", "attack": 9, "health": 7, "deathrattle": { "type": "bounce" } }, "classes": ["druid"] }
+]
