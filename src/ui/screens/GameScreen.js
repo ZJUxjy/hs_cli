@@ -74,7 +74,7 @@ class GameScreen {
       top: 0,
       height: 3,
       width: '100%',
-      content: '{bold}{cyan}炉石传说 CLI{/cyan}{/bold}',
+      content: '{bold}{fg:cyan}炉石传说 CLI{/fg}{/bold}',
       tags: true,
       style: { fg: 'white', bg: 'black' }
     });

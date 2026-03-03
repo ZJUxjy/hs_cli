@@ -40,7 +40,7 @@ class MainMenu {
       parent: this.menu,
       top: 1,
       left: 'center',
-      content: '{bold}{cyan}炉石传说 CLI{/cyan}{/bold}',
+      content: '{bold}{fg:cyan}炉石传说 CLI{/fg}{/bold}',
       tags: true
     });
 
@@ -184,7 +184,7 @@ class MainMenu {
       parent: selectMenu,
       top: 1,
       left: 'center',
-      content: '{bold}{cyan}选择存档{/cyan}{/bold}',
+      content: '{bold}{fg:cyan}选择存档{/fg}{/bold}',
       tags: true
     });
 

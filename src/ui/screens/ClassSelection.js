@@ -55,7 +55,7 @@ class ClassSelection {
       parent: this.container,
       top: 2,
       left: 'center',
-      content: '{bold}{yellow}选择你的英雄{/yellow}{/bold}',
+      content: '{bold}{fg:yellow}选择你的英雄{/fg}{/bold}',
       tags: true,
       style: { fg: 'white' }
     });
@@ -216,7 +216,7 @@ class ClassSelection {
       if (index === this.selectedIndex) {
         const color = this.classes[index].id === 'mage' ? 'yellow' : 'red';
         item.box.style.border.fg = color;
-        item.name.setContent(`{bold}{${color}}${this.classes[index].name}{/bold}`);
+        item.name.setContent(`{bold}{fg:${color}}${this.classes[index].name}{/fg}{/bold}`);
       } else {
         item.box.style.border.fg = 'gray';
         item.name.setContent(`{bold}${this.classes[index].name}{/bold}`);
