@@ -5,6 +5,7 @@ class EffectMapper {
       'BATTLECRY': 'battlecry',
       'DEATHRATTLE': 'deathrattle',
       'CHARGE': 'charge',
+      'RUSH': 'rush',
       'TAUNT': 'taunt',
       'WINDFURY': 'windfury',
       'DIVINE_SHIELD': 'divine_shield',
@@ -16,7 +17,9 @@ class EffectMapper {
       'OVERLOAD': 'overload',
       'COMBO': 'combo',
       'INSPIRE': 'inspire',
-      'SECRET': 'secret'
+      'SECRET': 'secret',
+      'REBORN': 'reborn',
+      'ECHO': 'echo'
     };
 
     // 缓存转换结果
@@ -25,12 +28,15 @@ class EffectMapper {
     // 预编译text匹配模式
     this.textPatterns = [
       { pattern: /Charge/i, key: 'charge' },
+      { pattern: /Rush/i, key: 'rush' },
       { pattern: /Taunt/i, key: 'taunt' },
       { pattern: /Windfury/i, key: 'windfury' },
       { pattern: /Divine Shield/i, key: 'divine_shield' },
       { pattern: /Stealth/i, key: 'stealth' },
       { pattern: /Poisonous/i, key: 'poisonous' },
-      { pattern: /Lifesteal/i, key: 'lifesteal' }
+      { pattern: /Lifesteal/i, key: 'lifesteal' },
+      { pattern: /Reborn/i, key: 'reborn' },
+      { pattern: /Echo/i, key: 'echo' }
     ];
   }
 

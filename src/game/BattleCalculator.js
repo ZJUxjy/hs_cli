@@ -179,6 +179,12 @@ class BattleCalculator {
    * @param {object} targetPlayer - 目标玩家
    */
   attackHero(attacker, targetPlayer) {
+    // 突袭随从不能攻击英雄
+    if (attacker.rush && !attacker.canAttackHero) {
+      Logger.warn(`${attacker.name} 有突袭效果，不能攻击英雄`);
+      return -1;
+    }
+
     // 剧毒
     if (attacker.poisonous) {
       targetPlayer.health = 0;

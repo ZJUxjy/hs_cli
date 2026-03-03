@@ -166,6 +166,7 @@ class GameUI {
              data-index="${i}">
           ${minion.taunt ? '<span class="minion-taunt"></span>' : ''}
           ${minion.charge ? '<span class="mechanic-icon charge-icon">C</span>' : ''}
+          ${minion.rush ? '<span class="mechanic-icon rush-icon">R</span>' : ''}
           ${minion.divineShield ? '<span class="mechanic-icon divine-shield-icon">D</span>' : ''}
           ${minion.lifesteal ? '<span class="mechanic-icon lifesteal-icon">L</span>' : ''}
           ${minion.windfury ? '<span class="mechanic-icon windfury-icon">W</span>' : ''}

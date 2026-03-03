@@ -372,6 +372,9 @@ class GameEngine {
       return false;
     }
 
+    const hasCharge = card.effect?.charge || card.effect?.rush;
+    const hasRush = card.effect?.rush;
+
     const minion = {
       uid: this.generateUid(),
       id: card.id,
@@ -379,11 +382,13 @@ class GameEngine {
       attack: card.effect?.attack || 0,
       health: card.effect?.health || 0,
       maxHealth: card.effect?.health || 0,
-      canAttack: false,
+      canAttack: hasCharge || false, // 有冲锋或突袭可以直接攻击
       hasAttacked: false,
       frozen: false,
-      sleeping: true, // 召唤出来的随从本回合不能攻击
+      sleeping: !hasCharge && !hasRush, // 突袭和冲锋随从本回合可以攻击（但不包含英雄）
+      canAttackHero: hasCharge || false, // 只有冲锋可以打脸，突袭不行
       taunt: card.effect?.taunt || false,
+      rush: hasRush || false,
       effects: []
     };
 
