@@ -5,6 +5,10 @@ from hearthstone.models.card import Card
 from hearthstone.models.enums import HeroClass
 
 
+# Standard Hearthstone deck size
+DECK_SIZE = 30
+
+
 @dataclass
 class Deck:
     """Represents a deck of cards."""
@@ -14,5 +18,5 @@ class Deck:
 
     def __post_init__(self):
         """Validate deck on creation."""
-        if len(self.cards) != 30:
-            raise ValueError(f"Deck must have exactly 30 cards, got {len(self.cards)}")
+        if len(self.cards) != DECK_SIZE:
+            raise ValueError(f"Deck must have exactly {DECK_SIZE} cards, got {len(self.cards)}")
