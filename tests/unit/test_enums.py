@@ -1,6 +1,6 @@
 """Tests for core enum types."""
 import pytest
-from hearthstone.models.enums import CardType, GamePhase, Ability
+from hearthstone.models.enums import CardType, GamePhase, Ability, HeroClass
 
 
 def test_card_type_values():
@@ -31,3 +31,18 @@ def test_ability_values():
     assert Ability.RUSH == "RUSH"
     assert Ability.REBORN == "REBORN"
     assert Ability.SPELL_DAMAGE == "SPELL_DAMAGE"
+
+
+def test_hero_class_values():
+    """Test HeroClass enum has expected values."""
+    assert HeroClass.WARRIOR == "WARRIOR"
+    assert HeroClass.SHAMAN == "SHAMAN"
+    assert HeroClass.ROGUE == "ROGUE"
+    assert HeroClass.PALADIN == "PALADIN"
+    assert HeroClass.HUNTER == "HUNTER"
+    assert HeroClass.DRUID == "DRUID"
+    assert HeroClass.WARLOCK == "WARLOCK"
+    assert HeroClass.MAGE == "MAGE"
+    assert HeroClass.PRIEST == "PRIEST"
+    assert HeroClass.DEMON_HUNTER == "DEMON_HUNTER"
+    assert HeroClass.NEUTRAL == "NEUTRAL"
