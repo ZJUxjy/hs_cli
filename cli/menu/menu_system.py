@@ -59,39 +59,60 @@ class MenuSystem:
 
     def _start_human_vs_ai(self):
         """Start human vs AI game."""
-        engine = GameEngine()
-        engine.initialize_game(
-            player1_name="Player",
-            player1_class=HeroClass.MAGE,
-            player2_name="AI",
-            player2_class=HeroClass.WARRIOR
-        )
+        from hearthstone.decks.deck_manager import DeckManager
+        from hearthstone.engine.game_controller import GameController
+        from cli.game_loop import CLIGameLoop
 
-        game_display = GameDisplay()
-        input_handler = InputHandler(game_display)
+        # Let player choose deck
+        manager = DeckManager()
+        decks = manager.list_decks()
 
-        # Main game loop
-        while not engine.state.is_game_over():
-            game_display.render_game_state(engine.state)
+        if not decks:
+            self.display.render_error("No decks available")
+            return
 
-            action = input_handler.get_action(engine.state)
-            result = engine.take_action(action)
+        print("\n选择你的卡组:")
+        for i, deck_name in enumerate(decks, 1):
+            print(f"  {i}. {deck_name}")
 
-            if not result.success:
-                self.display.render_error(result.message)
-        # Game over
-        winner = engine.state.get_winner()
-        if winner:
-            self.display.render_success(f"Game Over! {winner.name} wins!")
-        input("\nPress Enter to return to main menu...")
+        choice = input("\n输入选择: ").strip()
+        try:
+            deck_index = int(choice) - 1
+            player_deck_name = decks[deck_index]
+        except (ValueError, IndexError):
+            print("无效选择，使用默认卡组")
+            player_deck_name = decks[0] if decks else "test_deck"
+
+        # Load decks
+        try:
+            player_deck = manager.load_deck(player_deck_name)
+            ai_deck = manager.load_deck("basic_warrior")
+        except FileNotFoundError as e:
+            self.display.render_error(f"无法加载卡组: {e}")
+            return
+
+        # Create controller and game loop
+        controller = GameController(player_deck, ai_deck)
+        game_loop = CLIGameLoop(controller)
+
+        # Run game
+        try:
+            game_loop.run()
+        except KeyboardInterrupt:
+            print("\n游戏中断")
+
+        input("\n按回车键返回主菜单...")
+
     def _start_ai_vs_ai(self):
         """Start AI vs AI game."""
         # TODO: Implement AI vs AI
         self.display.render_error("AI vs AI mode not implemented yet")
+
     def _deck_builder_flow(self):
         """Deck builder flow."""
         # TODO: Implement deck builder
         self.display.render_error("Deck builder not implemented yet")
+
     def _settings_flow(self):
         """Settings flow."""
         self.display.render_error("Settings not implemented yet")

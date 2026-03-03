@@ -1,12 +1,9 @@
 """Input handling for CLI."""
-from typing import Optional
+from typing import Optional, List
 from hearthstone.models.game_state import GameState
 from hearthstone.engine.action import Action, EndTurnAction, PlayCardAction
 from cli.display.game_display import GameDisplay
 from cli.input.command_parser import CommandParser
-
-
-from hearthstone.engine.action import Action, EndTurnAction
 
 
 class InputHandler:
@@ -59,3 +56,27 @@ class InputHandler:
             return EndTurnAction(player_id=game_state.current_player.name)
         else:
             raise ValueError(f"无效选择: {choice}")
+
+    def get_action_choice(self, valid_actions: List[Action]) -> Action:
+        """Get user to choose from valid actions."""
+        while True:
+            try:
+                choice = input("\n选择动作 (输入数字): ").strip()
+
+                if choice.isdigit():
+                    idx = int(choice) - 1
+                    if 0 <= idx < len(valid_actions):
+                        return valid_actions[idx]
+                    else:
+                        print(f"无效选择。请输入 1-{len(valid_actions)}")
+                elif choice.lower() in ['h', 'help']:
+                    print("输入数字选择动作，或 'q' 退出")
+                elif choice.lower() == 'q':
+                    raise KeyboardInterrupt("User quit")
+                else:
+                    print("无效输入。输入数字或 'h' 获取帮助")
+
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:
+                print(f"错误: {e}")

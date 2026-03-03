@@ -44,8 +44,11 @@ def test_game_controller_start_game():
     assert state is not None
     assert state.player1 is not None
     assert state.player2 is not None
-    assert len(state.player1.deck) == 30
-    assert len(state.player2.deck) == 30
+    # After drawing starting hands (3 for p1, 4 for p2)
+    assert len(state.player1.deck) == 27
+    assert len(state.player2.deck) == 26
+    assert len(state.player1.hand) == 3
+    assert len(state.player2.hand) == 4
 
 
 def test_get_valid_actions_returns_list():

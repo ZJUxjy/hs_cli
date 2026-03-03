@@ -51,6 +51,9 @@ class GameController:
         # Create game engine
         self.engine = GameEngine(state)
 
+        # Initialize game (draw starting hands, set mana)
+        self.engine.initialize_game()
+
         return state
 
     def get_valid_actions(self) -> List[Action]:
@@ -75,7 +78,7 @@ class GameController:
         # Can attack with minions on board
         from hearthstone.engine.action import AttackAction
         for minion in player.board:
-            if minion.can_attack():
+            if minion.can_attack:
                 # Can attack enemy minions
                 for enemy_minion in state.opposing_player.board:
                     actions.append(AttackAction(
@@ -87,7 +90,7 @@ class GameController:
                 actions.append(AttackAction(
                     player_id=player.name,
                     attacker_id=minion.id,
-                    target_id=state.opposing_player.hero.id
+                    target_id="enemy_hero"
                 ))
 
         return actions

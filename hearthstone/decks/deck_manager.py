@@ -15,8 +15,9 @@ class DeckManager:
 
     def list_decks(self) -> List[str]:
         """List available deck names."""
-        # TODO: Implement
-        return []
+        if not self.decks_dir.exists():
+            return []
+        return [f.stem for f in self.decks_dir.glob("*.json")]
 
     def load_deck(self, name: str) -> Deck:
         """Load a deck by name."""
