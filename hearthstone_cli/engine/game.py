@@ -16,6 +16,7 @@ from hearthstone_cli.engine.actions import (
     Action,
     AttackAction,
     EndTurnAction,
+    PlayCardAction,
     TargetReference,
     Zone,
 )
@@ -34,6 +35,8 @@ class GameLogic:
             return cls._apply_end_turn(state, action)
         elif isinstance(action, AttackAction):
             return cls._apply_attack(state, action)
+        elif isinstance(action, PlayCardAction):
+            return cls._apply_play_card(state, action)
         else:
             return state
 
@@ -127,6 +130,58 @@ class GameLogic:
         return replace(state, players=tuple(players))
 
     @classmethod
+    def _apply_play_card(cls, state: GameState, action: PlayCardAction) -> GameState:
+        """应用打出卡牌"""
+        players = list(state.players)
+        player = players[action.player]
+
+        # 获取打出的卡牌
+        card = player.hand[action.card_index]
+
+        # 从手牌移除
+        new_hand = list(player.hand)
+        del new_hand[action.card_index]
+
+        # 扣除法力值
+        new_mana = replace(player.mana, current=player.mana.current - card.cost)
+
+        # 处理随从牌
+        if card.card_type.value == "MINION":
+            # 创建随从
+            minion = Minion(
+                card_id=card.card_id,
+                attack=card.attack or 0,
+                health=card.health or 0,
+                max_health=card.health or 0,
+                attributes=card.attributes,
+                enchantments=(),
+                damage_taken=0,
+                summoned_this_turn=True,
+                exhausted=Attribute.CHARGE not in card.attributes,  # 无冲锋的随从本回合疲劳
+            )
+
+            # 插入到指定位置
+            new_board = list(player.board)
+            pos = min(action.board_position, len(new_board))
+            new_board.insert(pos, minion)
+
+            players[action.player] = replace(
+                player,
+                hand=tuple(new_hand),
+                mana=new_mana,
+                board=tuple(new_board)
+            )
+        else:
+            # 其他类型卡牌（法术、武器等）暂时只从手牌移除
+            players[action.player] = replace(
+                player,
+                hand=tuple(new_hand),
+                mana=new_mana
+            )
+
+        return replace(state, players=tuple(players))
+
+    @classmethod
     def get_legal_actions(cls, state: GameState, player: int) -> List[Action]:
         """获取玩家所有合法行动"""
         actions: List[Action] = [EndTurnAction(player=player)]
@@ -135,6 +190,28 @@ class GameLogic:
             return actions
 
         player_state = state.players[player]
+
+        # 可以打出的手牌
+        for i, card in enumerate(player_state.hand):
+            if card.cost <= player_state.mana.current:
+                # 随从牌需要检查场上是否有空位
+                if card.card_type.value == "MINION":
+                    if len(player_state.board) < 7:  # 场上最多7个随从
+                        # 简化：总是放在最右边
+                        actions.append(PlayCardAction(
+                            player=player,
+                            card_index=i,
+                            target=None,
+                            board_position=len(player_state.board)
+                        ))
+                else:
+                    # 法术/武器等其他卡牌
+                    actions.append(PlayCardAction(
+                        player=player,
+                        card_index=i,
+                        target=None,
+                        board_position=0
+                    ))
 
         # 可以攻击的随从
         for i, minion in enumerate(player_state.board):
@@ -210,9 +287,11 @@ class GameLogic:
         hand = cards[:initial_hand_size]
         remaining_deck = cards[initial_hand_size:]
 
+        # 先手：1费1水晶，后手：0费1水晶（但有硬币）
+        starting_mana = 1 if goes_first else 0
         return PlayerState(
             hero=HeroState(health=30),
-            mana=ManaState(current=1 if goes_first else 0, max_mana=0 if goes_first else 1),
+            mana=ManaState(current=starting_mana, max_mana=1),
             deck=remaining_deck,
             hand=hand,
             board=(),

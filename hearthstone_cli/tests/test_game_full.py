@@ -87,11 +87,11 @@ def test_initial_mana():
     player0 = state.players[0]  # 先手
     player1 = state.players[1]  # 后手
 
-    # 先手：当前1点水晶，最大0点（下回合才到1）
+    # 先手：当前1点水晶，最大1点
     assert player0.mana.current == 1
-    assert player0.mana.max_mana == 0
+    assert player0.mana.max_mana == 1
 
-    # 后手：当前0点水晶，最大1点（下回合有1点）
+    # 后手：当前0点水晶，最大1点
     assert player1.mana.current == 0
     assert player1.mana.max_mana == 1
 

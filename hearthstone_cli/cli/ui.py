@@ -71,7 +71,22 @@ class CLIInterface:
         if action_type == "EndTurnAction":
             return "结束回合"
         elif action_type == "AttackAction":
-            return f"攻击"
+            attacker = action.attacker
+            defender = action.defender
+            # 获取攻击者信息
+            if attacker.zone.value == "BOARD":
+                minion = self.game.players[attacker.player].board[attacker.index]
+                attacker_str = f"{minion.card_id}({minion.attack}/{minion.health})"
+            else:
+                attacker_str = "英雄"
+            # 获取防御者信息
+            if defender.zone.value == "BOARD":
+                minion = self.game.players[defender.player].board[defender.index]
+                defender_str = f"{minion.card_id}({minion.attack}/{minion.health})"
+            else:
+                defender_str = "敌方英雄"
+            return f"攻击: {attacker_str} → {defender_str}"
         elif action_type == "PlayCardAction":
-            return f"打出卡牌"
+            card = self.game.players[action.player].hand[action.card_index]
+            return f"打出 [{card.cost}费] {card.name} ({card.attack}/{card.health})"
         return action_type
