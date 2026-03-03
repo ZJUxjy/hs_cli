@@ -33,6 +33,30 @@ def test_ability_values():
     assert Ability.SPELL_DAMAGE == "SPELL_DAMAGE"
 
 
+def test_ability_enum_has_battlecry():
+    """Test that BATTLECRY ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.BATTLECRY == "BATTLECRY"
+
+
+def test_ability_enum_has_deathrattle():
+    """Test that DEATHRATTLE ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.DEATHRATTLE == "DEATHRATTLE"
+
+
+def test_ability_enum_has_stealth():
+    """Test that STEALTH ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.STEALTH == "STEALTH"
+
+
+def test_ability_enum_has_rush():
+    """Test that RUSH ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.RUSH == "RUSH"
+
+
 def test_hero_class_values():
     """Test HeroClass enum has expected values."""
     assert HeroClass.WARRIOR == "WARRIOR"

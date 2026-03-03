@@ -30,6 +30,14 @@ class Ability(str, Enum):
     RUSH = "RUSH"
     REBORN = "REBORN"
     SPELL_DAMAGE = "SPELL_DAMAGE"
+    BATTLECRY = "BATTLECRY"
+    DEATHRATTLE = "DEATHRATTLE"
+    DISCOVER = "DISCOVER"
+    COMBO = "COMBO"
+    OVERLOAD = "OVERLOAD"
+    SECRET = "SECRET"
+    FREEZE = "FREEZE"
+    SILENCE = "SILENCE"
 
 
 class HeroClass(str, Enum):
