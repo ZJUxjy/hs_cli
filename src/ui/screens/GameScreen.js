@@ -23,7 +23,7 @@ class GameScreen {
   }
 
   show(playerClass = 'mage', difficulty = 'normal') {
-    console.log('[GameScreen] show called with class:', playerClass);
+    console.log('[GameScreen] show called with class:', playerClass, 'difficulty:', difficulty);
 
     this.screen.currentScreen = 'game';
     console.log('[GameScreen] Creating GameEngine...');
@@ -34,7 +34,8 @@ class GameScreen {
     this.cardEffect = new CardEffect(this.game);
 
     console.log('[GameScreen] Starting new game...');
-    this.game.startNewGame(playerClass, difficulty);
+    // 传3个参数：playerClass, opponentClass(自动), difficulty
+    this.game.startNewGame(playerClass, null, difficulty);
 
     console.log('[GameScreen] Creating UI...');
     this.createUI();
