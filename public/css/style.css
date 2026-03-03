@@ -371,18 +371,61 @@ body {
   padding: 20px;
 }
 
-.deck-panel input,
-.deck-panel select {
-  padding: 12px 15px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-size: 16px;
+.deck-name-input {
+  padding: 14px 16px !important;
+  background: rgba(255,255,255,0.08) !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  font-size: 18px !important;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.deck-panel input::placeholder {
+.deck-name-input:focus {
+  outline: none;
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.15);
+  background: rgba(255,255,255,0.12) !important;
+}
+
+.deck-name-input::placeholder {
   color: var(--text-secondary);
+}
+
+.deck-hero-select {
+  padding: 14px 40px 14px 16px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: rgba(255,255,255,0.08) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%23f0c040' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  color: var(--accent-gold) !important;
+  font-size: 16px !important;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deck-hero-select:hover {
+  border-color: var(--accent-gold) !important;
+  background-color: rgba(255,255,255,0.12) !important;
+}
+
+.deck-hero-select:focus {
+  outline: none;
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.15);
+}
+
+.deck-hero-select option {
+  background: #2a2a4a;
+  color: #fff;
+  padding: 12px;
+  font-size: 14px;
 }
 
 .deck-slots {

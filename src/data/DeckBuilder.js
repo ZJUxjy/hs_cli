@@ -45,7 +45,12 @@ class DeckBuilder {
 
   getDeck(id) {
     const decks = this.getDecks();
-    return decks.find(d => d.id === id);
+    const deck = decks.find(d => d.id === id);
+    if (!deck) return null;
+    return {
+      ...deck,
+      cardCount: deck.cards.reduce((sum, c) => sum + c.count, 0)
+    };
   }
 
   delete(id) {
@@ -135,11 +140,16 @@ class DeckBuilder {
   }
 
   list() {
-    return this.getDecks();
+    const decks = this.getDecks();
+    // Add cardCount to each deck
+    return decks.map(d => ({
+      ...d,
+      cardCount: d.cards.reduce((sum, c) => sum + c.count, 0)
+    }));
   }
 
   listByHero(hero) {
-    return this.getDecks().filter(d => d.hero === hero);
+    return this.list().filter(d => d.hero === hero);
   }
 
   listByMode(mode) {
