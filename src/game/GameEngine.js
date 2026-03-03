@@ -71,13 +71,22 @@ class GameEngine {
    */
   createPlayer(type, heroClass) {
     const classConfig = ConfigData.getClass(heroClass);
-    const classCards = CardData.getCardsByClass(heroClass);
-    
+    // 使用带effect的卡牌数据，只保留可收集的随从和法术
+    const allCards = CardData.getCardsByClassWithEffect(heroClass);
+
+    const classCards = allCards.filter(c =>
+      c.collectible && (c.type === 'MINION' || c.type === 'SPELL')
+    );
+
+    // 如果筛选后卡牌太少，回退到所有卡
+    const cardsToUse = classCards.length >= 10 ? classCards : allCards;
+
     // 构建初始套牌 (复制卡牌，避免引用问题)
     // 使用多套卡牌填充到30张
     let deck = [];
+    const cardsCopy = cardsToUse.map(c => ({ ...c, uid: this.generateUid() }));
     while (deck.length < 30) {
-      deck = deck.concat(classCards.map(c => ({ ...c, uid: this.generateUid() })));
+      deck = deck.concat(cardsCopy);
     }
     deck = deck.slice(0, 30);
     

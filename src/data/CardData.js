@@ -70,7 +70,12 @@ class CardData {
    * @returns {array}
    */
   getCardsByClass(cardClass) {
-    return this.byClass[cardClass] || [];
+    // 尝试直接匹配，不行则尝试大小写转换
+    if (this.byClass[cardClass]) return this.byClass[cardClass];
+    const upper = cardClass.toUpperCase();
+    if (this.byClass[upper]) return this.byClass[upper];
+    const lower = cardClass.toLowerCase();
+    return this.byClass[lower] || [];
   }
 
   /**
@@ -140,6 +145,39 @@ class CardData {
    */
   getClasses() {
     return Object.keys(this.byClass);
+  }
+
+  /**
+   * 获取转换后的卡牌（含effect）
+   * @param {string} id
+   * @returns {object|null}
+   */
+  getCardWithEffect(id) {
+    const card = this.byId[id];
+    if (!card) return null;
+    const EffectMapper = require('./EffectMapper');
+    return { ...card, effect: EffectMapper.transform(card) };
+  }
+
+  /**
+   * 获取职业卡牌（含effect）
+   * @param {string} cardClass
+   * @returns {array}
+   */
+  getCardsByClassWithEffect(cardClass) {
+    // 尝试直接匹配，不行则尝试大小写转换
+    let cards = this.byClass[cardClass];
+    if (!cards) {
+      const upper = cardClass.toUpperCase();
+      cards = this.byClass[upper];
+    }
+    if (!cards) {
+      const lower = cardClass.toLowerCase();
+      cards = this.byClass[lower];
+    }
+    cards = cards || [];
+    const EffectMapper = require('./EffectMapper');
+    return cards.map(c => ({ ...c, effect: EffectMapper.transform(c) }));
   }
 }
 
