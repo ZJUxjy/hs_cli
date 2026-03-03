@@ -8,12 +8,7 @@ from hearthstone.models.enums import HeroClass
 def test_simple_game_flow():
     """Test a simple game with just end turn actions."""
     engine = GameEngine()
-    engine.initialize_game(
-        player1_name="Alice",
-        player1_class=HeroClass.MAGE,
-        player2_name="Bob",
-        player2_class=HeroClass.WARRIOR
-    )
+    engine.initialize_game()
 
     # Play 10 turns (5 rounds)
     for i in range(10):
@@ -31,12 +26,7 @@ def test_simple_game_flow():
 def test_mana_gain_over_turns():
     """Test mana crystal gain over turns."""
     engine = GameEngine()
-    engine.initialize_game(
-        player1_name="Alice",
-        player1_class=HeroClass.MAGE,
-        player2_name="Bob",
-        player2_class=HeroClass.WARRIOR
-    )
+    engine.initialize_game()
 
     player1 = engine.state.player1
     player2 = engine.state.player2
