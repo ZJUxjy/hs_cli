@@ -17,3 +17,11 @@ def test_deck_manager_load_nonexistent():
 
     with pytest.raises(FileNotFoundError):
         manager.load_deck("nonexistent_deck")
+
+
+def test_deck_manager_save_deck_not_implemented():
+    """Test that save_deck raises NotImplementedError."""
+    manager = DeckManager()
+
+    with pytest.raises(NotImplementedError, match="save_deck not yet implemented"):
+        manager.save_deck(None, "test_deck")

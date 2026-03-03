@@ -23,7 +23,7 @@ class DeckManager:
     def save_deck(self, deck: Deck, name: str):
         """Save a deck to file."""
         # TODO: Implement
-        pass
+        raise NotImplementedError("save_deck not yet implemented")
 
     def validate_deck(self, deck: Deck) -> List[str]:
         """Validate deck and return list of errors."""
