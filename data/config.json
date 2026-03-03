@@ -95,6 +95,42 @@
         "description": "获得+1攻击力和1点护甲",
         "effect": { "type": "buff", "attack": 1, "armor": 1 }
       }
+    },
+    "warlock": {
+      "id": "warlock",
+      "name": "术士",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "warlock_hero_power",
+        "name": "灵魂之火",
+        "cost": 2,
+        "description": "抽一张牌并失去2点生命",
+        "effect": { "type": "sacrifice", "draw": 1, "damage": 2 }
+      }
+    },
+    "demonhunter": {
+      "id": "demonhunter",
+      "name": "恶魔猎手",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "demonhunter_hero_power",
+        "name": "邪能撞击",
+        "cost": 1,
+        "description": "造成1点伤害",
+        "effect": { "type": "damage", "value": 1 }
+      }
+    },
+    "deathknight": {
+      "id": "deathknight",
+      "name": "死亡骑士",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "deathknight_hero_power",
+        "name": "亡者大军",
+        "cost": 2,
+        "description": "召唤两个2/2的食尸鬼",
+        "effect": { "type": "summonTwice", "id": "FP1_001t", "name": "食尸鬼", "attack": 2, "health": 2 }
+      }
     }
   },
   "game": {

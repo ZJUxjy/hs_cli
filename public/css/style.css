@@ -628,6 +628,8 @@ body {
 .paladin-icon { background: linear-gradient(135deg, #f0c040, #d0a020); }
 .shaman-icon { background: linear-gradient(135deg, #4a4ad9, #3030b0); }
 .warlock-icon { background: linear-gradient(135deg, #6a2a8a, #4a1a6a); }
+.demonhunter-icon { background: linear-gradient(135deg, #ff6b6b, #c92a2a); }
+.deathknight-icon { background: linear-gradient(135deg, #4ad9d9, #2a8a8a); }
 
 /* 游戏界面 */
 #game-screen {

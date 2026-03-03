@@ -616,6 +616,30 @@ class GameEngine {
         }
         Logger.info(`${player.name} 获得 +${heroPower.effect.attack} 攻击力 和 +${heroPower.effect.armor} 护甲`);
         break;
+      case 'sacrifice':
+        // 术士：抽牌并失去生命
+        if (heroPower.effect.draw) {
+          this.drawCard(player, heroPower.effect.draw);
+        }
+        if (heroPower.effect.damage) {
+          battleCalc.calculateDamage(player, heroPower.effect.damage);
+          Logger.info(`${player.name} 使用技能失去 ${heroPower.effect.damage} 点生命`);
+        }
+        break;
+      case 'summonTwice':
+        // 死亡骑士：召唤两个随从
+        const minion1 = {
+          id: heroPower.effect.id || 'token',
+          name: heroPower.effect.name || '随从',
+          effect: {
+            attack: heroPower.effect.attack || 2,
+            health: heroPower.effect.health || 2
+          }
+        };
+        const minion2 = { ...minion1 };
+        this.summonMinion(player, minion1);
+        this.summonMinion(player, minion2);
+        break;
       default:
         Logger.warn(`未知的英雄技能类型: ${heroPower.effect.type}`);
     }
