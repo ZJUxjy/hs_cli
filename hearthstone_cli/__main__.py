@@ -49,7 +49,7 @@ def main():
     print("=" * 60)
 
     deck = create_test_deck()
-    game = GameLogic.create_game(deck1=deck, deck2=deck, seed=42)
+    game = GameLogic.create_game(deck1=deck, deck2=deck, seed=123)  # 使用种子123确保第一回合有1费卡牌
 
     ui = CLIInterface(game)
     ui.run()
