@@ -64,16 +64,22 @@ class ClassSelection {
 
     // 键盘绑定
     const self = this;
+    console.log('[ClassSelection] Binding keys, currentScreen:', this.screen.currentScreen);
+
     this.screen.key('up', () => {
+      console.log('[ClassSelection] UP pressed, currentScreen:', self.screen.currentScreen);
       if (self.screen.currentScreen === 'classSelection') self.navigate(-1);
     });
     this.screen.key('down', () => {
+      console.log('[ClassSelection] DOWN pressed, currentScreen:', self.screen.currentScreen);
       if (self.screen.currentScreen === 'classSelection') self.navigate(1);
     });
     this.screen.key('enter', () => {
+      console.log('[ClassSelection] ENTER pressed, currentScreen:', self.screen.currentScreen);
       if (self.screen.currentScreen === 'classSelection') self.confirm();
     });
     this.screen.key('escape', () => {
+      console.log('[ClassSelection] ESC pressed, currentScreen:', self.screen.currentScreen);
       if (self.screen.currentScreen === 'classSelection') self.back();
     });
 
