@@ -69,9 +69,48 @@ class HearthstoneEnv(gym.Env):
         }
 
     def step(self, action):
-        """Execute action."""
-        # TODO: Implement
-        pass
+        """Execute action and return (obs, reward, terminated, truncated, info)."""
+        if self.controller is None:
+            raise RuntimeError("Call reset() before step()")
+
+        # Get valid actions
+        valid_actions = self.controller.get_valid_actions()
+
+        # Map action index to actual action
+        if action < len(valid_actions):
+            selected_action = valid_actions[action]
+            event = self.controller.execute_action(selected_action)
+
+            # Calculate reward
+            reward = 0.0
+            if event.success:
+                reward = 0.001  # Small reward for successful action
+        else:
+            # Invalid action, ignore
+            reward = -0.01
+            event = None
+
+        # Get new observation
+        obs = self._get_observation()
+
+        # Check if game is over
+        terminated = self.controller.is_game_over()
+        truncated = False
+
+        # Calculate final reward if game over
+        if terminated:
+            winner = self.controller.get_winner()
+            if winner and winner.name == self.controller.get_state().player1.name:
+                reward = 1.0  # Won
+            else:
+                reward = -1.0  # Lost
+
+        info = {
+            "valid_actions": len(valid_actions),
+            "event": event.message if event else "Invalid action"
+        }
+
+        return obs, reward, terminated, truncated, info
 
     def render(self, mode="human"):
         """Render environment."""

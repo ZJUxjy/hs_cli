@@ -27,3 +27,19 @@ def test_gym_env_reset():
     assert obs is not None
     assert isinstance(obs, dict)
     assert "player_health" in obs
+
+
+def test_gym_env_step():
+    """Test environment step."""
+    from hearthstone.ai.gym_env import HearthstoneEnv
+
+    env = HearthstoneEnv()
+    obs, _ = env.reset()
+
+    # Try to take a step (action 0 = end turn)
+    obs, reward, terminated, truncated, info = env.step(0)
+
+    assert obs is not None
+    assert isinstance(reward, (int, float))
+    assert isinstance(terminated, bool)
+    assert isinstance(truncated, bool)
