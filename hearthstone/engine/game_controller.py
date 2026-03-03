@@ -51,9 +51,6 @@ class GameController:
         # Create game engine
         self.engine = GameEngine(state)
 
-        # Initialize game (draw starting hands)
-        self.engine.initialize_game()
-
         return state
 
     def get_valid_actions(self) -> List[Action]:
