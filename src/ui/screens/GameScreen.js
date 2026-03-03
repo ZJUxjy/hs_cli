@@ -170,6 +170,9 @@ class GameScreen {
 
     // A - 攻击模式
     this.screen.key('a', () => this.enterAttackMode());
+
+    // S - 保存游戏
+    this.screen.key('s', () => this.saveGame());
   }
 
   /**
@@ -350,6 +353,30 @@ class GameScreen {
     const MainMenu = require('./MainMenu');
     const menu = new MainMenu(this.screen, this.parent);
     menu.show();
+  }
+
+  /**
+   * 保存游戏
+   */
+  saveGame() {
+    // 临时使用默认profileId，实际需要从选择角色界面传入
+    const profileId = 'default';
+    const ProfileData = require('../../data/ProfileData');
+
+    // 确保默认profile存在
+    let profile = ProfileData.loadProfile(profileId);
+    if (!profile) {
+      profile = ProfileData.createProfile('Default');
+    }
+
+    const success = this.game.saveCurrentGame(profileId);
+    if (success) {
+      this.game.setMessage('游戏已保存! (按任意键继续)');
+      this.update();
+    } else {
+      this.game.setMessage('保存失败!');
+      this.update();
+    }
   }
 
   /**

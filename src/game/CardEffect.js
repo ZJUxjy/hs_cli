@@ -133,6 +133,20 @@ class CardEffect {
           return this.executeEvolve(effect, context);
         case 'combo':
           return this.executeCombo(effect, context);
+        case 'weapon':
+          return this.executeWeapon(effect, context);
+        case 'weapon_buff':
+          return this.executeWeaponBuff(effect, context);
+        case 'weapon_attack':
+          return this.executeWeaponAttack(effect, context);
+        case 'bounce':
+          return this.executeBounce(effect, context);
+        case 'steal':
+          return this.executeSteal(effect, context);
+        case 'totem':
+          return this.executeTotem(effect, context);
+        case 'mana':
+          return this.executeMana(effect, context);
         default:
           Logger.warn(`未知效果类型: ${effect.type}`);
           return false;
@@ -627,6 +641,153 @@ class CardEffect {
         Logger.info('连击触发！效果增强 (+2/+2)');
       }
       return this.executeBuff(buffEffect, context);
+    }
+    return true;
+  }
+
+  /**
+   * 装备武器
+   */
+  executeWeapon(effect, context) {
+    const { player, card } = context;
+    this.game.equipWeapon(player, card);
+    return true;
+  }
+
+  /**
+   * 武器 buff
+   */
+  executeWeaponBuff(effect, context) {
+    const { player } = context;
+    if (!player.weapon) {
+      Logger.warn('没有装备武器');
+      return false;
+    }
+
+    if (effect.value) {
+      player.weapon.attack += effect.value;
+    }
+    if (effect.poisonous) {
+      player.weapon.poisonous = true;
+    }
+
+    Logger.info(`${player.weapon.name} 获得增益: 攻击力+${effect.value || 0}, 剧毒=${effect.poisonous || false}`);
+    return true;
+  }
+
+  /**
+   * 武器攻击（刀扇等）
+   */
+  executeWeaponAttack(effect, context) {
+    const { player } = context;
+    if (!player.weapon) {
+      Logger.warn('没有装备武器');
+      return false;
+    }
+
+    const damage = player.weapon.attack;
+    const opponent = this.game.getOpponent();
+
+    // 对所有敌人造成伤害
+    this.battleCalc.aoeDamage(opponent.field, damage);
+
+    // 消耗耐久度
+    player.weapon.durability--;
+    if (player.weapon.durability <= 0) {
+      player.weapon = null;
+      Logger.info('武器已损坏');
+    }
+
+    return true;
+  }
+
+  /**
+   * 随从回归手牌
+   */
+  executeBounce(effect, context) {
+    const { target, player } = context;
+    if (!target || target.health === undefined) {
+      Logger.warn('没有有效的弹回目标');
+      return false;
+    }
+
+    // 找到目标的所有者
+    const owner = target.id === player.id ? player : this.game.getOpponent();
+
+    // 如果手牌已满
+    if (owner.hand.length >= 10) {
+      Logger.info(`${owner.name} 的手牌已满，${target.name} 无法返回`);
+      return false;
+    }
+
+    // 从场上移除
+    const field = owner.field;
+    const idx = field.indexOf(target);
+    if (idx > -1) {
+      field.splice(idx, 1);
+      // 加入手牌
+      owner.hand.push(target);
+      Logger.info(`${target.name} 返回 ${owner.name} 的手牌`);
+    }
+
+    return true;
+  }
+
+  /**
+   * 获得随从控制权
+   */
+  executeSteal(effect, context) {
+    const { target, player } = context;
+    if (!target || target.health === undefined) {
+      Logger.warn('没有有效的偷取目标');
+      return false;
+    }
+
+    const opponent = this.game.getOpponent();
+
+    // 从对方战场移除
+    const idx = opponent.field.indexOf(target);
+    if (idx > -1) {
+      opponent.field.splice(idx, 1);
+      // 加入自己战场
+      player.field.push(target);
+      Logger.info(`${player.name} 获得了 ${target.name} 的控制权`);
+    }
+
+    return true;
+  }
+
+  /**
+   * 召唤图腾
+   */
+  executeTotem(effect, context) {
+    const { player } = context;
+    const totemTypes = [
+      { name: '力量图腾', attack: 0, health: 2 },
+      { name: '治疗图腾', attack: 0, health: 2 },
+      { name: '灼热图腾', attack: 1, health: 1 },
+      { name: '石爪图腾', attack: 0, health: 2 }
+    ];
+
+    const totem = totemTypes[Math.floor(Math.random() * totemTypes.length)];
+
+    this.game.summonMinion(player, {
+      id: 'totem',
+      name: totem.name,
+      effect: { attack: totem.attack, health: totem.health }
+    });
+
+    return true;
+  }
+
+  /**
+   * 法力水晶操作
+   */
+  executeMana(effect, context) {
+    const { player } = context;
+    if (effect.value) {
+      player.mana = Math.min(player.mana + effect.value, 10);
+      Logger.info(`${player.name} 获得 ${effect.value} 点法力水晶`);
     }
     return true;
   }

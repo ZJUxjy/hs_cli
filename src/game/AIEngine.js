@@ -137,7 +137,17 @@ class AIEngine {
       }
     });
 
-    // 5. 结束回合
+    // 5. 使用武器攻击
+    if (ai.weapon && ai.weapon.durability > 0) {
+      if (player.field.length > 0) {
+        const target = this.selectLowestHealthTarget(player.field);
+        actions.push({ type: 'weapon_attack', target });
+      } else {
+        actions.push({ type: 'weapon_attack', target: player });
+      }
+    }
+
+    // 6. 结束回合
     if (actions.length > 0) {
       actions.push({ type: 'end_turn' });
     }
@@ -239,6 +249,10 @@ class AIEngine {
 
       case 'attack':
         this.executeAttack(action);
+        break;
+
+      case 'weapon_attack':
+        this.executeWeaponAttack(action);
         break;
 
       case 'end_turn':
@@ -387,6 +401,20 @@ class AIEngine {
 
     attacker.hasAttacked = true;
     Logger.info(`>>> 敌方 ${attacker.name} 攻击了 ${target.name || '玩家'}`);
+  }
+
+  /**
+   * 执行武器攻击
+   */
+  executeWeaponAttack(action) {
+    const state = this.game.getGameState();
+    const ai = state.ai;
+    const target = action.target;
+
+    if (ai.weapon && ai.weapon.durability > 0) {
+      this.game.attackWithWeapon(ai, target);
+      Logger.info(`>>> 敌方使用武器攻击了 ${target.name || '玩家'}`);
+    }
   }
 }
 

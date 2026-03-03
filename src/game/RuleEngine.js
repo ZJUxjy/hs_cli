@@ -90,11 +90,13 @@ class RuleEngine {
       return { valid: false, reason: '本回合已使用英雄技能' };
     }
 
-    const classConfig = this.game.state ? this.game.state[player.id] : null;
-    // 需要获取职业配置，这里简化处理
-    const heroPower = player.hero === 'mage' 
-      ? { cost: 2, name: '火焰冲击' }
-      : { cost: 2, name: '全副武装' };
+    const ConfigData = require('../data/ConfigData');
+    const classConfig = ConfigData.getClass(player.hero);
+    const heroPower = classConfig?.heroPower;
+
+    if (!heroPower) {
+      return { valid: false, reason: '该职业没有英雄技能' };
+    }
 
     if (player.mana < heroPower.cost) {
       return { valid: false, reason: '法力值不足' };

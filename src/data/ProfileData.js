@@ -105,6 +105,67 @@ class ProfileData {
       return false;
     }
   }
+
+  /**
+   * 保存游戏进度
+   * @param {string} profileId - 存档ID
+   * @param {object} gameState - 游戏状态
+   */
+  saveGameState(profileId, gameState) {
+    const profile = this.loadProfile(profileId);
+    if (!profile) return false;
+
+    if (!profile.games) profile.games = [];
+
+    // 从 gameState.state 中获取游戏状态信息
+    const state = gameState.state || gameState;
+    const gameSave = {
+      id: 'game_' + Date.now(),
+      state: gameState,
+      savedAt: new Date().toISOString(),
+      turn: state.turn,
+      playerHero: state.player?.hero,
+      aiHero: state.ai?.hero
+    };
+
+    profile.games.push(gameSave);
+    // 只保留最近5个游戏存档
+    if (profile.games.length > 5) {
+      profile.games = profile.games.slice(-5);
+    }
+
+    this.saveProfile(profile);
+    return true;
+  }
+
+  /**
+   * 加载游戏进度
+   * @param {string} profileId - 存档ID
+   * @param {string} gameId - 游戏ID
+   */
+  loadGameState(profileId, gameId) {
+    const profile = this.loadProfile(profileId);
+    if (!profile || !profile.games) return null;
+
+    return profile.games.find(g => g.id === gameId) || null;
+  }
+
+  /**
+   * 获取游戏存档列表
+   * @param {string} profileId - 存档ID
+   */
+  listGameSaves(profileId) {
+    const profile = this.loadProfile(profileId);
+    if (!profile || !profile.games) return [];
+
+    return profile.games.map(g => ({
+      id: g.id,
+      savedAt: g.savedAt,
+      turn: g.turn,
+      playerHero: g.playerHero,
+      aiHero: g.aiHero
+    })).reverse();
+  }
 }
 
 module.exports = new ProfileData();

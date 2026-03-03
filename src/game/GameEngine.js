@@ -98,7 +98,8 @@ class GameEngine {
       field: [],
       secrets: [],
       usedHeroPower: false,
-      fatigueDamage: 0
+      fatigueDamage: 0,
+      weapon: null
     };
   }
 
@@ -429,21 +430,226 @@ class GameEngine {
 
   /**
    * 加载游戏
-   * @param {object} savedState
+   * @param {object} savedState - 可以是完整的游戏存档或直接的游戏状态
    */
   loadGame(savedState) {
-    this.state = savedState;
+    // 处理两种格式：
+    // 1. 直接的游戏状态 (savedState.state 存在)
+    // 2. 包装的存档对象 (savedState.state.state 存在)
+    if (savedState.state && savedState.state.state) {
+      // 包装格式：从 ProfileData 加载的
+      this.state = savedState.state.state;
+    } else if (savedState.state) {
+      // 直接格式
+      this.state = savedState.state;
+    } else {
+      // 兼容：直接传入状态
+      this.state = savedState;
+    }
+
     this.turnManager = new TurnManager(this);
+
+    // 重新初始化 CardEffect 引用
+    this.cardEffect = null;
+
+    Logger.info('游戏已加载');
+    return true;
   }
 
   /**
    * 获取存档数据
    */
   getSaveData() {
+    // 清理不必要的状态数据，深拷贝避免引用问题
+    const stateCopy = JSON.parse(JSON.stringify(this.state));
+
     return {
-      state: this.state,
-      savedAt: new Date().toISOString()
+      state: stateCopy,
+      savedAt: new Date().toISOString(),
+      version: '1.0'
     };
+  }
+
+  /**
+   * 保存当前游戏
+   * @param {string} profileId - 玩家存档ID
+   */
+  saveCurrentGame(profileId) {
+    const ProfileData = require('../data/ProfileData');
+    const saveData = this.getSaveData();
+    return ProfileData.saveGameState(profileId, saveData);
+  }
+
+  /**
+   * 从存档加载游戏
+   * @param {string} profileId - 玩家存档ID
+   * @param {string} gameId - 游戏ID
+   */
+  loadFromSave(profileId, gameId) {
+    const ProfileData = require('../data/ProfileData');
+    const gameSave = ProfileData.loadGameState(profileId, gameId);
+
+    if (!gameSave) {
+      Logger.error('找不到游戏存档');
+      return false;
+    }
+
+    return this.loadGame(gameSave);
+  }
+
+  /**
+   * 装备武器
+   * @param {object} player - 玩家
+   * @param {object} card - 武器卡牌
+   */
+  equipWeapon(player, card) {
+    // 卸下现有武器
+    if (player.weapon) {
+      Logger.info(`${player.name} 卸下了 ${player.weapon.name}`);
+    }
+
+    player.weapon = {
+      uid: this.generateUid(),
+      id: card.id,
+      name: card.name,
+      attack: card.effect.attack,
+      durability: card.effect.durability,
+      poisonous: card.effect.poisonous || false
+    };
+
+    Logger.info(`${player.name} 装备了 ${card.name} (${card.effect.attack}/${card.effect.durability})`);
+    return true;
+  }
+
+  /**
+   * 使用英雄技能
+   * @param {object} player - 玩家
+   */
+  useHeroPower(player) {
+    const ConfigData = require('../data/ConfigData');
+    const BattleCalculator = require('./BattleCalculator');
+
+    const classConfig = ConfigData.getClass(player.hero);
+    const heroPower = classConfig?.heroPower;
+
+    if (!heroPower) {
+      Logger.warn(`${player.hero} 没有英雄技能`);
+      return false;
+    }
+
+    // 扣除法力值
+    player.mana -= heroPower.cost;
+    player.usedHeroPower = true;
+
+    const opponent = this.getOpponent();
+    const battleCalc = BattleCalculator;
+
+    switch (heroPower.effect.type) {
+      case 'damage':
+        battleCalc.calculateDamage(opponent, heroPower.effect.value);
+        break;
+      case 'armor':
+        battleCalc.gainArmor(player, heroPower.effect.value);
+        break;
+      case 'draw':
+        this.drawCard(player, heroPower.effect.value);
+        break;
+      case 'totem':
+        // 召唤随机图腾
+        this.summonMinion(player, { id: 'totem', name: '图腾', effect: { attack: 0, health: 2 } });
+        break;
+      default:
+        Logger.warn(`未知的英雄技能类型: ${heroPower.effect.type}`);
+    }
+
+    Logger.info(`${player.name} 使用了英雄技能 ${heroPower.name}`);
+    return true;
+  }
+
+  /**
+   * 使用武器攻击
+   * @param {object} player - 玩家
+   * @param {object} target - 目标（玩家或随从）
+   */
+  attackWithWeapon(player, target) {
+    if (!player.weapon) {
+      Logger.warn('没有装备武器');
+      return false;
+    }
+
+    const weapon = player.weapon;
+    const BattleCalculator = require('./BattleCalculator');
+    const battleCalc = BattleCalculator;
+
+    // 剧毒检查
+    if (weapon.poisonous && target.health !== undefined) {
+      target.health = 0;
+      Logger.info(`${target.name} 被剧毒杀死`);
+    } else if (target.armor !== undefined) {
+      // 攻击敌方英雄
+      battleCalc.attackHero({ attack: weapon.attack, poisonous: weapon.poisonous }, target);
+    }
+
+    // 减少耐久度
+    weapon.durability--;
+    Logger.info(`${weapon.name} 耐久度变为 ${weapon.durability}`);
+
+    // 武器损坏
+    if (weapon.durability <= 0) {
+      player.weapon = null;
+      Logger.info(`${weapon.name} 已损坏`);
+    }
+
+    return true;
+  }
+
+  /**
+   * 检查奥秘触发
+   * @param {string} event - 事件类型
+   * @param {object} data - 事件数据
+   */
+  checkSecrets(event, data) {
+    const opponent = this.getOpponent();
+    if (!opponent.secrets || opponent.secrets.length === 0) return;
+
+    const triggered = [];
+    opponent.secrets = opponent.secrets.filter(secret => {
+      let shouldTrigger = false;
+
+      switch (secret.trigger) {
+        case 'enemy_minion_played':
+          shouldTrigger = event === 'minion_played';
+          break;
+        case 'enemy_attack':
+          shouldTrigger = event === 'attack';
+          break;
+        case 'own_minion_died':
+          shouldTrigger = event === 'minion_died';
+          break;
+      }
+
+      if (shouldTrigger) {
+        triggered.push(secret);
+        return false; // 移除已触发的奥秘
+      }
+      return true;
+    });
+
+    // 执行触发的奥秘效果
+    triggered.forEach(secret => {
+      this.triggerSecret(secret, data);
+    });
+  }
+
+  /**
+   * 执行奥秘效果
+   */
+  triggerSecret(secret, data) {
+    const player = this.state.player;
+    Logger.info(`${player.name} 的奥秘 ${secret.originalCard?.name || '奥秘'} 被触发`);
+
+    // 根据奥秘类型执行效果 - 简化处理
+    // 实际应根据奥秘ID执行不同效果
   }
 }
 
