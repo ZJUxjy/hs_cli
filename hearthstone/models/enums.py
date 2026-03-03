@@ -45,3 +45,11 @@ class HeroClass(str, Enum):
     PRIEST = "PRIEST"
     DEMON_HUNTER = "DEMON_HUNTER"
     NEUTRAL = "NEUTRAL"
+
+
+class SpellEffect(str, Enum):
+    """Spell effect types."""
+    DAMAGE = "DAMAGE"  # Deal damage to target
+    HEAL = "HEAL"  # Restore health to target
+    DRAW = "DRAW"  # Draw cards
+    ARMOR = "ARMOR"  # Gain armor

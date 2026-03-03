@@ -3,7 +3,7 @@ from typing import List, Optional
 from hearthstone.models.game_state import GameState
 from hearthstone.models.player import Player
 from hearthstone.models.hero import Hero
-from hearthstone.models.card import Minion
+from hearthstone.models.card import Minion, Spell
 from hearthstone.models.enums import HeroClass
 from hearthstone.engine.action import (
     Action,
@@ -123,10 +123,65 @@ class GameEngine:
                 card.can_attack = Ability.CHARGE in card.abilities
                 player.board.append(card)
 
+        # If it's a spell, execute its effect
+        elif isinstance(card, Spell):
+            effect_message = self._execute_spell_effect(card, action.target_id)
+            return ActionResult(
+                success=True,
+                message=f"Cast {card.name}: {effect_message}"
+            )
+
         return ActionResult(
             success=True,
             message=f"Played {card.name}"
         )
+
+    def _execute_spell_effect(self, spell: Spell, target_id: Optional[str]) -> str:
+        """Execute spell effect and return effect message."""
+        from hearthstone.models.enums import SpellEffect
+
+        effect = spell.effect
+        value = spell.effect_value
+        player = self.state.current_player
+
+        if effect == SpellEffect.DAMAGE:
+            # Deal damage to target
+            if target_id == "enemy_hero":
+                self.state.opposing_player.hero.take_damage(value)
+                return f"Dealt {value} damage to enemy hero"
+            elif target_id:
+                # Find target minion
+                for minion in self.state.opposing_player.board:
+                    if minion.instance_id == target_id or minion.id == target_id:
+                        minion.take_damage(value)
+                        return f"Dealt {value} damage to {minion.name}"
+            return f"No valid target for damage"
+
+        elif effect == SpellEffect.HEAL:
+            # Restore health to target
+            if target_id == "friendly_hero" or target_id is None:
+                player.hero.health = min(player.hero.max_health, player.hero.health + value)
+                return f"Restored {value} health to hero"
+            elif target_id:
+                # Find target minion
+                for minion in player.board:
+                    if minion.instance_id == target_id or minion.id == target_id:
+                        minion.health = min(minion.max_health, minion.health + value)
+                        return f"Restored {value} health to {minion.name}"
+            return f"No valid target for healing"
+
+        elif effect == SpellEffect.DRAW:
+            # Draw cards
+            for _ in range(value):
+                player.draw_card()
+            return f"Drew {value} cards"
+
+        elif effect == SpellEffect.ARMOR:
+            # Gain armor
+            player.hero.armor += value
+            return f"Gained {value} armor"
+
+        return f"Unknown effect: {effect}"
 
     def _execute_attack(self, action: AttackAction) -> ActionResult:
         """Execute attack action."""

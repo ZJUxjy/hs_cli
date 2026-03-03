@@ -24,6 +24,9 @@ class Hero:
 
     def take_damage(self, amount: int) -> int:
         """Take damage, armor absorbs first."""
+        if amount < 0:
+            raise ValueError("Cannot take negative damage")
+
         actual_damage = 0
 
         # Armor absorbs damage first

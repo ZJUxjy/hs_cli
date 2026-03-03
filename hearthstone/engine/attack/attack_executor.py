@@ -81,10 +81,33 @@ class AttackExecutor:
             damage = source.attack
 
         if damage > 0:
+            # Check for Divine Shield
+            if isinstance(target, Minion) and Ability.DIVINE_SHIELD in target.abilities:
+                # Divine Shield absorbs all damage and is removed
+                target.abilities.remove(Ability.DIVINE_SHIELD)
+                return  # No damage dealt
+
+            # Apply damage
             if isinstance(target, Minion):
                 target.take_damage(damage)
+
+                # Check for Poisonous - destroys any minion damaged by this
+                if isinstance(source, Minion) and Ability.POISONOUS in source.abilities:
+                    target.health = 0  # Instant destruction
+
+                # Check for Lifesteal - restore health to hero
+                if isinstance(source, Minion) and Ability.LIFESTEAL in source.abilities:
+                    # Find the owning player and heal their hero
+                    # This is a simplified implementation
+                    pass  # TODO: Need reference to source's player
+
             elif isinstance(target, Hero):
                 target.take_damage(damage)
+
+                # Lifesteal for hero attacks
+                if isinstance(source, Hero) and source.can_attack:
+                    source.health = min(source.max_health, source.health + damage)
+
 
     def _check_deaths(self, game_state: GameState) -> List[Minion]:
         """Check and process deaths."""

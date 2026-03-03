@@ -40,6 +40,8 @@ class Minion(Card):
 
     def take_damage(self, amount: int) -> int:
         """Take damage and return actual damage taken."""
+        if amount < 0:
+            raise ValueError("Cannot take negative damage")
         actual_damage = min(amount, self.health)
         self.health -= actual_damage
         return actual_damage
@@ -59,6 +61,8 @@ class Minion(Card):
 class Spell(Card):
     """Spell card."""
     card_type: CardType = field(default=CardType.SPELL)
+    effect: Optional[str] = None  # Effect type (DAMAGE, HEAL, DRAW, ARMOR)
+    effect_value: int = 0  # Effect magnitude
 
 
 @dataclass

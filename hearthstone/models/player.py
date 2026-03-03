@@ -29,6 +29,8 @@ class Player:
 
     def spend_mana(self, amount: int) -> bool:
         """Spend mana if available."""
+        if amount < 0:
+            raise ValueError("Cannot spend negative mana")
         if amount > self.mana:
             return False
         self.mana -= amount
