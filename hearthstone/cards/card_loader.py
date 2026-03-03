@@ -87,3 +87,12 @@ class CardLoader:
     def get_card(self, card_id: str) -> Optional[Card]:
         """Get a card by ID."""
         return self.cards.get(card_id)
+
+    def load_card(self, card_id: str, cards_file: str = "data/cards/basic.json") -> Optional[Card]:
+        """Load a single card by ID.
+
+        If cards are not already loaded, loads from the default file.
+        """
+        if not self.cards:
+            self.load_cards(cards_file)
+        return self.cards.get(card_id)

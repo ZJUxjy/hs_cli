@@ -25,3 +25,13 @@ def test_deck_manager_save_deck_not_implemented():
 
     with pytest.raises(NotImplementedError, match="save_deck not yet implemented"):
         manager.save_deck(None, "test_deck")
+
+
+def test_deck_manager_load_deck():
+    """Test loading a deck from JSON."""
+    manager = DeckManager()
+    deck = manager.load_deck("test_deck")
+
+    assert deck is not None
+    assert deck.name == "Test Deck"
+    assert len(deck.cards) == 30
