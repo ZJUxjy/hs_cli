@@ -48,49 +48,100 @@ def test_game_controller_start_game():
     assert len(state.player2.deck) == 30
 
 
-def test_get_valid_actions_not_implemented():
-    """Test get_valid_actions raises NotImplementedError."""
+def test_get_valid_actions_returns_list():
+    """Test get_valid_actions returns a list after game starts."""
     deck1 = create_test_deck()
     deck2 = create_test_deck()
     controller = GameController(deck1, deck2)
-    with pytest.raises(NotImplementedError):
-        controller.get_valid_actions()
+    controller.start_game()
+    actions = controller.get_valid_actions()
+    assert isinstance(actions, list)
 
 
-def test_execute_action_not_implemented():
-    """Test execute_action raises NotImplementedError."""
+def test_get_valid_actions_empty_before_start():
+    """Test get_valid_actions returns empty list before game starts."""
     deck1 = create_test_deck()
     deck2 = create_test_deck()
     controller = GameController(deck1, deck2)
-    with pytest.raises(NotImplementedError):
-        controller.execute_action(None)
+    actions = controller.get_valid_actions()
+    assert actions == []
 
 
-def test_get_state_not_implemented():
-    """Test get_state raises NotImplementedError."""
+def test_execute_action_returns_event():
+    """Test execute_action returns GameEvent after game starts."""
     deck1 = create_test_deck()
     deck2 = create_test_deck()
     controller = GameController(deck1, deck2)
-    with pytest.raises(NotImplementedError):
+    controller.start_game()
+
+    from hearthstone.engine.action import EndTurnAction
+    state = controller.get_state()
+    action = EndTurnAction(player_id=state.current_player.name)
+    event = controller.execute_action(action)
+
+    assert isinstance(event, GameEvent)
+
+
+def test_execute_action_fails_before_start():
+    """Test execute_action returns failure before game starts."""
+    deck1 = create_test_deck()
+    deck2 = create_test_deck()
+    controller = GameController(deck1, deck2)
+    event = controller.execute_action(None)
+
+    assert event.success is False
+    assert "not started" in event.message.lower()
+
+
+def test_get_state_raises_before_start():
+    """Test get_state raises RuntimeError before game starts."""
+    deck1 = create_test_deck()
+    deck2 = create_test_deck()
+    controller = GameController(deck1, deck2)
+    with pytest.raises(RuntimeError):
         controller.get_state()
 
 
-def test_is_game_over_not_implemented():
-    """Test is_game_over raises NotImplementedError."""
+def test_get_state_returns_state_after_start():
+    """Test get_state returns GameState after game starts."""
     deck1 = create_test_deck()
     deck2 = create_test_deck()
     controller = GameController(deck1, deck2)
-    with pytest.raises(NotImplementedError):
-        controller.is_game_over()
+    controller.start_game()
+    state = controller.get_state()
+
+    from hearthstone.models.game_state import GameState
+    assert isinstance(state, GameState)
 
 
-def test_get_winner_not_implemented():
-    """Test get_winner raises NotImplementedError."""
+def test_is_game_over_returns_bool():
+    """Test is_game_over returns a boolean."""
     deck1 = create_test_deck()
     deck2 = create_test_deck()
     controller = GameController(deck1, deck2)
-    with pytest.raises(NotImplementedError):
-        controller.get_winner()
+    controller.start_game()
+
+    assert isinstance(controller.is_game_over(), bool)
+
+
+def test_is_game_over_false_at_start():
+    """Test is_game_over is False at game start."""
+    deck1 = create_test_deck()
+    deck2 = create_test_deck()
+    controller = GameController(deck1, deck2)
+    controller.start_game()
+
+    assert controller.is_game_over() is False
+
+
+def test_get_winner_returns_none_at_start():
+    """Test get_winner returns None at game start."""
+    deck1 = create_test_deck()
+    deck2 = create_test_deck()
+    controller = GameController(deck1, deck2)
+    controller.start_game()
+
+    assert controller.get_winner() is None
 
 
 def test_game_event_default_values():
