@@ -1,0 +1,51 @@
+[
+  {
+    "id": "d7c93d1a-f416-476a-b267-71a23b107090",
+    "name": "Test Deck",
+    "hero": "mage",
+    "mode": "standard",
+    "cards": [],
+    "createdAt": "2026-03-03T14:55:39.219Z",
+    "updatedAt": "2026-03-03T14:55:39.219Z"
+  },
+  {
+    "id": "19c017c1-f24b-4ab5-97d0-9ed72a21e80d",
+    "name": "我的第一套卡组",
+    "hero": "mage",
+    "mode": "standard",
+    "cards": [
+      {
+        "id": "CS2_022",
+        "count": 2
+      },
+      {
+        "id": "CS2_028",
+        "count": 1
+      }
+    ],
+    "createdAt": "2026-03-03T14:58:38.739Z",
+    "updatedAt": "2026-03-03T14:58:38.743Z"
+  },
+  {
+    "id": "cc0c1e11-575b-487d-bd85-1fedd6c1911a",
+    "name": "标准法爷",
+    "hero": "mage",
+    "mode": "standard",
+    "cards": [
+      {
+        "id": "CS2_022",
+        "count": 4
+      },
+      {
+        "id": "CS2_028",
+        "count": 2
+      },
+      {
+        "id": "CS2_031",
+        "count": 2
+      }
+    ],
+    "createdAt": "2026-03-03T14:58:52.498Z",
+    "updatedAt": "2026-03-03T14:58:52.500Z"
+  }
+]
