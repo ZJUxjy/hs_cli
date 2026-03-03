@@ -35,7 +35,7 @@
         <div class="card-pool">
           <div class="card-pool-header">
             <input type="text" id="card-search" placeholder="搜索卡牌...">
-            <select id="card-class-filter">
+            <select id="card-class-filter" class="filter-select">
               <option value="">全部职业</option>
               <option value="MAGE">法师</option>
               <option value="WARRIOR">战士</option>
@@ -47,6 +47,13 @@
               <option value="SHAMAN">萨满</option>
               <option value="WARLOCK">术士</option>
               <option value="NEUTRAL">中立</option>
+            </select>
+            <select id="card-rarity-filter" class="filter-select">
+              <option value="">全部稀有度</option>
+              <option value="COMMON">普通</option>
+              <option value="RARE">稀有</option>
+              <option value="EPIC">史诗</option>
+              <option value="LEGENDARY">传说</option>
             </select>
           </div>
           <div id="card-list" class="card-list"></div>

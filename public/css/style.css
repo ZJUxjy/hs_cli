@@ -177,8 +177,9 @@ body {
 .card-pool-header {
   padding: 15px;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   background: rgba(0,0,0,0.2);
+  flex-wrap: wrap;
 }
 
 .card-pool-header input,
@@ -193,10 +194,40 @@ body {
 
 .card-pool-header input {
   flex: 1;
+  min-width: 150px;
 }
 
 .card-pool-header input::placeholder {
   color: var(--text-secondary);
+}
+
+/* 美化下拉选框 */
+.filter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23aaaaaa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 35px;
+  min-width: 120px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-select:hover {
+  border-color: var(--accent-gold);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(240, 192, 64, 0.2);
+}
+
+.filter-select option {
+  background: #2a2a4a;
+  color: #fff;
+  padding: 10px;
 }
 
 .card-list {
@@ -219,7 +250,55 @@ body {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  position: relative;
 }
+
+/* 稀有度水滴标识 */
+.card-rarity-gem {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 12px;
+  height: 16px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.card-rarity-gem::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+}
+
+.rarity-common .card-rarity-gem {
+  background: #8a8a8a;
+}
+
+.rarity-rare .card-rarity-gem {
+  background: #4a90d9;
+}
+
+.rarity-epic .card-rarity-gem {
+  background: #9b4ad9;
+}
+
+.rarity-legendary .card-rarity-gem {
+  background: linear-gradient(135deg, #f0c040 0%, #d4a020 100%);
+  box-shadow: 0 0 8px rgba(240, 192, 64, 0.6);
+}
+
+/* 稀有度边框 */
+.rarity-common { border-color: #8a8a8a; }
+.rarity-rare { border-color: #4a90d9; }
+.rarity-epic { border-color: #9b4ad9; }
+.rarity-legendary { border-color: #f0c040; box-shadow: 0 0 10px rgba(240, 192, 64, 0.3); }
 
 .card-item:hover {
   background: linear-gradient(180deg, var(--bg-card-hover) 0%, #2a2a4a 100%);

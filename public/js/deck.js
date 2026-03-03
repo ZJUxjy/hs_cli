@@ -56,13 +56,15 @@ class DeckBuilderUI {
     const displayCards = cards.slice(0, 200);
 
     list.innerHTML = displayCards.map(card => `
-      <div class="card-item"
+      <div class="card-item ${this.getRarityClass(card.rarity)}"
            data-id="${card.id}"
            data-cost="${card.cost || 0}"
            data-name="${card.name || ''}"
            data-type="${card.type || ''}"
            data-card-class="${card.cardClass || 'NEUTRAL'}"
+           data-rarity="${card.rarity || ''}"
            draggable="true">
+        <div class="card-rarity-gem ${this.getRarityClass(card.rarity)}"></div>
         <div class="card-header">
           <span class="card-cost">${card.cost || 0}</span>
         </div>
@@ -202,6 +204,16 @@ class DeckBuilderUI {
     return names[mechanic] || mechanic;
   }
 
+  getRarityClass(rarity) {
+    const classes = {
+      'COMMON': 'rarity-common',
+      'RARE': 'rarity-rare',
+      'EPIC': 'rarity-epic',
+      'LEGENDARY': 'rarity-legendary'
+    };
+    return classes[rarity] || '';
+  }
+
   getRarityName(rarity) {
     const names = {
       'COMMON': '普通',
@@ -264,7 +276,15 @@ class DeckBuilderUI {
     const classFilter = document.getElementById('card-class-filter');
     if (classFilter) {
       classFilter.addEventListener('change', (e) => {
-        this.filterCards(searchInput?.value || '', e.target.value);
+        this.filterCards(searchInput?.value || '', e.target.value, document.getElementById('card-rarity-filter')?.value || '');
+      });
+    }
+
+    // Rarity filter
+    const rarityFilter = document.getElementById('card-rarity-filter');
+    if (rarityFilter) {
+      rarityFilter.addEventListener('change', (e) => {
+        this.filterCards(searchInput?.value || '', document.getElementById('card-class-filter')?.value || '', e.target.value);
       });
     }
 
@@ -323,7 +343,7 @@ class DeckBuilderUI {
     }
   }
 
-  filterCards(query = '', classFilter = '') {
+  filterCards(query = '', classFilter = '', rarityFilter = '') {
     let filtered = this.allCards;
 
     // Filter by search query
@@ -339,6 +359,13 @@ class DeckBuilderUI {
     if (classFilter) {
       filtered = filtered.filter(card =>
         card.cardClass === classFilter || card.cardClass === 'NEUTRAL'
+      );
+    }
+
+    // Filter by rarity
+    if (rarityFilter) {
+      filtered = filtered.filter(card =>
+        card.rarity === rarityFilter
       );
     }
 
