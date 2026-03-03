@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Data files (generated at runtime)
+data/profiles/*.json
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
