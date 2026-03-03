@@ -85,21 +85,81 @@ class App {
 
       deckList.innerHTML = decks.map(deck => `
         <div class="deck-item" data-id="${deck.id}">
-          <div class="deck-name">${deck.name}</div>
-          <div class="deck-info">${this.getHeroName(deck.hero)} - ${deck.cardCount || 0}张</div>
+          <div class="deck-info-wrapper">
+            <div class="deck-name">${deck.name}</div>
+            <div class="deck-info">${this.getHeroName(deck.hero)} - ${deck.cardCount || 0}张</div>
+          </div>
+          <div class="deck-actions">
+            <button class="deck-edit-btn" data-id="${deck.id}">编辑</button>
+            <button class="deck-play-btn" data-id="${deck.id}">开始游戏</button>
+            <button class="deck-delete-btn" data-id="${deck.id}">删除</button>
+          </div>
         </div>
       `).join('');
 
-      // Add click handlers
-      deckList.querySelectorAll('.deck-item').forEach(item => {
-        item.addEventListener('click', () => {
-          const deckId = item.dataset.id;
+      // Add click handlers - 编辑
+      deckList.querySelectorAll('.deck-edit-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const deckId = btn.dataset.id;
+          await this.loadDeckToBuilder(deckId);
+        });
+      });
+
+      // 开始游戏
+      deckList.querySelectorAll('.deck-play-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const deckId = btn.dataset.id;
           this.selectDeckAndStart(deckId);
+        });
+      });
+
+      // 删除
+      deckList.querySelectorAll('.deck-delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (confirm('确定要删除这个卡组吗？')) {
+            await API.deleteDeck(btn.dataset.id);
+            this.loadDeckList();
+          }
         });
       });
     } catch (err) {
       console.error('Failed to load decks:', err);
       deckList.innerHTML = '<p style="text-align: center; color: #d94a4a;">加载卡组失败</p>';
+    }
+  }
+
+  async loadDeckToBuilder(deckId) {
+    try {
+      const deck = await API.getDeck(deckId);
+      if (!deck) {
+        alert('卡组不存在');
+        return;
+      }
+
+      // Load deck into builder
+      if (window.deckBuilder) {
+        window.deckBuilder.currentDeck = {
+          id: deck.id,
+          name: deck.name,
+          hero: deck.hero,
+          cards: deck.cards.map(c => ({ cardId: c.id, count: c.count }))
+        };
+        window.deckBuilder.saveToStorage();
+        window.deckBuilder.init();
+
+        // Set form values
+        document.getElementById('deck-name').value = deck.name;
+        document.getElementById('deck-hero').value = deck.hero;
+
+        // Show deck builder
+        this.showScreen('deckBuilder');
+      }
+    } catch (err) {
+      console.error('Failed to load deck:', err);
+      alert('加载卡组失败');
     }
   }
 

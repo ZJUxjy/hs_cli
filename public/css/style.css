@@ -129,6 +129,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 15px;
 }
 
 .deck-item:hover {
@@ -136,12 +137,56 @@ body {
   border-color: var(--accent-gold);
 }
 
+.deck-info-wrapper {
+  flex: 1;
+}
+
 .deck-item .deck-name {
   font-size: 18px;
   font-weight: bold;
+  color: var(--accent-gold);
 }
 
 .deck-item .deck-info {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.deck-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.deck-actions button {
+  padding: 8px 16px;
+  font-size: 13px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deck-actions button:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: var(--accent-gold);
+}
+
+.deck-edit-btn {
+  background: rgba(74, 144, 217, 0.2) !important;
+  border-color: var(--accent-blue) !important;
+}
+
+.deck-play-btn {
+  background: rgba(74, 217, 74, 0.2) !important;
+  border-color: var(--accent-green) !important;
+}
+
+.deck-delete-btn {
+  background: rgba(217, 74, 74, 0.2) !important;
+  border-color: var(--accent-red) !important;
+}
   color: var(--text-secondary);
   font-size: 14px;
 }
