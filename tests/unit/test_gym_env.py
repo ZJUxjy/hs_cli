@@ -15,3 +15,15 @@ def test_gym_env_initialization():
 
     env = HearthstoneEnv()
     assert env is not None
+
+
+def test_gym_env_reset():
+    """Test environment reset."""
+    from hearthstone.ai.gym_env import HearthstoneEnv
+
+    env = HearthstoneEnv()
+    obs, info = env.reset()
+
+    assert obs is not None
+    assert isinstance(obs, dict)
+    assert "player_health" in obs

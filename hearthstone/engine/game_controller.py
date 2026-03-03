@@ -55,20 +55,74 @@ class GameController:
 
     def get_valid_actions(self) -> List[Action]:
         """Get all legal actions for current player."""
-        raise NotImplementedError("get_valid_actions is not yet implemented")
+        if self.engine is None or self.engine.state is None:
+            return []
+
+        actions = []
+        state = self.engine.state
+        player = state.current_player
+
+        # Always can end turn
+        from hearthstone.engine.action import EndTurnAction
+        actions.append(EndTurnAction(player_id=player.name))
+
+        # Can play cards from hand
+        from hearthstone.engine.action import PlayCardAction
+        for i, card in enumerate(player.hand):
+            if card.cost <= player.mana:
+                actions.append(PlayCardAction(player_id=player.name, card_index=i))
+
+        # Can attack with minions on board
+        from hearthstone.engine.action import AttackAction
+        for minion in player.board:
+            if minion.can_attack():
+                # Can attack enemy minions
+                for enemy_minion in state.opposing_player.board:
+                    actions.append(AttackAction(
+                        player_id=player.name,
+                        attacker_id=minion.id,
+                        target_id=enemy_minion.id
+                    ))
+                # Can attack enemy hero
+                actions.append(AttackAction(
+                    player_id=player.name,
+                    attacker_id=minion.id,
+                    target_id=state.opposing_player.hero.id
+                ))
+
+        return actions
 
     def execute_action(self, action: Action) -> GameEvent:
         """Execute an action and return result."""
-        raise NotImplementedError("execute_action is not yet implemented")
+        if self.engine is None:
+            return GameEvent(
+                success=False,
+                message="Game not started",
+                errors=["Call start_game() first"]
+            )
+
+        result = self.engine.take_action(action)
+
+        return GameEvent(
+            success=result.success,
+            message=result.message,
+            state_changes={"turn_ended": result.turn_ended, "game_over": result.game_over}
+        )
 
     def get_state(self) -> GameState:
         """Get current game state."""
-        raise NotImplementedError("get_state is not yet implemented")
+        if self.engine is None:
+            raise RuntimeError("Game not started. Call start_game() first.")
+        return self.engine.state
 
     def is_game_over(self) -> bool:
         """Check if game has ended."""
-        raise NotImplementedError("is_game_over is not yet implemented")
+        if self.engine is None or self.engine.state is None:
+            return False
+        return self.engine.state.is_game_over()
 
     def get_winner(self) -> Optional[Player]:
         """Get winner if game is over."""
-        raise NotImplementedError("get_winner is not yet implemented")
+        if self.engine is None or self.engine.state is None:
+            return None
+        return self.engine.state.get_winner()
