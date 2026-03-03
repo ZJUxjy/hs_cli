@@ -28,6 +28,7 @@ class Minion(Card):
     abilities: Set[Ability] = field(default_factory=set)
     can_attack: bool = False
     attacks_this_turn: int = 0
+    instance_id: Optional[str] = None  # Unique ID for each minion instance
 
     def __post_init__(self):
         """Set max_health to health if not explicitly specified."""

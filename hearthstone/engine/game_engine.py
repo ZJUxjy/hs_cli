@@ -24,6 +24,7 @@ class GameEngine:
         self.state: Optional[GameState] = state
         self.attack_validator = AttackValidator()
         self.attack_executor = AttackExecutor()
+        self._minion_id_counter = 0  # Unique ID generator for minions
 
     def initialize_game(self):
         """Initialize a new game - draw starting hands and set up mana."""
@@ -113,6 +114,13 @@ class GameEngine:
         # If it's a minion, put it on the board
         if isinstance(card, Minion):
             if len(player.board) < 7:  # Board limit
+                # Assign unique instance ID
+                self._minion_id_counter += 1
+                card.instance_id = f"{card.id}_{self._minion_id_counter}"
+
+                # Set can_attack based on abilities
+                from hearthstone.models.enums import Ability
+                card.can_attack = Ability.CHARGE in card.abilities
                 player.board.append(card)
 
         return ActionResult(

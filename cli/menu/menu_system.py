@@ -35,7 +35,7 @@ class MenuSystem:
             except KeyboardInterrupt:
                 print("\nGoodbye!")
                 self.running = False
-            except EOF:
+            except EOFError:
                 print("\nGoodbye!")
                 self.running = False
 

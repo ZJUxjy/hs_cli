@@ -20,6 +20,7 @@ class Player:
     deck: List[Card] = field(default_factory=list)
     board: List["Minion"] = field(default_factory=list)  # Minions on board
     graveyard: List[Card] = field(default_factory=list)
+    fatigue_counter: int = 0  # Tracks fatigue damage (increments each time)
 
     def __post_init__(self):
         """Set mana to max_mana if not explicitly set."""
@@ -45,7 +46,9 @@ class Player:
     def draw_card(self) -> Optional[Card]:
         """Draw a card from deck."""
         if len(self.deck) == 0:
-            # Fatigue damage (simplified)
+            # Fatigue damage: increment counter and deal damage to hero
+            self.fatigue_counter += 1
+            self.hero.take_damage(self.fatigue_counter)
             return None
 
         card = self.deck.pop(0)

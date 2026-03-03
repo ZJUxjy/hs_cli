@@ -11,13 +11,23 @@ from hearthstone.models.game_state import GameState
 
 def create_test_engine():
     """Create a test game engine with basic setup."""
+    from hearthstone.models.card import Minion
+
+    # Create a deck with enough cards to avoid fatigue
+    deck1 = [Minion(id=f"P1_{i:03d}", name=f"Card {i}", cost=1, attack=1, health=1)
+             for i in range(30)]
+    deck2 = [Minion(id=f"P2_{i:03d}", name=f"Card {i}", cost=1, attack=1, health=1)
+             for i in range(30)]
+
     player1 = Player(
         hero=Hero(hero_class=HeroClass.MAGE),
-        name="Player 1"
+        name="Player 1",
+        deck=deck1
     )
     player2 = Player(
         hero=Hero(hero_class=HeroClass.WARRIOR),
-        name="Player 2"
+        name="Player 2",
+        deck=deck2
     )
     state = GameState(player1=player1, player2=player2)
     engine = GameEngine(state)
@@ -54,11 +64,11 @@ def test_engine_play_card():
     """Test playing a card."""
     engine = create_test_engine()
 
-    # Add a card to hand
-    card = Minion(id="TEST_001", name="Test Minion", cost=1, attack=1, health=1)
-    engine.state.current_player.hand.append(card)
+    # Use the first card in hand (already drawn during initialize_game)
+    # Set mana to play the card
     engine.state.current_player.mana = 1
 
+    # Play the first card in hand (index 0)
     action = PlayCardAction(
         player_id="Player 1",
         card_index=0,
@@ -67,7 +77,9 @@ def test_engine_play_card():
     result = engine.take_action(action)
 
     assert result.success
-    assert len(engine.state.current_player.hand) == 0
+    # Started with 3 cards in hand, played 1, should have 2 left
+    assert len(engine.state.current_player.hand) == 2
+    # Should have 1 minion on board
     assert len(engine.state.current_player.board) == 1
 
 
@@ -75,9 +87,9 @@ def test_engine_not_enough_mana():
     """Test playing a card without enough mana."""
     engine = create_test_engine()
 
-    # Add a card to hand
-    card = Minion(id="TEST_001", name="Test Minion", cost=5, attack=5, health=5)
-    engine.state.current_player.hand.append(card)
+    # Get the first card from hand and make it cost 5
+    card = engine.state.current_player.hand[0]
+    card.cost = 5
     engine.state.current_player.mana = 1
 
     action = PlayCardAction(

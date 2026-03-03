@@ -79,17 +79,21 @@ class GameController:
         from hearthstone.engine.action import AttackAction
         for minion in player.board:
             if minion.can_attack:
+                # Use instance_id if available, otherwise fall back to id
+                minion_id = minion.instance_id or minion.id
+
                 # Can attack enemy minions
                 for enemy_minion in state.opposing_player.board:
+                    enemy_id = enemy_minion.instance_id or enemy_minion.id
                     actions.append(AttackAction(
                         player_id=player.name,
-                        attacker_id=minion.id,
-                        target_id=enemy_minion.id
+                        attacker_id=minion_id,
+                        target_id=enemy_id
                     ))
                 # Can attack enemy hero
                 actions.append(AttackAction(
                     player_id=player.name,
-                    attacker_id=minion.id,
+                    attacker_id=minion_id,
                     target_id="enemy_hero"
                 ))
 
