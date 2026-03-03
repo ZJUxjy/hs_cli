@@ -1,14 +1,16 @@
 """Game logic for Hearthstone CLI game."""
 
 from dataclasses import replace
-from typing import List
+from typing import List, Optional
 
 from hearthstone_cli.engine.state import (
     Attribute,
     GameState,
+    HeroState,
     ManaState,
     Minion,
     PlayerState,
+    RandomState,
 )
 from hearthstone_cli.engine.actions import (
     Action,
@@ -17,6 +19,9 @@ from hearthstone_cli.engine.actions import (
     TargetReference,
     Zone,
 )
+from hearthstone_cli.engine.deck import Deck
+from hearthstone_cli.engine.random import DeterministicRNG
+from hearthstone_cli.cards.database import CardDatabase
 
 
 class GameLogic:
@@ -169,3 +174,74 @@ class GameLogic:
         if minion.summoned_this_turn:
             return False
         return not minion.exhausted
+
+    @classmethod
+    def create_game(cls, deck1: Deck, deck2: Deck, seed: int = 42) -> GameState:
+        """创建新游戏"""
+        rng = DeterministicRNG(seed)
+
+        player0 = cls._create_player(deck1, rng, goes_first=True)
+        player1 = cls._create_player(deck2, rng, goes_first=False)
+
+        return GameState(
+            turn=1,
+            active_player=0,
+            players=(player0, player1),
+            action_history=(),
+            rng_state=rng.get_state(),
+            phase_stack=()
+        )
+
+    @classmethod
+    def _create_player(cls, deck: Deck, rng: DeterministicRNG, goes_first: bool) -> PlayerState:
+        """创建玩家"""
+        db = CardDatabase()
+
+        cards = [db.get_card(cid) for cid in deck.card_ids]
+        cards = [c for c in cards if c is not None]
+
+        # 洗牌
+        cards_list = list(cards)
+        rng.shuffle(cards_list)
+        cards = tuple(cards_list)
+
+        # 抽初始手牌
+        initial_hand_size = 3 if goes_first else 4
+        hand = cards[:initial_hand_size]
+        remaining_deck = cards[initial_hand_size:]
+
+        return PlayerState(
+            hero=HeroState(health=30),
+            mana=ManaState(current=1 if goes_first else 0, max_mana=0 if goes_first else 1),
+            deck=remaining_deck,
+            hand=hand,
+            board=(),
+            secrets=frozenset(),
+            graveyard=(),
+            exhausted_minions=frozenset(),
+            hero_power_used=False
+        )
+
+    @classmethod
+    def is_terminal(cls, state: GameState) -> bool:
+        """检查游戏是否结束"""
+        for player in state.players:
+            if player.hero.health <= 0:
+                return True
+        return False
+
+    @classmethod
+    def get_winner(cls, state: GameState) -> Optional[int]:
+        """获取获胜者（如果游戏结束）"""
+        if not cls.is_terminal(state):
+            return None
+
+        p0_alive = state.players[0].hero.health > 0
+        p1_alive = state.players[1].hero.health > 0
+
+        if p0_alive and not p1_alive:
+            return 0
+        elif p1_alive and not p0_alive:
+            return 1
+        else:
+            return -1  # 平局
