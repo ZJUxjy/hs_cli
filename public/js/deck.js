@@ -305,8 +305,13 @@ class DeckBuilderUI {
       deckHeroSelect.addEventListener('change', (e) => {
         this.currentDeck.hero = e.target.value;
         this.saveToStorage();
+        // 切换职业时，自动筛选该职业+中立的卡
+        this.autoFilterByHero();
       });
     }
+
+    // 初始加载时自动筛选
+    this.autoFilterByHero();
 
     // Save button
     const saveBtn = document.getElementById('btn-save-deck');
@@ -343,7 +348,7 @@ class DeckBuilderUI {
     }
   }
 
-  filterCards(query = '', classFilter = '', rarityFilter = '') {
+  filterCards(query = '', classFilter = '', rarityFilter = '', autoHeroClass = '') {
     let filtered = this.allCards;
 
     // Filter by search query
@@ -355,8 +360,14 @@ class DeckBuilderUI {
       );
     }
 
-    // Filter by class
-    if (classFilter) {
+    // Filter by class (手动选择或自动根据hero)
+    const heroClass = autoHeroClass || classFilter;
+    if (heroClass) {
+      filtered = filtered.filter(card =>
+        card.cardClass === heroClass || card.cardClass === 'NEUTRAL'
+      );
+    } else if (classFilter) {
+      // 手动选择职业
       filtered = filtered.filter(card =>
         card.cardClass === classFilter || card.cardClass === 'NEUTRAL'
       );
@@ -389,13 +400,21 @@ class DeckBuilderUI {
     const card = this.allCards.find(c => c.id === cardId);
     if (!card) return;
 
+    // Check card class (only allow hero's class + neutral)
+    const heroClass = this.currentDeck.hero.toUpperCase();
+    const cardClass = (card.cardClass || 'NEUTRAL').toUpperCase();
+    if (cardClass !== heroClass && cardClass !== 'NEUTRAL') {
+      alert(`这张卡是${this.getClassName(cardClass)}职业卡，只能放入${this.getClassName(heroClass)}卡组`);
+      return;
+    }
+
     // Check card copy limit
     const existing = this.currentDeck.cards.find(c => c.cardId === cardId);
     const maxCopies = (card.rarity === 'LEGENDARY' || card.rarity === 'EPIC') ? 1 : 2;
 
     if (existing) {
       if (existing.count >= maxCopies) {
-        alert(`${maxCopies === 1 ? '传说卡' : '史诗/传说卡'}最多只能有1张，其他卡最多2张`);
+        alert(`${maxCopies === 1 ? '传说/史诗卡' : '普通/稀有卡'}最多只能有${maxCopies}张`);
         return;
       }
       existing.count++;
@@ -406,6 +425,46 @@ class DeckBuilderUI {
     this.saveToStorage();
     this.renderDeckSlots();
     this.updateDeckCount();
+  }
+
+  getClassName(cardClass) {
+    const names = {
+      'MAGE': '法师',
+      'WARRIOR': '战士',
+      'HUNTER': '猎人',
+      'DRUID': '德鲁伊',
+      'ROGUE': '盗贼',
+      'PRIEST': '牧师',
+      'PALADIN': '圣骑士',
+      'SHAMAN': '萨满',
+      'WARLOCK': '术士',
+      'DEMONHUNTER': '恶魔猎手',
+      'DEATHKNIGHT': '死亡骑士',
+      'NEUTRAL': '中立'
+    };
+    return names[cardClass] || cardClass;
+  }
+
+  // 根据选择的职业自动筛选卡牌列表
+  autoFilterByHero() {
+    const heroClass = this.currentDeck.hero.toUpperCase();
+    // 获取当前搜索和筛选条件
+    const searchInput = document.getElementById('card-search');
+    const classFilter = document.getElementById('card-class-filter');
+    const rarityFilter = document.getElementById('card-rarity-filter');
+
+    // 暂时禁用职业筛选，使用自动筛选
+    if (classFilter) {
+      classFilter.value = ''; // 重置职业筛选，使用自动筛选
+    }
+
+    // 调用筛选函数，只显示该职业+中立的卡
+    this.filterCards(
+      searchInput?.value || '',
+      '', // 清除手动职业筛选
+      rarityFilter?.value || '',
+      heroClass // 添加自动职业过滤
+    );
   }
 
   removeCardFromDeck(cardId) {
