@@ -1,0 +1,108 @@
+[
+  {
+    "id": "CS2_231",
+    "name": "Wisp",
+    "cost": 0,
+    "type": "MINION",
+    "attack": 1,
+    "health": 1,
+    "description": "",
+    "hero_class": "NEUTRAL"
+  },
+  {
+    "id": "CS2_120",
+    "name": "River Crocolisk",
+    "cost": 2,
+    "type": "MINION",
+    "attack": 2,
+    "health": 3,
+    "description": "",
+    "hero_class": "NEUTRAL"
+  },
+  {
+    "id": "CS2_142",
+    "name": "Kobold Geomancer",
+    "cost": 2,
+    "type": "MINION",
+    "attack": 2,
+    "health": 2,
+    "description": "Spell Damage +1",
+    "hero_class": "NEUTRAL",
+    "abilities": ["SPELL_DAMAGE"]
+  },
+  {
+    "id": "CS2_155",
+    "name": "Archmage",
+    "cost": 6,
+    "type": "MINION",
+    "attack": 4,
+    "health": 7,
+    "description": "Spell Damage +1",
+    "hero_class": "NEUTRAL",
+    "abilities": ["SPELL_DAMAGE"]
+  },
+  {
+    "id": "CS2_179",
+    "name": "Sen'jin Shieldmasta",
+    "cost": 4,
+    "type": "MINION",
+    "attack": 3,
+    "health": 5,
+    "description": "Taunt",
+    "hero_class": "NEUTRAL",
+    "abilities": ["TAUNT"]
+  },
+  {
+    "id": "CS2_182",
+    "name": "Chillwind Yeti",
+    "cost": 4,
+    "type": "MINION",
+    "attack": 4,
+    "health": 5,
+    "description": "",
+    "hero_class": "NEUTRAL"
+  },
+  {
+    "id": "CS2_187",
+    "name": "Ironfur Grizzly",
+    "cost": 3,
+    "type": "MINION",
+    "attack": 3,
+    "health": 3,
+    "description": "Taunt",
+    "hero_class": "NEUTRAL",
+    "abilities": ["TAUNT"]
+  },
+  {
+    "id": "CS2_189",
+    "name": "Magma Rager",
+    "cost": 3,
+    "type": "MINION",
+    "attack": 5,
+    "health": 1,
+    "description": "",
+    "hero_class": "NEUTRAL"
+  },
+  {
+    "id": "CS2_124",
+    "name": "Wolfrider",
+    "cost": 3,
+    "type": "MINION",
+    "attack": 3,
+    "health": 1,
+    "description": "Charge",
+    "hero_class": "NEUTRAL",
+    "abilities": ["CHARGE"]
+  },
+  {
+    "id": "CS2_125",
+    "name": "Stormwind Knight",
+    "cost": 4,
+    "type": "MINION",
+    "attack": 2,
+    "health": 5,
+    "description": "Charge",
+    "hero_class": "NEUTRAL",
+    "abilities": ["CHARGE"]
+  }
+]
