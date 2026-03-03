@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>炉石传说 CLI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 主菜单 -->
+    <div id="menu-screen" class="screen">
+      <h1>炉石传说 CLI</h1>
+      <div class="menu-buttons">
+        <button id="btn-new-game" class="menu-btn">新游戏</button>
+        <button id="btn-deck-builder" class="menu-btn">卡组构建</button>
+        <button id="btn-deck-list" class="menu-btn">我的卡组</button>
+      </div>
+    </div>
+
+    <!-- 卡组选择界面 -->
+    <div id="deck-select-screen" class="screen hidden">
+      <h2>选择卡组</h2>
+      <div id="deck-list" class="deck-list"></div>
+      <button id="btn-back-from-deck-select" class="back-btn">返回</button>
+    </div>
+
+    <!-- 卡组构建 -->
+    <div id="deck-builder-screen" class="screen hidden">
+      <div class="deck-builder-header">
+        <h2>卡组构建</h2>
+        <button id="btn-back-from-builder" class="back-btn">返回</button>
+      </div>
+      <div class="deck-builder-container">
+        <div class="card-pool">
+          <div class="card-pool-header">
+            <input type="text" id="card-search" placeholder="搜索卡牌...">
+            <select id="card-class-filter">
+              <option value="">全部职业</option>
+              <option value="MAGE">法师</option>
+              <option value="WARRIOR">战士</option>
+              <option value="HUNTER">猎人</option>
+              <option value="DRUID">德鲁伊</option>
+              <option value="ROGUE">盗贼</option>
+              <option value="PRIEST">牧师</option>
+              <option value="PALADIN">圣骑士</option>
+              <option value="SHAMAN">萨满</option>
+              <option value="WARLOCK">术士</option>
+              <option value="NEUTRAL">中立</option>
+            </select>
+          </div>
+          <div id="card-list" class="card-list"></div>
+        </div>
+        <div class="deck-panel">
+          <input type="text" id="deck-name" placeholder="卡组名称">
+          <select id="deck-hero">
+            <option value="mage">法师</option>
+            <option value="warrior">战士</option>
+            <option value="hunter">猎人</option>
+            <option value="druid">德鲁伊</option>
+            <option value="rogue">盗贼</option>
+            <option value="priest">牧师</option>
+            <option value="paladin">圣骑士</option>
+            <option value="shaman">萨满</option>
+            <option value="warlock">术士</option>
+          </select>
+          <div id="deck-slots" class="deck-slots"></div>
+          <div class="deck-stats">
+            <span id="deck-count">0/30</span>
+          </div>
+          <div class="deck-actions">
+            <button id="btn-save-deck">保存卡组</button>
+            <button id="btn-clear-deck">清空</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div id="game-screen" class="screen hidden">
+      <div id="game-info" class="game-info">
+        <span id="turn-indicator">回合 1</span>
+        <span id="player-mana">法力: 1/1</span>
+      </div>
+
+      <!-- 敌方信息 -->
+      <div id="enemy-hero" class="hero enemy-hero">
+        <div class="hero-portrait enemy-portrait"></div>
+        <div class="hero-stats">
+          <span class="health">30</span>
+          <span class="armor">0</span>
+        </div>
+        <div class="hand-count">手牌: ?</div>
+      </div>
+
+      <!-- 敌方战场 -->
+      <div id="enemy-field" class="field enemy-field"></div>
+
+      <!-- 玩家战场 -->
+      <div id="player-field" class="field player-field"></div>
+
+      <!-- 玩家信息 -->
+      <div id="player-hero" class="hero player-hero">
+        <div class="hero-portrait player-portrait"></div>
+        <div class="hero-stats">
+          <span class="health">30</span>
+          <span class="armor">0</span>
+        </div>
+      </div>
+
+      <!-- 玩家手牌 -->
+      <div id="player-hand" class="hand player-hand"></div>
+
+      <!-- 游戏控制 -->
+      <div id="game-controls" class="game-controls">
+        <button id="btn-end-turn">结束回合</button>
+        <button id="btn-use-hero-power" class="hidden">使用英雄技能</button>
+        <button id="btn-concede">认输</button>
+      </div>
+
+      <!-- 游戏消息 -->
+      <div id="game-message" class="game-message"></div>
+    </div>
+
+    <!-- 职业选择界面 -->
+    <div id="class-select-screen" class="screen hidden">
+      <h2>选择你的职业</h2>
+      <div id="class-list" class="class-list">
+        <div class="class-option" data-class="mage">
+          <div class="class-icon mage-icon"></div>
+          <span>法师</span>
+        </div>
+        <div class="class-option" data-class="warrior">
+          <div class="class-icon warrior-icon"></div>
+          <span>战士</span>
+        </div>
+        <div class="class-option" data-class="hunter">
+          <div class="class-icon hunter-icon"></div>
+          <span>猎人</span>
+        </div>
+        <div class="class-option" data-class="druid">
+          <div class="class-icon druid-icon"></div>
+          <span>德鲁伊</span>
+        </div>
+        <div class="class-option" data-class="rogue">
+          <div class="class-icon rogue-icon"></div>
+          <span>盗贼</span>
+        </div>
+        <div class="class-option" data-class="priest">
+          <div class="class-icon priest-icon"></div>
+          <span>牧师</span>
+        </div>
+        <div class="class-option" data-class="paladin">
+          <div class="class-icon paladin-icon"></div>
+          <span>圣骑士</span>
+        </div>
+        <div class="class-option" data-class="shaman">
+          <div class="class-icon shaman-icon"></div>
+          <span>萨满</span>
+        </div>
+        <div class="class-option" data-class="warlock">
+          <div class="class-icon warlock-icon"></div>
+          <span>术士</span>
+        </div>
+      </div>
+      <button id="btn-back-from-class" class="back-btn">返回</button>
+    </div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/deck.js"></script>
+  <script src="/js/game.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
