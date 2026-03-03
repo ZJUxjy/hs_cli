@@ -101,13 +101,26 @@ class ClassSelection {
   }
 
   confirm() {
+    console.log('[ClassSelection] confirm called, selectedIndex:', this.selectedIndex);
+    console.log('[ClassSelection] classes length:', this.classes.length);
+
     const selected = this.classes[this.selectedIndex];
+    console.log('[ClassSelection] selected:', selected);
+
+    if (!selected) {
+      console.error('[ClassSelection] No class selected!');
+      return;
+    }
+
+    console.log('[ClassSelection] Destroying container...');
     this.destroy();
 
+    console.log('[ClassSelection] Starting GameScreen with class:', selected.id);
     // 开始游戏
     const GameScreen = require('./GameScreen');
     const gameScreen = new GameScreen(this.screen, this.parent);
     gameScreen.show(selected.id, 'normal');
+    console.log('[ClassSelection] GameScreen.show() returned');
   }
 
   back() {
