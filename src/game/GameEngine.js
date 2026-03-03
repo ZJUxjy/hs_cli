@@ -565,6 +565,14 @@ class GameEngine {
       case 'damage':
         battleCalc.calculateDamage(opponent, heroPower.effect.value);
         break;
+      case 'faceDamage':
+        // 猎人：对敌方英雄造成伤害
+        battleCalc.calculateDamage(opponent, heroPower.effect.value);
+        break;
+      case 'heal':
+        // 牧师：恢复生命
+        battleCalc.heal(player, heroPower.effect.value);
+        break;
       case 'armor':
         battleCalc.gainArmor(player, heroPower.effect.value);
         break;
@@ -574,6 +582,39 @@ class GameEngine {
       case 'totem':
         // 召唤随机图腾
         this.summonMinion(player, { id: 'totem', name: '图腾', effect: { attack: 0, health: 2 } });
+        break;
+      case 'summon':
+        // 圣骑士：召唤随从
+        const minion = {
+          id: heroPower.effect.id || 'token',
+          name: heroPower.effect.name || '随从',
+          effect: {
+            attack: heroPower.effect.attack || 1,
+            health: heroPower.effect.health || 1
+          }
+        };
+        this.summonMinion(player, minion);
+        break;
+      case 'equipWeapon':
+        // 盗贼：装备武器
+        player.weapon = {
+          id: heroPower.effect.name || 'weapon',
+          name: heroPower.effect.name || '武器',
+          attack: heroPower.effect.attack || 1,
+          durability: heroPower.effect.durability || 2,
+          canAttack: true
+        };
+        Logger.info(`${player.name} 装备了武器 ${player.weapon.name}`);
+        break;
+      case 'buff':
+        // 德鲁伊：获得攻击力和护甲
+        if (heroPower.effect.attack) {
+          player.attack += heroPower.effect.attack;
+        }
+        if (heroPower.effect.armor) {
+          battleCalc.gainArmor(player, heroPower.effect.armor);
+        }
+        Logger.info(`${player.name} 获得 +${heroPower.effect.attack} 攻击力 和 +${heroPower.effect.armor} 护甲`);
         break;
       default:
         Logger.warn(`未知的英雄技能类型: ${heroPower.effect.type}`);

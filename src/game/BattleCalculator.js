@@ -83,9 +83,23 @@ class BattleCalculator {
    */
   gainArmor(player, value) {
     if (player.armor === undefined) return;
-    
+
     player.armor += value;
     Logger.info(`${player.name} 获得 ${value} 点护甲`);
+  }
+
+  /**
+   * 恢复生命
+   * @param {object} target - 目标（玩家或随从）
+   * @param {number} value - 恢复值
+   */
+  heal(target, value) {
+    if (target.health === undefined) return;
+
+    const oldHealth = target.health;
+    target.health = Math.min(target.health + value, target.maxHealth || 30);
+    const healed = target.health - oldHealth;
+    Logger.info(`${target.name} 恢复 ${healed} 点生命（当前 ${target.health}/${target.maxHealth || 30}）`);
   }
 
   /**

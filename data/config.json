@@ -32,8 +32,8 @@
         "id": "hunter_hero_power",
         "name": "稳固射击",
         "cost": 2,
-        "description": "造成1点伤害",
-        "effect": { "type": "damage", "value": 1 }
+        "description": "对敌方英雄造成2点伤害",
+        "effect": { "type": "faceDamage", "value": 2 }
       }
     },
     "paladin": {
@@ -42,10 +42,10 @@
       "startingHealth": 30,
       "heroPower": {
         "id": "paladin_hero_power",
-        "name": "保护之手",
+        "name": "援军",
         "cost": 2,
-        "description": "获得2点护甲",
-        "effect": { "type": "armor", "value": 2 }
+        "description": "召唤一个1/1的白银之手新兵",
+        "effect": { "type": "summon", "id": "CS2_101t", "name": "白银之手新兵", "attack": 1, "health": 1 }
       }
     },
     "shaman": {
@@ -66,10 +66,10 @@
       "startingHealth": 30,
       "heroPower": {
         "id": "priest_hero_power",
-        "name": "暗影形态",
+        "name": "次级治疗",
         "cost": 2,
-        "description": "造成1点伤害",
-        "effect": { "type": "damage", "value": 1 }
+        "description": "恢复2点生命",
+        "effect": { "type": "heal", "value": 2 }
       }
     },
     "rogue": {
@@ -78,10 +78,10 @@
       "startingHealth": 30,
       "heroPower": {
         "id": "rogue_hero_power",
-        "name": "疾跑",
+        "name": "军情七处",
         "cost": 2,
-        "description": "抽2张牌",
-        "effect": { "type": "draw", "value": 2 }
+        "description": "装备一把1/2的武器",
+        "effect": { "type": "equipWeapon", "attack": 1, "durability": 2, "name": "poached_dagger" }
       }
     },
     "druid": {
@@ -90,10 +90,10 @@
       "startingHealth": 30,
       "heroPower": {
         "id": "druid_hero_power",
-        "name": "月火术",
+        "name": "变形",
         "cost": 2,
-        "description": "造成1点伤害",
-        "effect": { "type": "damage", "value": 1 }
+        "description": "获得+1攻击力和1点护甲",
+        "effect": { "type": "buff", "attack": 1, "armor": 1 }
       }
     }
   },
