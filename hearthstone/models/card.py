@@ -1,7 +1,7 @@
 """Card models for Hearthstone game engine."""
 from dataclasses import dataclass, field
 from typing import Set, Optional
-from hearthstone.models.enums import CardType, Ability
+from hearthstone.models.enums import CardType, Ability, HeroClass
 
 
 @dataclass
@@ -12,7 +12,7 @@ class Card:
     cost: int
     card_type: CardType
     description: str = ""
-    hero_class: Optional[str] = None
+    hero_class: Optional[HeroClass] = None
 
     def __str__(self) -> str:
         return f"{self.name} ({self.cost})"
@@ -30,8 +30,11 @@ class Minion(Card):
     attacks_this_turn: int = 0
 
     def __post_init__(self):
-        """Set max_health to health if not specified."""
-        if self.max_health == 0:
+        """Set max_health to health if not explicitly specified."""
+        # Use a sentinel value approach: only infer max_health from health
+        # if max_health was not explicitly set (remains at default 0)
+        # and health has a meaningful positive value
+        if self.max_health == 0 and self.health > 0:
             self.max_health = self.health
         # Minions can't attack the turn they're played (unless they have Charge)
         self.can_attack = Ability.CHARGE in self.abilities
