@@ -4,21 +4,30 @@ from hearthstone_cli.engine.game import GameLogic
 from hearthstone_cli.engine.deck import Deck
 from hearthstone_cli.cli.ui import CLIInterface
 from hearthstone_cli.cards.database import CardDatabase
+from hearthstone_cli.cards.loader import CardLoader
 
 
 def load_cards():
-    """加载卡牌数据"""
+    """加载所有标准模式卡牌"""
     db = CardDatabase()
 
     # 尝试从 HearthstoneJSON 加载
     try:
         print("正在加载卡牌数据...")
+        # 加载所有标准扩展包
+        loader = CardLoader(locale="zhCN")
+        standard_sets = loader.get_standard_sets()
+
+        print(f"标准模式扩展包: {len(standard_sets)} 个")
+
+        # 加载随从和法术卡牌
         count = db.load_from_hearthstonejson(
             locale="zhCN",
-            card_types=["MINION"],  # 先只加载随从
+            sets=standard_sets,
+            card_types=["MINION", "SPELL"],  # 加载随从和法术
             collectible_only=True,
         )
-        print(f"已加载 {count} 张卡牌")
+        print(f"已加载 {count} 张卡牌（随从+法术）")
         return True
     except Exception as e:
         print(f"从网络加载失败: {e}")
@@ -33,20 +42,16 @@ def load_test_cards():
 
     db = CardDatabase()
 
-    # 添加测试卡牌
-    cards = [
-        # 1费卡牌
-        ("CS1_042", "Argent Squire", 1, 1, 1),
-        ("CS2_168", "Murloc Raider", 1, 2, 1),
-        # 2费卡牌
-        ("CS2_121", "Frostwolf Grunt", 2, 2, 2),
-        ("CS2_172", "Bloodfen Raptor", 2, 3, 2),
-        # 3费卡牌
-        ("CS2_124", "Wolfrider", 3, 3, 1),
-        ("CS2_122", "Raid Leader", 3, 2, 2),
+    # 添加测试随从
+    minions = [
+        ("CS1_042", "银色侍从", 1, 1, 1),
+        ("CS2_168", "鱼人袭击者", 1, 2, 1),
+        ("CS2_121", "霜狼步兵", 2, 2, 2),
+        ("CS2_172", "血沼迅猛龙", 2, 3, 2),
+        ("CS2_124", "狼骑兵", 3, 3, 1),
     ]
 
-    for card_id, name, cost, attack, health in cards:
+    for card_id, name, cost, attack, health in minions:
         db.add_card(CardData(
             card_id=card_id,
             name=name,
@@ -57,34 +62,65 @@ def load_test_cards():
             health=health
         ))
 
+    # 添加测试法术
+    spells = [
+        ("CS2_029", "火球术", 4, "造成6点伤害。"),
+        ("CS2_037", "寒冰箭", 2, "造成3点伤害。"),
+        ("CS1_129", "心灵震爆", 2, "造成5点伤害。"),
+    ]
+
+    for card_id, name, cost, text in spells:
+        db.add_card(CardData(
+            card_id=card_id,
+            name=name,
+            cost=cost,
+            card_type=CardType.SPELL,
+            rarity=Rarity.BASIC,
+            text=text
+        ))
+
 
 def create_demo_deck():
-    """创建演示卡组"""
+    """创建演示卡组 - 确保有足够的低费卡牌"""
     db = CardDatabase()
 
-    # 获取1费和2费的卡牌
-    cheap_cards = [c for c in db.get_all_cards().values() if c.cost <= 3]
+    # 获取所有卡牌
+    all_cards = list(db.get_all_cards().values())
 
-    if len(cheap_cards) < 30:
+    if len(all_cards) < 30:
         # 如果卡牌不足，使用默认卡组
-        return Deck(
-            ["CS1_042"] * 10 +
-            ["CS2_121"] * 10 +
-            ["CS2_124"] * 10
-        )
+        return Deck(["CS1_042"] * 30)
 
-    # 选择30张卡牌组成卡组（优先低费卡牌）
+    # 按费用和类型筛选，创建一个平衡卡组
     selected = []
-    for cost in range(1, 4):  # 1-3费
-        cards_of_cost = [c.card_id for c in cheap_cards if c.cost == cost]
-        selected.extend(cards_of_cost[:10])  # 每个费用选最多10张
-        if len(selected) >= 30:
-            break
+
+    # 0-1费卡牌：选择15张（确保前期能出牌）
+    cheap_cards = [c for c in all_cards if c.cost <= 1]
+    # 优先选择随从
+    cheap_minions = [c for c in cheap_cards if c.card_type.value == "MINION"]
+    cheap_spells = [c for c in cheap_cards if c.card_type.value == "SPELL"]
+    selected.extend([c.card_id for c in cheap_minions[:10]])
+    selected.extend([c.card_id for c in cheap_spells[:5]])
+
+    # 2费卡牌：选择10张
+    two_cost = [c for c in all_cards if c.cost == 2]
+    two_minions = [c for c in two_cost if c.card_type.value == "MINION"]
+    selected.extend([c.card_id for c in two_minions[:10]])
+
+    # 3-4费卡牌：选择5张
+    mid_cost = [c for c in all_cards if 3 <= c.cost <= 4]
+    mid_minions = [c for c in mid_cost if c.card_type.value == "MINION"]
+    selected.extend([c.card_id for c in mid_minions[:5]])
 
     # 确保正好30张
     selected = selected[:30]
     while len(selected) < 30:
-        selected.append(selected[0])  # 复制第一张填充
+        # 用1费卡牌填充
+        one_cost = [c.card_id for c in all_cards if c.cost == 1]
+        if one_cost:
+            selected.append(one_cost[0])
+        else:
+            selected.append(selected[0])
 
     return Deck(selected)
 
@@ -97,24 +133,34 @@ def main():
     # 加载卡牌
     loaded_from_network = load_cards()
 
-    # 显示一些示例卡牌
+    # 显示卡牌统计
     db = CardDatabase()
     all_cards = list(db.get_all_cards().values())
+
     if all_cards:
-        print(f"\n数据库中有 {len(all_cards)} 张卡牌")
-        print("示例卡牌:")
-        for card in sorted(all_cards, key=lambda c: c.cost)[:5]:
-            card_type_str = "随从" if card.card_type.value == "MINION" else card.card_type.value
-            if card.attack is not None and card.health is not None:
-                print(f"  [{card.cost}费] {card.name} ({card.attack}/{card.health}) - {card_type_str}")
-            else:
-                print(f"  [{card.cost}费] {card.name} - {card_type_str}")
+        minions = [c for c in all_cards if c.card_type.value == "MINION"]
+        spells = [c for c in all_cards if c.card_type.value == "SPELL"]
+
+        print(f"\n数据库中有 {len(all_cards)} 张卡牌:")
+        print(f"  - 随从: {len(minions)} 张")
+        print(f"  - 法术: {len(spells)} 张")
+
+        print("\n示例卡牌:")
+        # 显示一些随从
+        print("  随从:")
+        for card in sorted(minions, key=lambda c: c.cost)[:3]:
+            print(f"    [{card.cost}费] {card.name} ({card.attack}/{card.health})")
+        # 显示一些法术
+        print("  法术:")
+        for card in sorted(spells, key=lambda c: c.cost)[:3]:
+            text = card.text[:20] + "..." if len(card.text) > 20 else card.text
+            print(f"    [{card.cost}费] {card.name} - {text}")
 
     # 创建卡组并开始游戏
     deck = create_demo_deck()
     print(f"\n创建了演示卡组（{len(deck)} 张卡牌）")
 
-    game = GameLogic.create_game(deck1=deck, deck2=deck, seed=123)
+    game = GameLogic.create_game(deck1=deck, deck2=deck, seed=42)
 
     ui = CLIInterface(game)
     ui.run()

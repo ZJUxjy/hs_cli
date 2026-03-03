@@ -132,8 +132,11 @@ class GameLogic:
     @classmethod
     def _apply_play_card(cls, state: GameState, action: PlayCardAction) -> GameState:
         """应用打出卡牌"""
+        from hearthstone_cli.cards.parser import EffectParser
+
         players = list(state.players)
         player = players[action.player]
+        enemy = players[1 - action.player]
 
         # 获取打出的卡牌
         card = player.hand[action.card_index]
@@ -144,6 +147,11 @@ class GameLogic:
 
         # 扣除法力值
         new_mana = replace(player.mana, current=player.mana.current - card.cost)
+
+        # 更新玩家状态（手牌和法力）
+        player = replace(player, hand=tuple(new_hand), mana=new_mana)
+        players[action.player] = player
+        state = replace(state, players=tuple(players))
 
         # 处理随从牌
         if card.card_type.value == "MINION":
@@ -157,7 +165,7 @@ class GameLogic:
                 enchantments=(),
                 damage_taken=0,
                 summoned_this_turn=True,
-                exhausted=Attribute.CHARGE not in card.attributes,  # 无冲锋的随从本回合疲劳
+                exhausted=Attribute.CHARGE not in card.attributes,
             )
 
             # 插入到指定位置
@@ -165,21 +173,150 @@ class GameLogic:
             pos = min(action.board_position, len(new_board))
             new_board.insert(pos, minion)
 
-            players[action.player] = replace(
-                player,
-                hand=tuple(new_hand),
-                mana=new_mana,
-                board=tuple(new_board)
-            )
-        else:
-            # 其他类型卡牌（法术、武器等）暂时只从手牌移除
-            players[action.player] = replace(
-                player,
-                hand=tuple(new_hand),
-                mana=new_mana
-            )
+            player = replace(player, board=tuple(new_board))
+            players[action.player] = player
+            state = replace(state, players=tuple(players))
 
-        return replace(state, players=tuple(players))
+            # 处理战吼效果
+            if card.text and ("战吼" in card.text or "Battlecry" in card.text):
+                state = cls._apply_battlecry(state, action.player, card)
+
+        # 处理法术牌
+        elif card.card_type.value == "SPELL":
+            # 解析并执行法术效果
+            state = cls._apply_spell(state, action.player, card)
+
+        return state
+
+    @classmethod
+    def _apply_spell(cls, state: GameState, player_idx: int, card) -> GameState:
+        """应用法术效果"""
+        from hearthstone_cli.cards.parser import EffectParser
+
+        players = list(state.players)
+        player = players[player_idx]
+        enemy = players[1 - player_idx]
+
+        # 解析效果
+        effects = EffectParser.parse_text(card.text)
+
+        for effect in effects:
+            # 伤害效果
+            if hasattr(effect, 'amount') and 'damage' in str(type(effect)).lower():
+                # 对敌方英雄造成伤害
+                new_health = max(0, enemy.hero.health - effect.amount)
+                enemy = replace(enemy, hero=replace(enemy.hero, health=new_health))
+                players[1 - player_idx] = enemy
+                state = replace(state, players=tuple(players))
+
+            # 抽牌效果
+            elif hasattr(effect, 'count') and 'draw' in str(type(effect)).lower():
+                for _ in range(effect.count):
+                    if player.deck:
+                        card_drawn = player.deck[0]
+                        if len(player.hand) < 10:  # 手牌上限10张
+                            player = replace(
+                                player,
+                                hand=player.hand + (card_drawn,),
+                                deck=player.deck[1:]
+                            )
+                        else:
+                            # 手牌满了，牌被烧掉
+                            player = replace(player, deck=player.deck[1:])
+                players[player_idx] = player
+                state = replace(state, players=tuple(players))
+
+            # 治疗效果
+            elif hasattr(effect, 'amount') and 'heal' in str(type(effect)).lower():
+                new_health = min(30, player.hero.health + effect.amount)
+                player = replace(player, hero=replace(player.hero, health=new_health))
+                players[player_idx] = player
+                state = replace(state, players=tuple(players))
+
+            # 召唤效果
+            elif hasattr(effect, 'card_id') and 'summon' in str(type(effect)).lower():
+                # 简化：召唤一个1/1的小怪
+                if len(player.board) < 7:
+                    minion = Minion(
+                        card_id="SKELETON",
+                        attack=1,
+                        health=1,
+                        max_health=1,
+                        attributes=frozenset(),
+                        enchantments=(),
+                        damage_taken=0,
+                        summoned_this_turn=True,
+                        exhausted=True,
+                    )
+                    player = replace(player, board=player.board + (minion,))
+                    players[player_idx] = player
+                    state = replace(state, players=tuple(players))
+
+        return state
+
+    @classmethod
+    def _apply_battlecry(cls, state: GameState, player_idx: int, card) -> GameState:
+        """应用战吼效果"""
+        from hearthstone_cli.cards.parser import EffectParser
+
+        players = list(state.players)
+        player = players[player_idx]
+        enemy = players[1 - player_idx]
+
+        # 解析战吼效果
+        effects = EffectParser.parse_text(card.text)
+
+        for effect in effects:
+            # 伤害效果（如：战吼：造成1点伤害）
+            if hasattr(effect, 'amount') and 'damage' in str(type(effect)).lower():
+                # 对敌方英雄造成伤害
+                new_health = max(0, enemy.hero.health - effect.amount)
+                enemy = replace(enemy, hero=replace(enemy.hero, health=new_health))
+                players[1 - player_idx] = enemy
+                state = replace(state, players=tuple(players))
+
+            # 抽牌效果
+            elif hasattr(effect, 'count') and 'draw' in str(type(effect)).lower():
+                for _ in range(effect.count):
+                    if player.deck:
+                        card_drawn = player.deck[0]
+                        if len(player.hand) < 10:
+                            player = replace(
+                                player,
+                                hand=player.hand + (card_drawn,),
+                                deck=player.deck[1:]
+                            )
+                        else:
+                            player = replace(player, deck=player.deck[1:])
+                players[player_idx] = player
+                state = replace(state, players=tuple(players))
+
+            # 治疗效果
+            elif hasattr(effect, 'amount') and 'heal' in str(type(effect)).lower():
+                new_health = min(30, player.hero.health + effect.amount)
+                player = replace(player, hero=replace(player.hero, health=new_health))
+                players[player_idx] = player
+                state = replace(state, players=tuple(players))
+
+            # 召唤效果（如：战吼：召唤一个1/1的小鬼）
+            elif hasattr(effect, 'card_id') and 'summon' in str(type(effect)).lower():
+                if len(player.board) < 7:
+                    minion = Minion(
+                        card_id="IMP",
+                        attack=1,
+                        health=1,
+                        max_health=1,
+                        attributes=frozenset(),
+                        enchantments=(),
+                        damage_taken=0,
+                        summoned_this_turn=True,
+                        exhausted=True,
+                    )
+                    player = replace(player, board=player.board + (minion,))
+                    players[player_idx] = player
+                    state = replace(state, players=tuple(players))
+
+        return state
 
     @classmethod
     def get_legal_actions(cls, state: GameState, player: int) -> List[Action]:

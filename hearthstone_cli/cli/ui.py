@@ -88,5 +88,19 @@ class CLIInterface:
             return f"攻击: {attacker_str} → {defender_str}"
         elif action_type == "PlayCardAction":
             card = self.game.players[action.player].hand[action.card_index]
-            return f"打出 [{card.cost}费] {card.name} ({card.attack}/{card.health})"
+            card_type = card.card_type.value
+
+            if card_type == "MINION":
+                # 随从牌显示攻击/血量
+                stats = f"({card.attack}/{card.health})"
+            elif card_type == "SPELL":
+                # 法术牌显示"法术"标签
+                stats = "(法术)"
+            elif card_type == "WEAPON":
+                # 武器牌显示攻击/耐久
+                stats = f"({card.attack}/{card.durability})"
+            else:
+                stats = ""
+
+            return f"打出 [{card.cost}费] {card.name} {stats}"
         return action_type
