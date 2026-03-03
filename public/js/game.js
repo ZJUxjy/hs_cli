@@ -183,7 +183,7 @@ class GameUI {
 
   renderPlayerHero() {
     const player = this.gameState.player;
-    const heroEl = document.getElementById(' if (heroElplayer-hero');
+    const heroEl = document.getElementById('player-hero');
 
    ) {
       const healthEl = heroEl.querySelector('.health');
