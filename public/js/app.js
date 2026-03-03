@@ -26,8 +26,8 @@ class App {
 
     document.getElementById('btn-deck-builder').addEventListener('click', () => {
       this.showScreen('deckBuilder');
-      if (this.deckBuilder) {
-        this.deckBuilder.init();
+      if (window.deckBuilder) {
+        window.deckBuilder.init();
       }
     });
 
