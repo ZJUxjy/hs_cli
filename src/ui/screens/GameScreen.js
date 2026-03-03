@@ -23,16 +23,24 @@ class GameScreen {
   }
 
   show(playerClass = 'mage', difficulty = 'normal') {
+    console.log('[GameScreen] show called with class:', playerClass);
+
     this.screen.currentScreen = 'game';
+    console.log('[GameScreen] Creating GameEngine...');
+
     this.game = new GameEngine();
     this.ruleEngine = new RuleEngine(this.game);
     this.aiEngine = new AIEngine(this.game);
     this.cardEffect = new CardEffect(this.game);
 
+    console.log('[GameScreen] Starting new game...');
     this.game.startNewGame(playerClass, difficulty);
 
+    console.log('[GameScreen] Creating UI...');
     this.createUI();
+    console.log('[GameScreen] Updating UI...');
     this.update();
+    console.log('[GameScreen] show() completed');
   }
 
   showWithEngine(gameEngine) {
