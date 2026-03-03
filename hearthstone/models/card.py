@@ -26,9 +26,8 @@ class Minion(Card):
     health: int = 0
     max_health: int = 0
     abilities: Set[Ability] = field(default_factory=set)
-    can_attack: bool = field(default=False, repr=True)
+    can_attack: bool = False
     attacks_this_turn: int = 0
-    _can_attack_explicitly_set: bool = field(default=False, repr=False)
 
     def __post_init__(self):
         """Set max_health to health if not explicitly specified."""
@@ -37,10 +36,6 @@ class Minion(Card):
         # and health has a meaningful positive value
         if self.max_health == 0 and self.health > 0:
             self.max_health = self.health
-        # Only set can_attack based on Charge if it wasn't explicitly set
-        # Minions can't attack the turn they're played (unless they have Charge)
-        if not self._can_attack_explicitly_set:
-            self.can_attack = Ability.CHARGE in self.abilities
 
     def take_damage(self, amount: int) -> int:
         """Take damage and return actual damage taken."""

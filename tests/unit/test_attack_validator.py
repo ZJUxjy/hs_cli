@@ -29,9 +29,9 @@ def test_validate_minion_attack_hero():
         name="Attacker",
         cost=2,
         attack=2,
-        health=2,
-        can_attack=True
+        health=2
     )
+    attacker.can_attack = True  # Set after creation
     game.current_player.board.append(attacker)
 
     validator = AttackValidator()
@@ -66,9 +66,9 @@ def test_validate_attack_with_taunt():
         name="Attacker",
         cost=2,
         attack=2,
-        health=2,
-        can_attack=True
+        health=2
     )
+    attacker.can_attack = True  # Set after creation
     game.current_player.board.append(attacker)
 
     validator = AttackValidator()
@@ -91,9 +91,9 @@ def test_validate_cannot_attack_twice():
         name="Attacker",
         cost=2,
         attack=2,
-        health=2,
-        can_attack=False  # Already attacked
+        health=2
     )
+    # can_attack is False by default (already attacked)
     game.current_player.board.append(attacker)
 
     validator = AttackValidator()
