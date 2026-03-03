@@ -110,7 +110,7 @@ class DeckBuilderUI {
 
     // 填充卡牌信息
     modal.querySelector('.card-detail-cost').textContent = card.cost || 0;
-    modal.querySelector('.card-detail-name').textContent = card.name || '未知';
+    modal.querySelector('.card-detail-name').textContent = card.name || i18n.t('ui.deck.unknown');
     modal.querySelector('.card-detail-type').textContent = this.getTypeName(card.type);
 
     // 处理卡牌描述
@@ -118,7 +118,7 @@ class DeckBuilderUI {
     // 替换卡牌描述中的符号
     text = text.replace(/\$/g, '').replace(/\[x\]/g, '');
     text = text.replace(/@/g, ' <span style="color:#f0c040">[]</span> ');
-    modal.querySelector('.card-detail-text').innerHTML = text || '无描述';
+    modal.querySelector('.card-detail-text').innerHTML = text || i18n.t('ui.deck.noDescription');
 
     // 显示攻击/生命
     const statsEl = modal.querySelector('.card-detail-stats');
@@ -170,38 +170,7 @@ class DeckBuilderUI {
   }
 
   getMechanicName(mechanic) {
-    const names = {
-      'BATTLECRY': '战吼',
-      'DEATHRATTLE': '亡语',
-      'CHARGE': '冲锋',
-      'TAUNT': '嘲讽',
-      'WINDFURY': '风怒',
-      'DIVINE_SHIELD': '圣盾',
-      'STEALTH': '潜行',
-      'POISONOUS': '剧毒',
-      'LIFESTEAL': '生命偷取',
-      'OVERLOAD': '过载',
-      'COMBO': '连击',
-      'INSPIRE': '激励',
-      'SECRET': '奥秘',
-      'FROZEN': '冰冻',
-      'FREEZE': '冻结',
-      'DISCOVER': '发现',
-      'CHOOSE_ONE': '抉择',
-      'QUEST': '任务',
-      'RECRUIT': '招募',
-      'START_OF_GAME': '游戏开始',
-      'DEATHRATTLE': '亡语',
-      'ECHO': '回响',
-      'OUTCAST': '异变',
-      'SPELLPOWER': '法术伤害',
-      'AURA': '光环',
-      'ADJACENT_BUFF': '相邻加成',
-      'ENRAGE': '激怒',
-      'INSPIRE': '激励',
-      'RITUAL': '仪式'
-    };
-    return names[mechanic] || mechanic;
+    return i18n.t(`ui.mechanics.${mechanic}`, { defaultValue: mechanic });
   }
 
   getRarityClass(rarity) {
@@ -215,52 +184,15 @@ class DeckBuilderUI {
   }
 
   getRarityName(rarity) {
-    const names = {
-      'COMMON': '普通',
-      'RARE': '稀有',
-      'EPIC': '史诗',
-      'LEGENDARY': '传说'
-    };
-    return names[rarity] || rarity;
+    return i18n.t(`ui.rarity.${rarity}`, { defaultValue: rarity });
   }
 
   getSetName(set) {
-    const names = {
-      'CORE': '核心',
-      'EXPERT1': '专家',
-      'TGT': '探险者',
-      'LOE': '探险者协会',
-      'MISSIONS': '冒险',
-      'HERO_SKINS': '皮肤',
-      'UNGORO': '安戈洛',
-      'ICECROWN': '冰封王座',
-      'LOOTAPALOOZA': '狗头人',
-      'GILNEAS': '女巫森林',
-      'BOOMSDAY': '砰砰计划',
-      'RUMBLE': '拉斯塔哈',
-      'DALARAN': '暗影崛起',
-      'ULDUM': '奥丹姆',
-      'DRAGONS': '巨龙降临',
-      'SCHOLOMANCE': '通灵学园',
-      'DARKMOON_FAIRE': '暗月马戏团',
-      'THE_BARRENS': '贫瘠之地',
-      'STORMWIND': '暴风城',
-      'ALTERAC_VALLEY': '奥特兰克',
-      'RETURNING': '回归',
-      'LEGACY': '经典',
-      'WILD': '狂野'
-    };
-    return names[set] || set;
+    return i18n.t(`ui.set.${set}`, { defaultValue: set });
   }
 
   getTypeName(type) {
-    const types = {
-      'MINION': '随从',
-      'SPELL': '法术',
-      'WEAPON': '武器',
-      'HERO': '英雄'
-    };
-    return types[type] || type;
+    return i18n.t(`ui.type.${type}`, { defaultValue: type });
   }
 
   bindEvents() {
@@ -392,7 +324,7 @@ class DeckBuilderUI {
     // Check deck size (max 30)
     const totalCards = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
     if (totalCards >= 30) {
-      alert('卡组已满（30张）');
+      alert(i18n.t('ui.deck.deckFull'));
       return;
     }
 
@@ -404,7 +336,7 @@ class DeckBuilderUI {
     const heroClass = this.currentDeck.hero.toUpperCase();
     const cardClass = (card.cardClass || 'NEUTRAL').toUpperCase();
     if (cardClass !== heroClass && cardClass !== 'NEUTRAL') {
-      alert(`这张卡是${this.getClassName(cardClass)}职业卡，只能放入${this.getClassName(heroClass)}卡组`);
+      alert(i18n.t('ui.deck.classCardOnly', { class: this.getClassName(cardClass), hero: this.getClassName(heroClass) }));
       return;
     }
 
@@ -414,7 +346,7 @@ class DeckBuilderUI {
 
     if (existing) {
       if (existing.count >= maxCopies) {
-        alert(`${maxCopies === 1 ? '传说/史诗卡' : '普通/稀有卡'}最多只能有${maxCopies}张`);
+        alert(maxCopies === 1 ? i18n.t('ui.deck.maxCopiesLegendary') : i18n.t('ui.deck.maxCopiesNormal'));
         return;
       }
       existing.count++;
@@ -428,21 +360,7 @@ class DeckBuilderUI {
   }
 
   getClassName(cardClass) {
-    const names = {
-      'MAGE': '法师',
-      'WARRIOR': '战士',
-      'HUNTER': '猎人',
-      'DRUID': '德鲁伊',
-      'ROGUE': '盗贼',
-      'PRIEST': '牧师',
-      'PALADIN': '圣骑士',
-      'SHAMAN': '萨满',
-      'WARLOCK': '术士',
-      'DEMONHUNTER': '恶魔猎手',
-      'DEATHKNIGHT': '死亡骑士',
-      'NEUTRAL': '中立'
-    };
-    return names[cardClass] || cardClass;
+    return i18n.t(`ui.hero.${cardClass.toLowerCase()}`, { defaultValue: cardClass });
   }
 
   // 根据选择的职业自动筛选卡牌列表
@@ -528,13 +446,13 @@ class DeckBuilderUI {
     const countEl = document.getElementById('deck-count');
     if (countEl) {
       const total = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
-      countEl.textContent = `${total}/30`;
+      countEl.textContent = i18n.t('ui.deck.deckCount', { count: total });
       countEl.style.color = total === 30 ? '#4ad94a' : '#f0c040';
     }
   }
 
   clearDeck() {
-    if (confirm('确定要清空卡组吗？')) {
+    if (confirm(i18n.t('ui.deck.confirmClear'))) {
       this.currentDeck.cards = [];
       this.currentDeck.name = '';
       this.currentDeck.id = null;
@@ -549,13 +467,13 @@ class DeckBuilderUI {
   async saveDeck() {
     const name = this.currentDeck.name.trim();
     if (!name) {
-      alert('请输入卡组名称');
+      alert(i18n.t('ui.deck.enterDeckName'));
       return;
     }
 
     const total = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
     if (total < 30) {
-      alert(`卡组需要30张，当前只有${total}张`);
+      alert(i18n.t('ui.deck.need30Cards', { count: total }));
       return;
     }
 
@@ -588,13 +506,13 @@ class DeckBuilderUI {
         }
       }
 
-      alert('卡组保存成功！');
+      alert(i18n.t('ui.deck.saveSuccess'));
 
       // Clear current deck after saving
       this.clearDeck();
     } catch (err) {
       console.error('Failed to save deck:', err);
-      alert('保存卡组失败');
+      alert(i18n.t('ui.deck.saveFailed'));
     }
   }
 }

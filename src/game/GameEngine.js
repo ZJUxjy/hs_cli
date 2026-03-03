@@ -7,6 +7,7 @@ const ConfigData = require('../data/ConfigData');
 const TurnManager = require('./TurnManager');
 const CardEffect = require('./CardEffect');
 const Logger = require('../utils/logger');
+const i18n = require('../i18n');
 
 class GameEngine {
   constructor() {
@@ -102,13 +103,15 @@ class GameEngine {
       mana: 1,
       maxMana: 1,
       armor: 0,
+      spellPower: 0,  // 法术伤害加成
       hand: [],
       deck,
       field: [],
       secrets: [],
       usedHeroPower: false,
       fatigueDamage: 0,
-      weapon: null
+      weapon: null,
+      locale: 'zh'  // 玩家默认语言
     };
   }
 
@@ -193,10 +196,17 @@ class GameEngine {
 
   /**
    * 设置消息
+   * @param {string} msg - 消息文本或翻译键
+   * @param {object} params - 翻译参数
    */
-  setMessage(msg) {
+  setMessage(msg, params = {}) {
     if (this.state) {
-      this.state.message = msg;
+      // 如果消息是翻译键（包含点号），则翻译
+      if (msg && msg.includes('.')) {
+        this.state.message = i18n.t(msg, params);
+      } else {
+        this.state.message = msg;
+      }
     }
   }
 
@@ -238,6 +248,49 @@ class GameEngine {
     if (this.turnManager) {
       this.turnManager.switchTurn();
     }
+  }
+
+  /**
+   * 打出手牌
+   * @param {number} cardIndex - 手牌索引
+   * @returns {object} 游戏状态
+   */
+  playCard(cardIndex) {
+    if (!this.state) return null;
+
+    const player = this.state.player;
+    const card = player.hand[cardIndex];
+
+    if (!card) {
+      this.setMessage('无效的卡牌');
+      return this.getGameState();
+    }
+
+    // 检查法力值
+    if (player.mana < card.cost) {
+      this.setMessage('法力不足');
+      return this.getGameState();
+    }
+
+    // 消耗法力
+    player.mana -= card.cost;
+
+    // 执行卡牌效果
+    this.executeCardEffect(card, card.effect, {
+      player,
+      target: this.state.ai
+    });
+
+    // 处理 Echo 机制：Echo 卡牌保留在手中
+    if (card.effect?.echo) {
+      Logger.info(`${card.name} 具有回响，打出后保留在手中`);
+      // Echo 卡牌不從手牌移除
+    } else {
+      // 普通卡牌从手牌移除
+      player.hand.splice(cardIndex, 1);
+    }
+
+    return this.getGameState();
   }
 
   /**
@@ -389,6 +442,7 @@ class GameEngine {
       canAttackHero: hasCharge || false, // 只有冲锋可以打脸，突袭不行
       taunt: card.effect?.taunt || false,
       rush: hasRush || false,
+      reborn: card.effect?.reborn || false,
       effects: []
     };
 
@@ -423,11 +477,37 @@ class GameEngine {
     const deadPlayerMinions = player.field.filter(m => m.health <= 0);
     const deadAiMinions = ai.field.filter(m => m.health <= 0);
 
+    // 处理重生机制 (Reborn)
+    const rebornPlayerMinions = deadPlayerMinions.filter(m => m.reborn);
+    const rebornAiMinions = deadAiMinions.filter(m => m.reborn);
+
+    // 移除已死亡随从
     player.field = player.field.filter(m => m.health > 0);
     ai.field = ai.field.filter(m => m.health > 0);
 
+    // 复活有重生效果的随从（保留亡语但不算真正死亡）
+    rebornPlayerMinions.forEach(minion => {
+      minion.health = 1;
+      minion.maxHealth = Math.max(minion.maxHealth, 1);
+      minion.reborn = false; // 消耗重生
+      player.field.push(minion);
+      Logger.info(`${minion.name} 重生（1生命）`);
+    });
+
+    rebornAiMinions.forEach(minion => {
+      minion.health = 1;
+      minion.maxHealth = Math.max(minion.maxHealth, 1);
+      minion.reborn = false;
+      ai.field.push(minion);
+      Logger.info(`${minion.name} 重生（1生命）`);
+    });
+
+    // 触发亡语（重生随从不触发亡语）
+    const trueDeadPlayerMinions = deadPlayerMinions.filter(m => !m.reborn);
+    const trueDeadAiMinions = deadAiMinions.filter(m => !m.reborn);
+
     // 触发玩家随从亡语
-    deadPlayerMinions.forEach(minion => {
+    trueDeadPlayerMinions.forEach(minion => {
       if (minion.deathrattle) {
         const cardEffect = new CardEffect(this);
         cardEffect.executeDeathrattle(minion, { player, target: ai, card: minion });
@@ -435,7 +515,7 @@ class GameEngine {
     });
 
     // 触发敌方随从亡语
-    deadAiMinions.forEach(minion => {
+    trueDeadAiMinions.forEach(minion => {
       if (minion.deathrattle) {
         const cardEffect = new CardEffect(this);
         cardEffect.executeDeathrattle(minion, { player: ai, target: player, card: minion });

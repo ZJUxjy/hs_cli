@@ -133,6 +133,21 @@ const API = {
       method: 'POST'
     });
     return this._handleResponse(res);
+  },
+
+  // Locale APIs
+  async getLocale() {
+    const res = await fetch(`${this.baseUrl}/game/locale`);
+    return this._handleResponse(res);
+  },
+
+  async setLocale(locale) {
+    const res = await fetch(`${this.baseUrl}/game/locale`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ locale })
+    });
+    return this._handleResponse(res);
   }
 };
 

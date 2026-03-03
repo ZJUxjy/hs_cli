@@ -15,10 +15,10 @@ class GameUI {
       this.selectedMinionIndex = null;
       this.render();
       this.bindEvents();
-      this.showMessage('游戏开始！');
+      this.showMessage(i18n.t('ui.game.gameStart'));
     } catch (err) {
       console.error('Failed to start game:', err);
-      alert('开始游戏失败');
+      alert(i18n.t('ui.deck.loadFailed'));
     }
   }
 
@@ -109,13 +109,20 @@ class GameUI {
   renderGameInfo() {
     const turnEl = document.getElementById('turn-indicator');
     if (turnEl) {
-      turnEl.textContent = `回合 ${this.gameState.turn || 1}`;
+      turnEl.textContent = `${i18n.t('ui.game.turn')} ${this.gameState.turn || 1}`;
     }
 
     const manaEl = document.getElementById('player-mana');
     if (manaEl) {
       const player = this.gameState.player;
-      manaEl.textContent = `法力: ${player.mana}/${player.maxMana}`;
+      manaEl.textContent = `${i18n.t('ui.game.mana')}: ${player.mana}/${player.maxMana}`;
+    }
+
+    const spellPowerEl = document.getElementById('player-spell-power');
+    if (spellPowerEl) {
+      const player = this.gameState.player;
+      const spellPower = player.spellPower || 0;
+      spellPowerEl.textContent = `${i18n.t('ui.game.spellPower')}: +${spellPower}`;
     }
   }
 
@@ -130,7 +137,7 @@ class GameUI {
 
       if (healthEl) healthEl.textContent = enemy.health;
       if (armorEl) armorEl.textContent = `+${enemy.armor}`;
-      if (handCountEl) handCountEl.textContent = `手牌: ${enemy.handCount || enemy.hand?.length || 0}`;
+      if (handCountEl) handCountEl.textContent = `${i18n.t('ui.game.hand')}: ${enemy.handCount || enemy.hand?.length || 0}`;
     }
   }
 
@@ -172,6 +179,7 @@ class GameUI {
           ${minion.windfury ? '<span class="mechanic-icon windfury-icon">W</span>' : ''}
           ${minion.stealth ? '<span class="mechanic-icon stealth-icon">S</span>' : ''}
           ${minion.poisonous ? '<span class="mechanic-icon poisonous-icon">P</span>' : ''}
+          ${minion.reborn ? '<span class="mechanic-icon reborn-icon">B</span>' : ''}
           <div class="minion-name">${minion.name}</div>
           <div class="minion-stats">
             <span class="minion-attack">${minion.attack}</span>
@@ -222,7 +230,7 @@ class GameUI {
   updateControls() {
     const endTurnBtn = document.getElementById('btn-end-turn');
     if (endTurnBtn) {
-      endTurnBtn.textContent = this.isPlayerTurn ? '结束回合' : '敌方回合中...';
+      endTurnBtn.textContent = this.isPlayerTurn ? i18n.t('ui.game.endTurn') : i18n.t('ui.game.enemyTurn');
       endTurnBtn.disabled = !this.isPlayerTurn;
     }
   }
@@ -237,7 +245,7 @@ class GameUI {
 
     // Check if can play
     if (card.cost > player.mana) {
-      this.showMessage('法力不足');
+      this.showMessage(i18n.t('ui.game.insufficientMana'));
       return;
     }
 
@@ -262,7 +270,7 @@ class GameUI {
 
     // Check if can attack
     if (minion.canAttack === false) {
-      this.showMessage('该随从本回合无法攻击');
+      this.showMessage(i18n.t('ui.game.cannotAttack'));
       return;
     }
 
@@ -281,10 +289,10 @@ class GameUI {
       this.gameState = await API.playCard(index);
       this.selectedCardIndex = null;
       this.render();
-      this.showMessage('使用了一张卡牌');
+      this.showMessage(i18n.t('ui.game.cardPlayed'));
     } catch (err) {
       console.error('Failed to play card:', err);
-      this.showMessage('打牌失败');
+      this.showMessage(i18n.t('ui.game.playFailed'));
     }
   }
 
@@ -299,7 +307,7 @@ class GameUI {
       this.render();
     } catch (err) {
       console.error('Failed to attack:', err);
-      this.showMessage('攻击失败');
+      this.showMessage(i18n.t('ui.game.attackFailed'));
     }
   }
 
@@ -315,16 +323,16 @@ class GameUI {
 
       // Check for victory
       if (this.gameState.ai.health <= 0) {
-        this.showMessage('胜利！');
+        this.showMessage(i18n.t('ui.game.victory'));
         setTimeout(() => {
-          if (confirm('恭喜获胜！再来一局？')) {
+          if (confirm(i18n.t('ui.game.playAgain'))) {
             window.app.showScreen('menu');
           }
         }, 1000);
       }
     } catch (err) {
       console.error('Failed to attack hero:', err);
-      this.showMessage('攻击失败');
+      this.showMessage(i18n.t('ui.game.attackFailed'));
     }
   }
 
@@ -350,7 +358,7 @@ class GameUI {
       }, 1000);
     } catch (err) {
       console.error('Failed to end turn:', err);
-      this.showMessage('结束回合失败');
+      this.showMessage(i18n.t('ui.game.endTurnFailed'));
     }
   }
 
@@ -369,19 +377,19 @@ class GameUI {
     try {
       this.gameState = await API.useHeroPower();
       this.render();
-      this.showMessage('使用了英雄技能');
+      this.showMessage(i18n.t('ui.game.heroPowerUsed'));
     } catch (err) {
       console.error('Failed to use hero power:', err);
-      this.showMessage('英雄技能使用失败');
+      this.showMessage(i18n.t('ui.game.heroPowerFailed'));
     }
   }
 
   async concede() {
-    if (!confirm('确定要认输吗？')) return;
+    if (!confirm(i18n.t('ui.game.confirmConcede'))) return;
 
     try {
       await API.concede();
-      this.showMessage('你已认输');
+      this.showMessage(i18n.t('ui.game.youConceded'));
       setTimeout(() => {
         window.app.showScreen('menu');
       }, 1500);
