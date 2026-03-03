@@ -10,5 +10,15 @@
   { "id": "priest_lightspawn", "name": "光耀之子", "type": "minion", "cost": 4, "rarity": "rare", "description": "4/4，其他光之子随从的攻击力等于其生命值", "effect": { "type": "summon", "attack": 4, "health": 4 }, "classes": ["priest"] },
   { "id": "priest_shadowbomber", "name": "暗影炸弹", "type": "spell", "cost": 2, "rarity": "rare", "description": "造成3点伤害，为你的英雄恢复3点生命值", "effect": { "type": "damage", "value": 3 }, "classes": ["priest"] },
   { "id": "priest_auctioneer", "name": "加基森拍卖师", "type": "minion", "cost": 6, "rarity": "rare", "description": "5/4，战吼：抽2张牌", "effect": { "type": "summon", "attack": 5, "health": 4, "battlecry": { "type": "draw_card", "value": 2 } }, "classes": ["priest"] },
-  { "id": "priest_temple_enforcer", "name": "圣殿执行者", "type": "minion", "cost": 5, "rarity": "common", "description": "5/6，战吼：使一个随从获得+3生命值", "effect": { "type": "summon", "attack": 5, "health": 6, "battlecry": { "type": "buff", "health": 3 } }, "classes": ["priest"] }
+  { "id": "priest_temple_enforcer", "name": "圣殿执行者", "type": "minion", "cost": 5, "rarity": "common", "description": "5/6，战吼：使一个随从获得+3生命值", "effect": { "type": "summon", "attack": 5, "health": 6, "battlecry": { "type": "buff", "health": 3 } }, "classes": ["priest"] },
+  { "id": "priest_resurrect", "name": "复活", "type": "spell", "cost": 2, "rarity": "rare", "description": "复活一个友方随从", "effect": { "type": "resurrect" }, "classes": ["priest"] },
+  { "id": "priest_auchenai", "name": "奥金尼", "type": "minion", "cost": 4, "rarity": "rare", "description": "4/5，治疗之触会在本回合造成伤害", "effect": { "type": "summon", "attack": 4, "health": 5 }, "classes": ["priest"] },
+  { "id": "priest_cabal", "name": "暗影祭司", "type": "minion", "cost": 5, "rarity": "rare", "description": "5/5，战吼：获得一个敌方随从的控制权", "effect": { "type": "summon", "attack": 5, "health": 5, "battlecry": { "type": "steal" } }, "classes": ["priest"] },
+  { "id": "priest_psyfiend", "name": "精神控制者", "type": "minion", "cost": 3, "rarity": "rare", "description": "2/4，潜行", "effect": { "type": "summon", "attack": 2, "health": 4, "stealth": true }, "classes": ["priest"] },
+  { "id": "priest_shadow_word_horror", "name": "精神烙印", "type": "spell", "cost": 4, "rarity": "rare", "description": "消灭所有攻击力为2的随从", "effect": { "type": "execute" }, "classes": ["priest"] },
+  { "id": "priest_renew", "name": "恢复", "type": "spell", "cost": 1, "rarity": "common", "description": "恢复3点生命值，抽一张牌", "effect": { "type": "heal", "value": 3, "draw_card": 1 }, "classes": ["priest"] },
+  { "id": "priest_shadow_reaper", "name": "暗影收割者", "type": "minion", "cost": 6, "rarity": "legendary", "description": "6/6，战吼：消灭所有攻击力小于等于5的敌方随从", "effect": { "type": "summon", "attack": 6, "health": 6 }, "classes": ["priest"] },
+  { "id": "priest_waver", "name": "暮光使徒", "type": "minion", "cost": 4, "rarity": "common", "description": "3/5，潜行", "effect": { "type": "summon", "attack": 3, "health": 5, "stealth": true }, "classes": ["priest"] },
+  { "id": "priest_ember", "name": "暗影之火", "type": "spell", "cost": 5, "rarity": "epic", "description": "造成8点伤害", "effect": { "type": "damage", "value": 8 }, "classes": ["priest"] },
+  { "id": "priest_mass_dispel", "name": "群体驱散", "type": "spell", "cost": 4, "rarity": "epic", "description": "沉默所有敌方随从，抽一张牌", "effect": { "type": "draw_card", "value": 1 }, "classes": ["priest"] }
 ]

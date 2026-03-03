@@ -10,5 +10,15 @@
   { "id": "druid_ancient_warrior", "name": "战争古树", "type": "minion", "cost": 8, "rarity": "legendary", "description": "8/8，嘲讽，战吼：获得5点护甲", "effect": { "type": "summon", "attack": 8, "health": 8, "taunt": true, "battlecry": { "type": "armor", "value": 5 } }, "classes": ["druid"] },
   { "id": "druid_druid_of_the_claw", "name": "利爪德鲁伊", "type": "minion", "cost": 5, "rarity": "common", "description": "4/4，抉择：获得+2攻击力或+2生命值和嘲讽", "effect": { "type": "summon", "attack": 4, "health": 4 }, "classes": ["druid"] },
   { "id": "druid_power_infusion", "name": "能量灌注", "type": "spell", "cost": 3, "rarity": "rare", "description": "使一个随从获得+4/+4", "effect": { "type": "buff", "value": 4, "health": 4 }, "classes": ["druid"] },
-  { "id": "druid_malorne", "name": "玛洛恩", "type": "minion", "cost": 7, "rarity": "legendary", "description": "9/7，亡语：将该随从移回你的手牌", "effect": { "type": "summon", "attack": 9, "health": 7, "deathrattle": { "type": "bounce" } }, "classes": ["druid"] }
+  { "id": "druid_malorne", "name": "玛洛恩", "type": "minion", "cost": 7, "rarity": "legendary", "description": "9/7，亡语：将该随从移回你的手牌", "effect": { "type": "summon", "attack": 9, "health": 7, "deathrattle": { "type": "bounce" } }, "classes": ["druid"] },
+  { "id": "druid_grove", "name": "丛林之魂", "type": "spell", "cost": 3, "rarity": "common", "description": "抉择：使一个随从获得+2/+4，或造成3点伤害", "effect": { "type": "choose" }, "classes": ["druid"] },
+  { "id": "druid_savannah", "name": "平原狮", "type": "minion", "cost": 5, "rarity": "common", "description": "5/5，抉择：获得+2/+2或嘲讽", "effect": { "type": "summon", "attack": 5, "health": 5 }, "classes": ["druid"] },
+  { "id": "druid_wisps", "name": "精灵之魂", "type": "spell", "cost": 7, "rarity": "epic", "description": "召唤七个1/1的小精灵", "effect": { "type": "summon", "count": 7, "attack": 1, "health": 1 }, "classes": ["druid"] },
+  { "id": "druid_mire_creature", "name": "湿地生物", "type": "minion", "cost": 4, "rarity": "rare", "description": "4/4，嘲讽，亡语：获得一个法力水晶", "effect": { "type": "summon", "attack": 4, "health": 4, "taunt": true }, "classes": ["druid"] },
+  { "id": "druid_jade_idol", "name": "青玉巨像", "type": "minion", "cost": 5, "rarity": "rare", "description": "5/5，亡语：召唤一个青玉魔像", "effect": { "type": "summon", "attack": 5, "health": 5 }, "classes": ["druid"] },
+  { "id": "druid_grow", "name": "生长", "type": "spell", "cost": 2, "rarity": "common", "description": "抉择：获得一个法力水晶，或抽一张牌", "effect": { "type": "choose" }, "classes": ["druid"] },
+  { "id": "druid_mark", "name": "爪击", "type": "spell", "cost": 1, "rarity": "common", "description": "造成2点伤害，连击：改为4点", "effect": { "type": "damage", "value": 2 }, "classes": ["druid"] },
+  { "id": "druid_bark", "name": "树皮术", "type": "spell", "cost": 3, "rarity": "common", "description": "抉择：获得4点护甲，或对一个随从造成3点伤害", "effect": { "type": "choose" }, "classes": ["druid"] },
+  { "id": "druid_ancient_war2", "name": "上古之神", "type": "minion", "cost": 8, "rarity": "legendary", "description": "8/8，嘲讽，战吼：对所有敌人造成3点伤害", "effect": { "type": "summon", "attack": 8, "health": 8, "taunt": true, "battlecry": { "type": "aoe_damage", "value": 3 } }, "classes": ["druid"] },
+  { "id": "druid_twig", "name": "世界之树的枝条", "type": "weapon", "cost": 7, "rarity": "legendary", "description": "5/8，亡语：将该武器移回你的手牌", "effect": { "type": "weapon", "attack": 5, "durability": 8, "deathrattle": { "type": "bounce" } }, "classes": ["druid"] }
 ]

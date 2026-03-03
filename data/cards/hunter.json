@@ -118,5 +118,105 @@
     "description": "8/8，无法攻击。在你的回合结束时，随机对一个敌人造成8点伤害",
     "effect": { "type": "summon", "attack": 8, "health": 8 },
     "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_multi_shot",
+    "name": "多重射击",
+    "type": "spell",
+    "cost": 4,
+    "rarity": "common",
+    "description": "随机对两个敌人造成3点伤害",
+    "effect": { "type": "random_damage", "value": 3, "count": 2 },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_huntress",
+    "name": "女猎手",
+    "type": "minion",
+    "cost": 3,
+    "rarity": "common",
+    "description": "3/3，战吼：使一个野兽获得风怒",
+    "effect": { "type": "summon", "attack": 3, "health": 3, "battlecry": { "type": "buff", "windfury": true } },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_scavenging_hyena",
+    "name": "食腐土狼",
+    "type": "minion",
+    "cost": 2,
+    "rarity": "common",
+    "description": "2/2，亡语：召唤一个2/2的土狼",
+    "effect": { "type": "summon", "attack": 2, "health": 2, "deathrattle": { "type": "summon", "attack": 2, "health": 2 } },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_glaive",
+    "name": "斩击",
+    "type": "weapon",
+    "cost": 3,
+    "rarity": "rare",
+    "description": "3/2",
+    "effect": { "type": "weapon", "attack": 3, "durability": 2 },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_dire_murloc",
+    "name": "恐狼",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "rare",
+    "description": "4/4，嘲讽，其他野兽获得+1/+1",
+    "effect": { "type": "summon", "attack": 4, "health": 4, "taunt": true },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_cobra",
+    "name": "眼镜蛇",
+    "type": "minion",
+    "cost": 5,
+    "rarity": "rare",
+    "description": "5/3，剧毒",
+    "effect": { "type": "summon", "attack": 5, "health": 3, "poisonous": true },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_flare",
+    "name": "照明弹",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "rare",
+    "description": "消灭所有奥秘，抽一张牌",
+    "effect": { "type": "draw_card", "value": 1 },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_bear_form",
+    "name": "熊形态",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "common",
+    "description": "抉择：获得+2/+4和嘲讽，或造成2点伤害",
+    "effect": { "type": "choose" },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_call_pet",
+    "name": "召唤宠物",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "description": "抽一张牌，如果抽到野兽则获得+1/+1",
+    "effect": { "type": "draw_card", "value": 1 },
+    "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_core_hound",
+    "name": "熔岩猎犬",
+    "type": "minion",
+    "cost": 6,
+    "rarity": "common",
+    "description": "6/5，亡语：随机召唤一个野兽",
+    "effect": { "type": "summon", "attack": 6, "health": 5 },
+    "classes": ["hunter"]
   }
 ]

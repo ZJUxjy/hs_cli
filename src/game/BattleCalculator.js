@@ -13,6 +13,19 @@ class BattleCalculator {
    * @returns {number} 实际受到的伤害
    */
   calculateDamage(target, damage, effect = {}) {
+    // 免疫检查
+    if (target.immune) {
+      Logger.info(`${target.name || target.id} 免疫了伤害`);
+      return 0;
+    }
+
+    // 圣盾检查
+    if (target.divine_shield && damage > 0) {
+      target.divine_shield = false;
+      Logger.info(`${target.name || target.id} 的圣盾被打破`);
+      return 0;
+    }
+
     let actualDamage = damage;
 
     // 如果目标是玩家，有护甲
@@ -22,7 +35,7 @@ class BattleCalculator {
         const armorDamage = Math.min(target.armor, damage);
         target.armor -= armorDamage;
         actualDamage -= armorDamage;
-        
+
         if (actualDamage > 0) {
           target.health -= actualDamage;
         }
@@ -99,9 +112,33 @@ class BattleCalculator {
    * @returns {object} 战斗结果
    */
   battle(minion1, minion2) {
-    // 双方互相造成伤害
-    const dmg1 = this.calculateDamage(minion2, minion1.attack);
-    const dmg2 = this.calculateDamage(minion1, minion2.attack);
+    // 剧毒检查
+    if (minion1.poisonous) {
+      minion2.health = 0;
+      Logger.info(`${minion2.name} 被剧毒杀死`);
+      return { minion1Dead: false, minion2Dead: true, damage1: 0, damage2: 0 };
+    }
+    if (minion2.poisonous) {
+      minion1.health = 0;
+      Logger.info(`${minion1.name} 被剧毒杀死`);
+      return { minion1Dead: true, minion2Dead: false, damage1: 0, damage2: 0 };
+    }
+
+    // 圣盾处理 - 攻击者
+    if (minion1.divine_shield) {
+      minion1.divine_shield = false;
+      Logger.info(`${minion1.name} 的圣盾被打破`);
+    } else {
+      this.calculateDamage(minion1, minion2.attack);
+    }
+
+    // 圣盾处理 - 防御者
+    if (minion2.divine_shield) {
+      minion2.divine_shield = false;
+      Logger.info(`${minion2.name} 的圣盾被打破`);
+    } else {
+      this.calculateDamage(minion2, minion1.attack);
+    }
 
     // 检查死亡
     const minion1Dead = minion1.health <= 0;
@@ -117,8 +154,8 @@ class BattleCalculator {
     return {
       minion1Dead,
       minion2Dead,
-      damage1: dmg1,
-      damage2: dmg2
+      damage1: minion2Dead ? 0 : minion1.attack,
+      damage2: minion1Dead ? 0 : minion2.attack
     };
   }
 
@@ -128,6 +165,28 @@ class BattleCalculator {
    * @param {object} targetPlayer - 目标玩家
    */
   attackHero(attacker, targetPlayer) {
+    // 剧毒
+    if (attacker.poisonous) {
+      targetPlayer.health = 0;
+      Logger.info(`${targetPlayer.hero} 被剧毒杀死`);
+      attacker.hasAttacked = true;
+      return 0;
+    }
+
+    // 免疫
+    if (targetPlayer.immune) {
+      attacker.hasAttacked = true;
+      return 0;
+    }
+
+    // 圣盾
+    if (targetPlayer.divine_shield) {
+      targetPlayer.divine_shield = false;
+      Logger.info(`${targetPlayer.hero} 的圣盾被打破`);
+      attacker.hasAttacked = true;
+      return 0;
+    }
+
     const damage = this.calculateDamage(targetPlayer, attacker.attack);
     attacker.hasAttacked = true;
     return damage;

@@ -21,7 +21,15 @@ class TurnManager {
     if (state.turn > 1) {
       player.maxMana = Math.min(player.maxMana + 1, 10);
     }
-    
+
+    // 处理过载（来自上个回合）
+    if (player.overload && player.overload > 0) {
+      const overloadedMana = Math.max(0, player.maxMana - player.overload);
+      player.mana = Math.min(player.mana, overloadedMana);
+      Logger.info(`${player.hero} 本回合过载锁定 ${player.overload} 点法力`);
+      player.overload = 0;
+    }
+
     // 重置当前法力值
     player.mana = player.maxMana;
     

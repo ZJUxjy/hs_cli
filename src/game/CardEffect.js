@@ -29,7 +29,17 @@ class CardEffect {
     BRAWL: 'brawl',
     BATTLECRY: 'battlecry',
     DEATHRATTLE: 'deathrattle',
-    SILENCE: 'silence'
+    SILENCE: 'silence',
+    // 新增机制
+    WINDURY: 'windfury',
+    STEALTH: 'stealth',
+    POISONOUS: 'poisonous',
+    EVOLVE: 'evolve',
+    OVERLOAD: 'overload',
+    COMBO: 'combo',
+    DIVINE_SHIELD: 'divine_shield',
+    IMMUNE: 'immune',
+    CHOOSE: 'choose'
   };
 
   constructor(gameEngine) {
@@ -119,6 +129,10 @@ class CardEffect {
           return this.executeMortalStrike(effect, context);
         case 'brawl':
           return this.executeBrawl(effect, context);
+        case 'evolve':
+          return this.executeEvolve(effect, context);
+        case 'combo':
+          return this.executeCombo(effect, context);
         default:
           Logger.warn(`未知效果类型: ${effect.type}`);
           return false;
@@ -572,6 +586,48 @@ class CardEffect {
     context.target.windfury = false;
 
     Logger.info(`沉默效果已应用于 ${context.target.name}`);
+    return true;
+  }
+
+  /**
+   * 进化 - 随机使友方随从获得+1/+1
+   */
+  executeEvolve(effect, context) {
+    const { player } = context;
+    if (!player.field || player.field.length === 0) {
+      Logger.info('战场上没有随从可以进化');
+      return false;
+    }
+
+    const evolveCount = effect.count || 1;
+
+    for (let i = 0; i < evolveCount && player.field.length > 0; i++) {
+      const randomMinion = player.field[Math.floor(Math.random() * player.field.length)];
+      randomMinion.attack += 1;
+      randomMinion.health += 1;
+      randomMinion.maxHealth = Math.max(randomMinion.maxHealth + 1, randomMinion.health);
+      Logger.info(`${randomMinion.name} 进化了! (+1/+1)`);
+    }
+    return true;
+  }
+
+  /**
+   * 连击 - 根据手牌数量增强效果
+   */
+  executeCombo(effect, context) {
+    const { player, card } = context;
+    const handCount = player.hand ? player.hand.length : 0;
+
+    if (effect.buff && handCount > 0) {
+      const buffEffect = { ...effect.buff };
+      // 连击时增强效果（手牌>=3时额外+2/+2）
+      if (handCount >= 3) {
+        buffEffect.value = (buffEffect.value || 0) + 2;
+        buffEffect.health = (buffEffect.health || 0) + 2;
+        Logger.info('连击触发！效果增强 (+2/+2)');
+      }
+      return this.executeBuff(buffEffect, context);
+    }
     return true;
   }
 }

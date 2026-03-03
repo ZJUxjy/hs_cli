@@ -10,5 +10,15 @@
   { "id": "rogue_betrayal", "name": "背叛", "type": "spell", "cost": 2, "rarity": "common", "description": "迫使一个敌方随从对其相邻的随从造成等同于其攻击力的伤害", "effect": { "type": "cleave" }, "classes": ["rogue"] },
   { "id": "rogue_preparation", "name": "准备", "type": "spell", "cost": 0, "rarity": "epic", "description": "下个回合你的法术费用减少3点", "effect": { "type": "buff", "spell_cost": -3 }, "classes": ["rogue"] },
   { "id": "rogue_conceal", "name": "隐藏", "type": "spell", "cost": 3, "rarity": "common", "description": "使你的所有随从获得潜行直到下回合", "effect": { "type": "stealth" }, "classes": ["rogue"] },
-  { "id": "rogue_fan_of_knives", "name": "刀扇", "type": "spell", "cost": 3, "rarity": "common", "description": "对所有敌人造成1点伤害，抽一张牌", "effect": { "type": "aoe_damage", "value": 1, "draw_card": 1 }, "classes": ["rogue"] }
+  { "id": "rogue_fan_of_knives", "name": "刀扇", "type": "spell", "cost": 3, "rarity": "common", "description": "对所有敌人造成1点伤害，抽一张牌", "effect": { "type": "aoe_damage", "value": 1, "draw_card": 1 }, "classes": ["rogue"] },
+  { "id": "rogue_shadowcaster", "name": "暗影行者", "type": "minion", "cost": 5, "rarity": "rare", "description": "5/5，战吼：将一个友方随从变为1/1", "effect": { "type": "summon", "attack": 5, "health": 5 }, "classes": ["rogue"] },
+  { "id": "rogue_beneath", "name": "深渊", "type": "spell", "cost": 2, "rarity": "rare", "description": "将一个随从移回其拥有者手牌", "effect": { "type": "bounce" }, "classes": ["rogue"] },
+  { "id": "rogue_sap", "name": "消沉", "type": "spell", "cost": 2, "rarity": "common", "description": "将一个敌方随从移回其拥有者手牌", "effect": { "type": "bounce" }, "classes": ["rogue"] },
+  { "id": "rogue_shadow_dagger", "name": "暗影之刃", "type": "weapon", "cost": 4, "rarity": "rare", "description": "4/2，连击：获得免疫", "effect": { "type": "weapon", "attack": 4, "durability": 2 }, "classes": ["rogue"] },
+  { "id": "rogue_hogger", "name": "霍格", "type": "minion", "cost": 4, "rarity": "legendary", "description": "4/4，潜行，亡语：召唤两个2/2的豺狼人", "effect": { "type": "summon", "attack": 4, "health": 4, "stealth": true, "deathrattle": { "type": "summon", "count": 2 } }, "classes": ["rogue"] },
+  { "id": "rogue_defias", "name": "迪菲亚兄弟", "type": "minion", "cost": 3, "rarity": "common", "description": "3/2，连击：召唤一个2/1的迪菲亚海盗", "effect": { "type": "summon", "attack": 3, "health": 2 }, "classes": ["rogue"] },
+  { "id": "rogue_poisoned", "name": "淬毒", "type": "spell", "cost": 3, "rarity": "common", "description": "使你的武器获得剧毒", "effect": { "type": "weapon_buff", "poisonous": true }, "classes": ["rogue"] },
+  { "id": "rogue_shirley", "name": "空灵", "type": "minion", "cost": 2, "rarity": "rare", "description": "2/2，潜行，连击：获得+2/+2", "effect": { "type": "summon", "attack": 2, "health": 2, "stealth": true }, "classes": ["rogue"] },
+  { "id": "rogue_ambush", "name": "伏击", "type": "spell", "cost": 2, "rarity": "rare", "description": "奥秘：当敌人打出随从时，召唤一个4/4的刺客", "effect": { "type": "secret", "trigger": "enemy_minion_played" }, "classes": ["rogue"] },
+  { "id": "rogue_blade", "name": "暗影之刃", "type": "weapon", "cost": 5, "rarity": "epic", "description": "5/3，连击：造成两次伤害", "effect": { "type": "weapon", "attack": 5, "durability": 3 }, "classes": ["rogue"] }
 ]

@@ -86,7 +86,9 @@ class AIEngine {
       .sort((a, b) => b.cost - a.cost);
 
     playableMinions.forEach(card => {
-      actions.push({ type: 'play_card', card, targetType: 'none' });
+      // 检查过载风险
+      const overload = card.effect?.overload || 0;
+      actions.push({ type: 'play_card', card, targetType: 'none', overload });
     });
 
     // 3. 打出法术
@@ -114,13 +116,21 @@ class AIEngine {
 
     // 4. 随从攻击
     const attackers = ai.field.filter(m => m.canAttack && !m.hasAttacked && !m.frozen);
-    
+
     attackers.forEach(minion => {
-      // 优先攻击随从
+      // 优先处理剧毒威胁
       if (player.field.length > 0) {
+        // 检查是否有剧毒随从，优先攻击
+        const poisonousTarget = player.field.find(m => m.poisonous);
+        if (poisonousTarget) {
+          actions.push({ type: 'attack', attacker: minion, target: poisonousTarget, targetType: 'minion', priority: 10 });
+        }
+
         // 选择血量最低的随从攻击
         const target = this.selectLowestHealthTarget(player.field);
-        actions.push({ type: 'attack', attacker: minion, target, targetType: 'minion' });
+        if (target && target !== poisonousTarget) {
+          actions.push({ type: 'attack', attacker: minion, target, targetType: 'minion' });
+        }
       } else if (player.field.length === 0 || !player.field.some(m => m.taunt)) {
         // 没有随从或没有嘲讽，直接攻击英雄
         actions.push({ type: 'attack', attacker: minion, target: player, targetType: 'hero' });

@@ -231,6 +231,63 @@ class GameEngine {
   }
 
   /**
+   * 应用过载效果
+   * @param {object} player - 玩家
+   * @param {number} overloadValue - 过载值
+   */
+  applyOverload(player, overloadValue) {
+    if (!player.overload) player.overload = 0;
+    player.overload += overloadValue;
+    Logger.info(`下回合将过载 ${player.overload} 点`);
+  }
+
+  /**
+   * 设置抉择
+   * @param {object} player - 玩家
+   * @param {object} choiceData - 抉择数据
+   */
+  setChoice(player, choiceData) {
+    if (!this.state) return false;
+    player.currentChoice = choiceData;
+    this.state.phase = 'choice';
+    const option1Name = choiceData.option1?.name || '选项1';
+    const option2Name = choiceData.option2?.name || '选项2';
+    this.setMessage(`请选择: 1) ${option1Name}  2) ${option2Name}`);
+    return true;
+  }
+
+  /**
+   * 解决抉择
+   * @param {object} player - 玩家
+   * @param {number} option - 选项 (1 或 2)
+   */
+  resolveChoice(player, option) {
+    if (!player.currentChoice) return false;
+
+    const choice = player.currentChoice;
+    if (option === 1 && choice.option1) {
+      this.executeCardEffect(choice.card, choice.option1, choice.context);
+    } else if (option === 2 && choice.option2) {
+      this.executeCardEffect(choice.card, choice.option2, choice.context);
+    }
+
+    player.currentChoice = null;
+    this.state.phase = 'main';
+    return true;
+  }
+
+  /**
+   * 执行卡牌效果
+   * @param {object} card - 卡牌
+   * @param {object} effect - 效果
+   * @param {object} context - 上下文
+   */
+  executeCardEffect(card, effect, context) {
+    const cardEffect = new CardEffect(this);
+    return cardEffect.execute(card, { ...context, card, effect });
+  }
+
+  /**
    * 确认换牌结束
    */
   confirmMulligan() {

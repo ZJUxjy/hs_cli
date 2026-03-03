@@ -10,5 +10,14 @@
   { "id": "shaman_unbound_elemental", "name": "不羁元素", "type": "minion", "cost": 4, "rarity": "common", "description": "4/5，每当你过载时，获得+2攻击力", "effect": { "type": "summon", "attack": 4, "health": 5 }, "classes": ["shaman"] },
   { "id": "shaman_ancestor_calling", "name": "先祖召唤", "type": "spell", "cost": 7, "rarity": "epic", "description": "战吼：召唤两个随机图腾", "effect": { "type": "summon", "value": 2 }, "classes": ["shaman"] },
   { "id": "shaman_windfury", "name": "风怒", "type": "spell", "cost": 3, "rarity": "common", "description": "使一个随从获得风怒", "effect": { "type": "buff", "windfury": true }, "classes": ["shaman"] },
-  { "id": "shaman_earth_shield", "name": "大地之盾", "type": "spell", "cost": 2, "rarity": "common", "description": "使一个随从获得+3生命值并获得嘲讽", "effect": { "type": "buff", "health": 3, "taunt": true }, "classes": ["shaman"] }
+  { "id": "shaman_earth_shield", "name": "大地之盾", "type": "spell", "cost": 2, "rarity": "common", "description": "使一个随从获得+3生命值并获得嘲讽", "effect": { "type": "buff", "health": 3, "taunt": true }, "classes": ["shaman"] },
+  { "id": "shaman_totem_golem", "name": "图腾魔像", "type": "minion", "cost": 3, "rarity": "common", "description": "3/3，过载(1)", "effect": { "type": "summon", "attack": 3, "health": 3 }, "classes": ["shaman"] },
+  { "id": "shaman_unstable", "name": "不稳定的元素", "type": "minion", "cost": 2, "rarity": "rare", "description": "2/1，过载(2)，亡语：对所有角色造成2点伤害", "effect": { "type": "summon", "attack": 2, "health": 1 }, "classes": ["shaman"] },
+  { "id": "shaman_lava_burst", "name": "熔岩爆发", "type": "spell", "cost": 4, "rarity": "rare", "description": "造成5点伤害，过载(2)", "effect": { "type": "damage", "value": 5 }, "classes": ["shaman"] },
+  { "id": "shaman_ancestor", "name": "先祖之魂", "type": "spell", "cost": 3, "rarity": "rare", "description": "使一个随从获得亡语：召唤该随从", "effect": { "type": "buff", "deathrattle": { "type": "resurrect" } }, "classes": ["shaman"] },
+  { "id": "shaman_feral_rage", "name": "野性之怒", "type": "spell", "cost": 4, "rarity": "common", "description": "抉择：获得8点护甲，或造成4点伤害", "effect": { "type": "choose" }, "classes": ["shaman"] },
+  { "id": "shaman_siltfin", "name": "沙丘锤", "type": "weapon", "cost": 4, "rarity": "rare", "description": "3/2，过载(1)", "effect": { "type": "weapon", "attack": 3, "durability": 2 }, "classes": ["shaman"] },
+  { "id": "shaman_thing_below", "name": "深渊滑行者", "type": "minion", "cost": 4, "rarity": "epic", "description": "4/5，过载(2)，战吼：进化", "effect": { "type": "summon", "attack": 4, "health": 5, "battlecry": { "type": "evolve", "count": 1 } }, "classes": ["shaman"] },
+  { "id": "shaman_jade", "name": "青玉之灵", "type": "minion", "cost": 5, "rarity": "rare", "description": "5/5，战吼：召唤一个青玉魔像", "effect": { "type": "summon", "attack": 5, "health": 5 }, "classes": ["shaman"] },
+  { "id": "shaman_thunder", "name": "雷鸣", "type": "spell", "cost": 6, "rarity": "epic", "description": "对所有敌人造成3点伤害，进化所有你的随从", "effect": { "type": "aoe_damage", "value": 3, "evolve": true }, "classes": ["shaman"] }
 ]
