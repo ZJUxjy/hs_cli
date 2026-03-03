@@ -28,15 +28,6 @@ const screen = blessed.screen({
 // 追踪当前屏幕类型
 screen.currentScreen = 'menu';
 
-// 解绑所有键盘事件（除了全局的C-c）
-screen.unbindAllKeys = function() {
-  // blessed没有直接提供解绑所有按键的方法
-  // 我们通过重新创建screen来清除所有事件
-  // 但这会影响性能，所以我们用另一种方式
-  // 创建一个按键历史记录来跟踪应该处理的事件
-  this._keyListeners = {};
-};
-
 // 创建程序主容器
 const program = blessed.box({
   top: 0,

@@ -31,18 +31,11 @@ class GameEngine {
    * @returns {object} 游戏状态
    */
   startNewGame(playerClass, opponentClass, difficulty = 'normal') {
-    console.log('[GameEngine] startNewGame called');
     this.init();
-    console.log('[GameEngine] init done');
 
-    console.log('[GameEngine] Creating player...');
     const player = this.createPlayer('player', playerClass);
-    console.log('[GameEngine] Player created');
-
     const aiOpponentClass = opponentClass || this.getOppositeClass(playerClass);
-    console.log('[GameEngine] AI class:', aiOpponentClass);
     const ai = this.createPlayer('ai', aiOpponentClass);
-    console.log('[GameEngine] AI created');
 
     // 初始游戏状态
     this.state = {
@@ -57,20 +50,14 @@ class GameEngine {
       actions: []
     };
 
-    console.log('[GameEngine] Drawing cards...');
     // 抽初始手牌 (先手3张，后手4张)
     this.drawCard(player, 3);
     this.drawCard(ai, 4);
-    console.log('[GameEngine] Cards drawn');
 
-    console.log('[GameEngine] Creating TurnManager...');
     this.turnManager = new TurnManager(this);
-    console.log('[GameEngine] TurnManager created');
 
-    console.log('[GameEngine] Starting turn...');
     // 开始第一回合
     this.turnManager.startTurn();
-    console.log('[GameEngine] Turn started');
 
     Logger.info('游戏开始!');
     return this.state;
