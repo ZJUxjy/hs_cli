@@ -40,10 +40,26 @@ class GameScreen {
     
     // 开始新游戏
     this.game.startNewGame(playerClass, difficulty);
-    
+
     // 创建界面
     this.createUI();
-    
+
+    // 渲染
+    this.update();
+  }
+
+  /**
+   * 显示游戏界面（使用已有引擎，加载存档）
+   */
+  showWithEngine(gameEngine) {
+    this.game = gameEngine;
+    this.ruleEngine = new RuleEngine(this.game);
+    this.aiEngine = new AIEngine(this.game);
+    this.cardEffect = new CardEffect(this.game);
+
+    // 创建界面
+    this.createUI();
+
     // 渲染
     this.update();
   }

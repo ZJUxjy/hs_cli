@@ -4,6 +4,7 @@
 
 const blessed = require('blessed');
 const Logger = require('../../utils/logger');
+const ProfileData = require('../../data/ProfileData');
 
 class MainMenu {
   constructor(screen, parent) {
@@ -104,7 +105,7 @@ class MainMenu {
         break;
       case 1:
         Logger.info('选择: 继续游戏');
-        // TODO: 跳转到继续游戏
+        this.continueGame();
         break;
       case 2:
         Logger.info('选择: 设置');
@@ -125,6 +126,135 @@ class MainMenu {
       // 返回主菜单
       this.show();
     });
+  }
+
+  /**
+   * 继续游戏 - 显示存档列表
+   */
+  continueGame() {
+    // 获取默认profile
+    let profile = ProfileData.loadProfile('default');
+    if (!profile) {
+      // 尝试找到第一个存在的profile
+      const profiles = ProfileData.listProfiles();
+      if (profiles.length > 0) {
+        profile = ProfileData.loadProfile(profiles[0].id);
+      }
+    }
+
+    if (!profile) {
+      Logger.info('没有找到存档');
+      this.show(); // 重新显示菜单
+      return;
+    }
+
+    // 获取游戏存档列表
+    const saves = ProfileData.listGameSaves(profile.id);
+
+    if (saves.length === 0) {
+      Logger.info('没有游戏存档');
+      this.show();
+      return;
+    }
+
+    // 显示存档选择界面
+    this.showSaveSelection(profile.id, saves);
+  }
+
+  /**
+   * 显示存档选择列表
+   */
+  showSaveSelection(profileId, saves) {
+    this.destroy();
+
+    // 创建选择菜单
+    const selectMenu = blessed.box({
+      parent: this.parent,
+      top: 'center',
+      left: 'center',
+      width: 60,
+      height: Math.min(saves.length + 8, 20),
+      border: { type: 'line', fg: 'cyan' },
+      style: { fg: 'white', bg: 'black', border: { fg: 'cyan' } }
+    });
+
+    // 标题
+    blessed.text({
+      parent: selectMenu,
+      top: 1,
+      left: 'center',
+      content: '{bold}{cyan}选择存档{/cyan}{/bold}',
+      tags: true
+    });
+
+    // 存档列表
+    const saveItems = saves.map((save, i) => {
+      const heroNames = {
+        mage: '法师', warrior: '战士', hunter: '猎人',
+        paladin: '圣骑士', shaman: '萨满', priest: '牧师',
+        rogue: '盗贼', druid: '德鲁伊'
+      };
+      const playerHero = heroNames[save.playerHero] || save.playerHero;
+      const aiHero = heroNames[save.aiHero] || save.aiHero;
+      const date = new Date(save.savedAt).toLocaleString('zh-CN');
+      return ` 回合${save.turn} | 你:${playerHero} vs 敌方:${aiHero} | ${date}`;
+    });
+
+    const list = blessed.list({
+      parent: selectMenu,
+      top: 4,
+      left: 2,
+      width: '100%-4',
+      height: saves.length + 2,
+      items: saveItems,
+      keys: true,
+      mouse: true,
+      style: {
+        selected: { bg: 'cyan', fg: 'black' },
+        item: { fg: 'white' }
+      }
+    });
+
+    // 选择事件
+    list.on('select', (item, index) => {
+      this.loadGame(profileId, saves[index].id);
+    });
+
+    this.screen.key('enter', () => {
+      const selected = list.getCurrentItem();
+      const index = list.items.indexOf(selected);
+      if (index >= 0) {
+        this.loadGame(profileId, saves[index].id);
+      }
+    });
+
+    // 返回
+    this.screen.key('escape', () => {
+      selectMenu.destroy();
+      this.show();
+    });
+
+    this.screen.render();
+  }
+
+  /**
+   * 加载游戏
+   */
+  loadGame(profileId, gameId) {
+    const GameEngine = require('../../game/GameEngine');
+
+    const gameEngine = new GameEngine();
+    const loaded = gameEngine.loadFromSave(profileId, gameId);
+
+    if (loaded) {
+      this.destroy();
+      const GameScreen = require('./GameScreen');
+      const gameScreen = new GameScreen(this.screen, this.parent);
+      gameScreen.showWithEngine(gameEngine);
+    } else {
+      Logger.error('加载失败');
+      this.show();
+    }
   }
 
   destroy() {
