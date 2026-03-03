@@ -12,6 +12,8 @@ class MainMenu {
   }
 
   show() {
+    this.screen.currentScreen = 'menu';
+
     // 创建主容器
     this.container = blessed.box({
       parent: this.parent,
@@ -57,10 +59,19 @@ class MainMenu {
     });
 
     // 绑定键盘
-    this.screen.key('up', () => this.navigate(-1));
-    this.screen.key('down', () => this.navigate(1));
-    this.screen.key('enter', () => this.select());
-    this.screen.key('escape', () => process.exit(0));
+    const self = this;
+    this.screen.key('up', () => {
+      if (self.screen.currentScreen === 'menu') self.navigate(-1);
+    });
+    this.screen.key('down', () => {
+      if (self.screen.currentScreen === 'menu') self.navigate(1);
+    });
+    this.screen.key('enter', () => {
+      if (self.screen.currentScreen === 'menu') self.select();
+    });
+    this.screen.key('escape', () => {
+      if (self.screen.currentScreen === 'menu') process.exit(0);
+    });
 
     this.screen.render();
   }

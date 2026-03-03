@@ -25,6 +25,9 @@ const screen = blessed.screen({
   fullUnicode: true
 });
 
+// 追踪当前屏幕类型
+screen.currentScreen = 'menu';
+
 // 创建程序主容器
 const program = blessed.box({
   top: 0,
@@ -37,7 +40,7 @@ const program = blessed.box({
 screen.append(program);
 
 // 全局快捷键 - 退出
-screen.key(['escape', 'q', 'C-c'], () => {
+screen.key(['C-c'], () => {
   process.stdout.write('\x1b[?25h'); // 恢复光标
   process.exit(0);
 });

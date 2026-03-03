@@ -17,6 +17,7 @@ class ClassSelection {
 
   show(callback) {
     this.callback = callback;
+    this.screen.currentScreen = 'classSelection';
 
     // 加载职业配置
     const classes = ConfigData.getAllClasses();
@@ -62,10 +63,19 @@ class ClassSelection {
     });
 
     // 键盘绑定
-    this.screen.key('up', () => this.navigate(-1));
-    this.screen.key('down', () => this.navigate(1));
-    this.screen.key('enter', () => this.confirm());
-    this.screen.key('escape', () => this.back());
+    const self = this;
+    this.screen.key('up', () => {
+      if (self.screen.currentScreen === 'classSelection') self.navigate(-1);
+    });
+    this.screen.key('down', () => {
+      if (self.screen.currentScreen === 'classSelection') self.navigate(1);
+    });
+    this.screen.key('enter', () => {
+      if (self.screen.currentScreen === 'classSelection') self.confirm();
+    });
+    this.screen.key('escape', () => {
+      if (self.screen.currentScreen === 'classSelection') self.back();
+    });
 
     this.screen.render();
   }

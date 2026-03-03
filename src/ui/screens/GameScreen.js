@@ -23,6 +23,7 @@ class GameScreen {
   }
 
   show(playerClass = 'mage', difficulty = 'normal') {
+    this.screen.currentScreen = 'game';
     this.game = new GameEngine();
     this.ruleEngine = new RuleEngine(this.game);
     this.aiEngine = new AIEngine(this.game);
@@ -35,6 +36,7 @@ class GameScreen {
   }
 
   showWithEngine(gameEngine) {
+    this.screen.currentScreen = 'game';
     this.game = gameEngine;
     this.ruleEngine = new RuleEngine(this.game);
     this.aiEngine = new AIEngine(this.game);
@@ -131,25 +133,37 @@ class GameScreen {
   }
 
   bindKeys() {
+    const self = this;
+
     // 数字键选择手牌
     for (let i = 1; i <= 9; i++) {
-      this.screen.key(String(i), () => this.selectHandCard(i - 1));
+      this.screen.key(String(i), () => {
+        if (self.screen.currentScreen === 'game') self.selectHandCard(i - 1);
+      });
     }
 
-    // 方向键
-    this.screen.key(['up', 'down', 'left', 'right'], () => {});
-
     // 回车确认
-    this.screen.key('enter', () => this.confirm());
+    this.screen.key('enter', () => {
+      if (self.screen.currentScreen === 'game') self.confirm();
+    });
 
     // E - 结束回合
-    this.screen.key('e', () => this.endTurn());
+    this.screen.key('e', () => {
+      if (self.screen.currentScreen === 'game') self.endTurn();
+    });
 
     // 退出
-    this.screen.key(['escape', 'q'], () => this.backToMenu());
+    this.screen.key('escape', () => {
+      if (self.screen.currentScreen === 'game') self.backToMenu();
+    });
+    this.screen.key('q', () => {
+      if (self.screen.currentScreen === 'game') self.backToMenu();
+    });
 
     // S - 保存
-    this.screen.key('s', () => this.saveGame());
+    this.screen.key('s', () => {
+      if (self.screen.currentScreen === 'game') self.saveGame();
+    });
   }
 
   selectHandCard(index) {
