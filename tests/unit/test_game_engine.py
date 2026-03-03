@@ -1,7 +1,7 @@
 """Tests for GameEngine."""
 import pytest
 from hearthstone.engine.game_engine import GameEngine
-from hearthstone.engine.action import EndTurnAction, PlayCardAction
+from hearthstone.engine.action import EndTurnAction, PlayCardAction, AttackAction
 from hearthstone.models.card import Minion
 from hearthstone.models.enums import HeroClass
 
@@ -82,3 +82,29 @@ def test_engine_not_enough_mana():
 
     assert not result.success
     assert "mana" in result.message.lower()
+
+
+def test_engine_attack_action():
+    """Test attacking with a minion."""
+    engine = create_test_engine()
+
+    # Add minion to current player's board
+    attacker = Minion(
+        id="TEST_001",
+        name="Attacker",
+        cost=2,
+        attack=3,
+        health=2
+    )
+    attacker.can_attack = True
+    engine.state.current_player.board.append(attacker)
+
+    action = AttackAction(
+        player_id="Player 1",
+        attacker_id="TEST_001",
+        target_id="enemy_hero"
+    )
+    result = engine.take_action(action)
+
+    assert result.success
+    assert engine.state.opposing_player.hero.health == 27  # 30 - 3

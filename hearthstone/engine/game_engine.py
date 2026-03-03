@@ -12,6 +12,8 @@ from hearthstone.engine.action import (
     AttackAction,
     ActionResult
 )
+from hearthstone.engine.attack.attack_validator import AttackValidator
+from hearthstone.engine.attack.attack_executor import AttackExecutor
 
 
 class GameEngine:
@@ -20,6 +22,8 @@ class GameEngine:
     def __init__(self):
         """Initialize game engine."""
         self.state: Optional[GameState] = None
+        self.attack_validator = AttackValidator()
+        self.attack_executor = AttackExecutor()
 
     def initialize_game(
         self,
@@ -126,8 +130,39 @@ class GameEngine:
 
     def _execute_attack(self, action: AttackAction) -> ActionResult:
         """Execute attack action."""
-        # TODO: Implement attack logic
+        player = self.state.current_player
+
+        # Find attacker
+        attacker = None
+        for minion in player.board:
+            if minion.id == action.attacker_id:
+                attacker = minion
+                break
+
+        if not attacker:
+            return ActionResult(
+                success=False,
+                message=f"Attacker not found: {action.attacker_id}"
+            )
+
+        # Validate attack
+        validation = self.attack_validator.validate_attack(
+            attacker, action.target_id, self.state
+        )
+
+        if not validation.valid:
+            return ActionResult(
+                success=False,
+                message="; ".join(validation.errors)
+            )
+
+        # Execute attack
+        result = self.attack_executor.execute_attack(
+            attacker, action.target_id, self.state
+        )
+
         return ActionResult(
-            success=False,
-            message="Attack not implemented yet"
+            success=result.success,
+            message=result.message,
+            game_over=self.state.is_game_over()
         )
