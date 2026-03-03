@@ -149,8 +149,9 @@ class ClassSelection {
       parent: this.container,
       bottom: 3,
       left: 'center',
-      content: '{gray}↑↓←→ 选择  Enter 确认  Esc 返回主菜单{/gray}',
-      tags: true
+      content: '↑↓←→ 选择  Enter 确认  Esc 返回主菜单',
+      tags: true,
+      style: { fg: 'gray' }
     });
 
     // 绑定键盘事件

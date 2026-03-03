@@ -405,7 +405,7 @@ class GameScreen {
     // 更新敌方信息
     const ai = state.ai;
     this.boxes.enemyHero.setContent(
-      `{red}敌方 (${ai.hero}){/red}\n` +
+      `{fg:red}敌方 (${ai.hero}){/fg}\n` +
       `生命: ${ai.health}/${ai.maxHealth}\n` +
       `护甲: ${ai.armor}\n` +
       `法力: ${ai.mana}/${ai.maxMana}\n` +
@@ -415,7 +415,7 @@ class GameScreen {
     // 更新玩家信息
     const player = state.player;
     this.boxes.playerHero.setContent(
-      `{blue}玩家 (${player.hero}){/blue}\n` +
+      `{fg:blue}玩家 (${player.hero}){/fg}\n` +
       `生命: ${player.health}/${player.maxHealth}\n` +
       `护甲: ${player.armor}\n` +
       `法力: ${player.mana}/${player.maxMana}\n` +
@@ -463,7 +463,7 @@ class GameScreen {
     // 更新状态栏
     let statusText = `回合: ${state.turn}  |  ${state.message}`;
     if (state.currentPlayer === 'ai') {
-      statusText += '  {red}[敌方回合]{/red}';
+      statusText += '  {fg:red}[敌方回合]{/fg}';
     }
     this.boxes.status.setContent(statusText);
 
@@ -477,9 +477,9 @@ class GameScreen {
     const state = this.game.getGameState();
     const winner = state.winner;
     
-    const msg = winner === 'player' 
-      ? '{green}恭喜！你赢了！{/green}'
-      : '{red}你输了...{/red}';
+    const msg = winner === 'player'
+      ? '{fg:green}恭喜！你赢了！{/fg}'
+      : '{fg:red}你输了...{/fg}';
     
     this.boxes.status.setContent(`${msg}  按Enter返回主菜单`);
     this.screen.render();

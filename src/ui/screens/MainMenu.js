@@ -89,8 +89,9 @@ class MainMenu {
       parent: this.menu,
       bottom: 1,
       left: 'center',
-      content: '{gray}↑↓ 选择  Enter 确认  Esc 退出{/gray}',
-      tags: true
+      content: '↑↓ 选择  Enter 确认  Esc 退出',
+      tags: true,
+      style: { fg: 'gray' }
     });
 
     this.menu.height = list.height + 9;
