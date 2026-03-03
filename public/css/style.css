@@ -803,3 +803,153 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-gold);
 }
+
+/* 模态框 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: linear-gradient(180deg, #2a2a4a 0%, #1a1a3a 100%);
+  border: 2px solid var(--accent-gold);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--accent-gold);
+}
+
+/* 卡牌详情 */
+.card-detail {
+  min-height: 300px;
+}
+
+.card-detail-header {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.card-detail-cost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--mana-color);
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.card-detail-title {
+  flex: 1;
+}
+
+.card-detail-name {
+  font-size: 18px;
+  color: var(--accent-gold);
+  margin-bottom: 5px;
+}
+
+.card-detail-type {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.card-detail-text {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  min-height: 60px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.card-detail-stats {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.card-detail-attack,
+.card-detail-health {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.card-detail-attack {
+  background: #d9a74a;
+  color: #000;
+}
+
+.card-detail-health {
+  background: var(--health-color);
+}
+
+.card-detail-mechanics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 15px;
+  min-height: 30px;
+}
+
+.mechanic-tag {
+  padding: 4px 12px;
+  background: rgba(240, 192, 64, 0.2);
+  border: 1px solid var(--accent-gold);
+  border-radius: 15px;
+  font-size: 12px;
+  color: var(--accent-gold);
+}
+
+.card-detail-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+}

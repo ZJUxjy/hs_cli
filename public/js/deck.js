@@ -86,10 +86,159 @@ class DeckBuilderUI {
         item.classList.remove('dragging');
       });
 
-      item.addEventListener('click', () => {
+      // 单击添加卡牌，双击查看详情
+      item.addEventListener('click', (e) => {
         this.addCardToDeck(item.dataset.id);
       });
+
+      item.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        const card = this.allCards.find(c => c.id === item.dataset.id);
+        if (card) {
+          this.showCardDetail(card);
+        }
+      });
     });
+  }
+
+  // 显示卡牌详情弹窗
+  showCardDetail(card) {
+    const modal = document.getElementById('card-detail-modal');
+    if (!modal) return;
+
+    // 填充卡牌信息
+    modal.querySelector('.card-detail-cost').textContent = card.cost || 0;
+    modal.querySelector('.card-detail-name').textContent = card.name || '未知';
+    modal.querySelector('.card-detail-type').textContent = this.getTypeName(card.type);
+
+    // 处理卡牌描述
+    let text = card.text || '';
+    // 替换卡牌描述中的符号
+    text = text.replace(/\$/g, '').replace(/\[x\]/g, '');
+    text = text.replace(/@/g, ' <span style="color:#f0c040">[]</span> ');
+    modal.querySelector('.card-detail-text').innerHTML = text || '无描述';
+
+    // 显示攻击/生命
+    const statsEl = modal.querySelector('.card-detail-stats');
+    if (card.type === 'MINION' || card.type === 'WEAPON') {
+      statsEl.innerHTML = `
+        <span class="card-detail-attack">${card.attack !== undefined ? card.attack : '-'}</span>
+        <span class="card-detail-health">${card.health !== undefined ? card.health : '-'}</span>
+      `;
+      statsEl.style.display = 'flex';
+    } else {
+      statsEl.style.display = 'none';
+    }
+
+    // 显示机制标签
+    const mechanicsEl = modal.querySelector('.card-detail-mechanics');
+    const mechanics = card.mechanics || [];
+    if (mechanics.length > 0) {
+      mechanicsEl.innerHTML = mechanics.map(m => `
+        <span class="mechanic-tag">${this.getMechanicName(m)}</span>
+      `).join('');
+      mechanicsEl.style.display = 'flex';
+    } else {
+      mechanicsEl.style.display = 'none';
+    }
+
+    // 显示稀有度和卡牌包
+    modal.querySelector('.card-detail-rarity').textContent = this.getRarityName(card.rarity);
+    modal.querySelector('.card-detail-set').textContent = this.getSetName(card.set);
+
+    // 显示弹窗
+    modal.classList.remove('hidden');
+
+    // 绑定关闭事件
+    const closeBtn = modal.querySelector('.modal-close');
+    closeBtn.onclick = () => this.closeCardDetail();
+
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        this.closeCardDetail();
+      }
+    };
+  }
+
+  closeCardDetail() {
+    const modal = document.getElementById('card-detail-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  }
+
+  getMechanicName(mechanic) {
+    const names = {
+      'BATTLECRY': '战吼',
+      'DEATHRATTLE': '亡语',
+      'CHARGE': '冲锋',
+      'TAUNT': '嘲讽',
+      'WINDFURY': '风怒',
+      'DIVINE_SHIELD': '圣盾',
+      'STEALTH': '潜行',
+      'POISONOUS': '剧毒',
+      'LIFESTEAL': '生命偷取',
+      'OVERLOAD': '过载',
+      'COMBO': '连击',
+      'INSPIRE': '激励',
+      'SECRET': '奥秘',
+      'FROZEN': '冰冻',
+      'FREEZE': '冻结',
+      'DISCOVER': '发现',
+      'CHOOSE_ONE': '抉择',
+      'QUEST': '任务',
+      'RECRUIT': '招募',
+      'START_OF_GAME': '游戏开始',
+      'DEATHRATTLE': '亡语',
+      'ECHO': '回响',
+      'OUTCAST': '异变',
+      'SPELLPOWER': '法术伤害',
+      'AURA': '光环',
+      'ADJACENT_BUFF': '相邻加成',
+      'ENRAGE': '激怒',
+      'INSPIRE': '激励',
+      'RITUAL': '仪式'
+    };
+    return names[mechanic] || mechanic;
+  }
+
+  getRarityName(rarity) {
+    const names = {
+      'COMMON': '普通',
+      'RARE': '稀有',
+      'EPIC': '史诗',
+      'LEGENDARY': '传说'
+    };
+    return names[rarity] || rarity;
+  }
+
+  getSetName(set) {
+    const names = {
+      'CORE': '核心',
+      'EXPERT1': '专家',
+      'TGT': '探险者',
+      'LOE': '探险者协会',
+      'MISSIONS': '冒险',
+      'HERO_SKINS': '皮肤',
+      'UNGORO': '安戈洛',
+      'ICECROWN': '冰封王座',
+      'LOOTAPALOOZA': '狗头人',
+      'GILNEAS': '女巫森林',
+      'BOOMSDAY': '砰砰计划',
+      'RUMBLE': '拉斯塔哈',
+      'DALARAN': '暗影崛起',
+      'ULDUM': '奥丹姆',
+      'DRAGONS': '巨龙降临',
+      'SCHOLOMANCE': '通灵学园',
+      'DARKMOON_FAIRE': '暗月马戏团',
+      'THE_BARRENS': '贫瘠之地',
+      'STORMWIND': '暴风城',
+      'ALTERAC_VALLEY': '奥特兰克',
+      'RETURNING': '回归',
+      'LEGACY': '经典',
+      'WILD': '狂野'
+    };
+    return names[set] || set;
   }
 
   getTypeName(type) {

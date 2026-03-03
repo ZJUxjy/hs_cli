@@ -165,6 +165,30 @@
       </div>
       <button id="btn-back-from-class" class="back-btn">返回</button>
     </div>
+
+    <!-- 卡牌详情弹窗 -->
+    <div id="card-detail-modal" class="modal hidden">
+      <div class="modal-content card-detail">
+        <button class="modal-close">&times;</button>
+        <div class="card-detail-header">
+          <span class="card-detail-cost">0</span>
+          <div class="card-detail-title">
+            <h3 class="card-detail-name">卡牌名称</h3>
+            <span class="card-detail-type">类型</span>
+          </div>
+        </div>
+        <div class="card-detail-text">卡牌描述</div>
+        <div class="card-detail-stats">
+          <span class="card-detail-attack">0</span>
+          <span class="card-detail-health">0</span>
+        </div>
+        <div class="card-detail-mechanics"></div>
+        <div class="card-detail-info">
+          <span class="card-detail-rarity">稀有度</span>
+          <span class="card-detail-set">卡牌包</span>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="/js/api.js"></script>
   <script src="/js/deck.js"></script>
