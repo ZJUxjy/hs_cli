@@ -1,0 +1,15 @@
+{
+  "id": "profile_1772524245678",
+  "name": "测试玩家",
+  "createdAt": "2026-03-03T07:50:45.678Z",
+  "updatedAt": "2026-03-03T07:50:45.678Z",
+  "stats": {
+    "totalGames": 0,
+    "wins": 0,
+    "losses": 0
+  },
+  "decks": [],
+  "settings": {
+    "difficulty": "normal"
+  }
+}

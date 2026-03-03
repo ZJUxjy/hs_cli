@@ -1,0 +1,102 @@
+[
+  {
+    "id": "warrior_charge",
+    "name": "冲锋",
+    "type": "spell",
+    "cost": 1,
+    "rarity": "common",
+    "description": "随从在本回合可以攻击",
+    "effect": { "type": "charge" },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_whirlwind",
+    "name": "旋风斩",
+    "type": "spell",
+    "cost": 1,
+    "rarity": "common",
+    "description": "对所有随从造成1点伤害",
+    "effect": { "type": "aoe_damage", "value": 1 },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_execute",
+    "name": "斩杀",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "description": "消灭一个受伤的随从",
+    "effect": { "type": "execute" },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_cleave",
+    "name": "顺劈斩",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "description": "对相邻的随从各造成2点伤害",
+    "effect": { "type": "cleave", "value": 2 },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_battle_rage",
+    "name": "战斗怒火",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "description": "每有一个受伤的随从，抽一张牌",
+    "effect": { "type": "draw_injured" },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_Shield_Block",
+    "name": "盾牌格挡",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "common",
+    "description": "获得5点护甲，抽1张牌",
+    "effect": { "type": "armor_draw", "armor": 5, "draw": 1 },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_mortal_strike",
+    "name": "致死打击",
+    "type": "spell",
+    "cost": 4,
+    "rarity": "common",
+    "description": "造成4点伤害，如果你的生命值小于等于12，则改为造成6点伤害",
+    "effect": { "type": "mortal_strike", "value": 4, "value_low": 6 },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_brawl",
+    "name": "绝命乱斗",
+    "type": "spell",
+    "cost": 5,
+    "rarity": "common",
+    "description": "消灭所有随从，随机选择一个存活",
+    "effect": { "type": "brawl" },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_gorehowl",
+    "name": "血吼",
+    "type": "weapon",
+    "cost": 7,
+    "rarity": "common",
+    "description": "7/1，在攻击随从后，获得+2攻击力",
+    "effect": { "type": "weapon", "attack": 7, "durability": 1, "buff_on_hit": 2 },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_grommash",
+    "name": "格罗玛什·地狱咆哮",
+    "type": "minion",
+    "cost": 8,
+    "rarity": "legendary",
+    "description": "6/6，免疫",
+    "effect": { "type": "summon", "attack": 6, "health": 6, "immune": true },
+    "classes": ["warrior"]
+  }
+]

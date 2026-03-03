@@ -1,0 +1,112 @@
+[
+  {
+    "id": "mage_debug_nuke",
+    "name": "DEBUG核弹",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "description": "造成30点伤害",
+    "effect": { "type": "damage", "value": 30 },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_arcane_intellect",
+    "name": "奥术智慧",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "common",
+    "description": "抽2张牌",
+    "effect": { "type": "draw_card", "value": 2 },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_frostbolt",
+    "name": "寒冰箭",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "description": "造成3点伤害并冻结目标",
+    "effect": { "type": "damage_freeze", "value": 3 },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_fireball",
+    "name": "火球术",
+    "type": "spell",
+    "cost": 4,
+    "rarity": "common",
+    "description": "造成6点伤害",
+    "effect": { "type": "damage", "value": 6, "target": "enemy" },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_water_elemental",
+    "name": "水元素",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "common",
+    "description": "3/6，冻结攻击目标",
+    "effect": { "type": "summon", "attack": 3, "health": 6, "freeze": true },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_mirror_entity",
+    "name": "镜像实体",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "common",
+    "description": "下个敌方随从入场时，召唤一个它的复制",
+    "effect": { "type": "secret", "trigger": "enemy_minion_enter" },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_ice_armor",
+    "name": "冰甲术",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "description": "获得5点护甲",
+    "effect": { "type": "armor", "value": 5 },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_arcane_missiles",
+    "name": "奥术飞弹",
+    "type": "spell",
+    "cost": 1,
+    "rarity": "common",
+    "description": "随机造成3点伤害",
+    "effect": { "type": "random_damage", "value": 3, "count": 3 },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_frost_nova",
+    "name": "冰霜新星",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "common",
+    "description": "冻结所有敌方随从",
+    "effect": { "type": "freeze_all" },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_polymorph",
+    "name": "变形术",
+    "type": "spell",
+    "cost": 4,
+    "rarity": "common",
+    "description": "使一个随从变形成为1/1的绵羊",
+    "effect": { "type": "transform", "target": "minion" },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_flamestrike",
+    "name": "烈焰风暴",
+    "type": "spell",
+    "cost": 7,
+    "rarity": "common",
+    "description": "对所有敌方随从造成4点伤害",
+    "effect": { "type": "aoe_damage", "value": 4 },
+    "classes": ["mage"]
+  }
+]

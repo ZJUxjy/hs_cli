@@ -1,0 +1,34 @@
+{
+  "classes": {
+    "mage": {
+      "id": "mage",
+      "name": "法师",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "mage_hero_power",
+        "name": "火焰冲击",
+        "cost": 2,
+        "description": "造成1点伤害",
+        "effect": { "type": "damage", "value": 1 }
+      }
+    },
+    "warrior": {
+      "id": "warrior",
+      "name": "战士",
+      "startingHealth": 30,
+      "heroPower": {
+        "id": "warrior_hero_power",
+        "name": "全副武装",
+        "cost": 2,
+        "description": "获得2点护甲",
+        "effect": { "type": "armor", "value": 2 }
+      }
+    }
+  },
+  "game": {
+    "startingHandSize": 3,
+    "maxHandSize": 10,
+    "maxFieldSize": 7,
+    "startingDeckSize": 30
+  }
+}
