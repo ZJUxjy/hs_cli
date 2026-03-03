@@ -76,7 +76,7 @@ class GameLogic:
 
     @classmethod
     def _apply_attack(cls, state: GameState, action: AttackAction) -> GameState:
-        """应用攻击（简化版）"""
+        """应用攻击（含亡语结算）"""
         players = list(state.players)
         attacker_player = players[action.player]
         defender_player = players[1 - action.player]
@@ -126,8 +126,12 @@ class GameLogic:
 
         players[action.player] = attacker_player
         players[1 - action.player] = defender_player
+        state = replace(state, players=tuple(players))
 
-        return replace(state, players=tuple(players))
+        # 死亡结算（包括亡语触发）
+        state = cls._resolve_deaths(state)
+
+        return state
 
     @classmethod
     def _apply_play_card(cls, state: GameState, action: PlayCardAction) -> GameState:
@@ -187,6 +191,165 @@ class GameLogic:
             state = cls._apply_spell(state, action.player, card)
 
         return state
+
+    @classmethod
+    def _resolve_deaths(cls, state: GameState) -> GameState:
+        """结算死亡（包括亡语触发）
+
+        实现延迟死亡结算：
+        1. 收集所有已死亡的随从
+        2. 触发亡语效果
+        3. 将随从移入墓地
+        4. 处理亡语产生的新死亡（递归）
+        """
+        from hearthstone_cli.cards.parser import EffectParser
+
+        # 收集所有死亡的随从
+        death_queue = []  # [(player_idx, minion_idx, minion, card_id), ...]
+
+        for player_idx in range(2):
+            player = state.players[player_idx]
+            for minion_idx, minion in enumerate(player.board):
+                # 实际生命值 = max_health - damage_taken
+                actual_health = minion.max_health - minion.damage_taken
+                if actual_health <= 0:
+                    # 获取原始卡牌ID（用于查找亡语）
+                    card_id = minion.card_id
+                    death_queue.append((player_idx, minion_idx, minion, card_id))
+
+        if not death_queue:
+            return state  # 没有死亡，直接返回
+
+        # 移除死亡的随从（从后往前移除，避免索引错乱）
+        players = list(state.players)
+        graveyard_additions = [[] for _ in range(2)]  # 每个玩家的墓地新增
+
+        # 按索引排序，从大到小移除
+        for player_idx, minion_idx, minion, card_id in sorted(death_queue, key=lambda x: (x[0], x[1]), reverse=True):
+            player = players[player_idx]
+            new_board = list(player.board)
+            removed_minion = new_board.pop(minion_idx)
+
+            # 添加到墓地
+            # 注意：这里简化处理，墓地存储Card而不是Minion
+            # 实际应该查找原始CardData
+            db = CardDatabase()
+            original_card = db.get_card(card_id)
+            if original_card:
+                graveyard_additions[player_idx].append(original_card)
+
+            players[player_idx] = replace(player, board=tuple(new_board))
+
+        state = replace(state, players=tuple(players))
+
+        # 触发亡语效果
+        for player_idx, minion_idx, minion, card_id in death_queue:
+            # 查找原始卡牌的亡语效果
+            db = CardDatabase()
+            original_card = db.get_card(card_id)
+
+            if original_card and original_card.text:
+                # 检查是否有亡语
+                if "亡语" in original_card.text or "Deathrattle" in original_card.text:
+                    state = cls._apply_deathrattle(state, player_idx, original_card)
+
+        # 将卡牌加入墓地（使用更新后的state）
+        players = list(state.players)
+        for player_idx in range(2):
+            if graveyard_additions[player_idx]:
+                player = players[player_idx]
+                new_graveyard = player.graveyard + tuple(graveyard_additions[player_idx])
+                players[player_idx] = replace(player, graveyard=new_graveyard)
+
+        state = replace(state, players=tuple(players))
+
+        # 递归处理新的死亡（亡语可能召唤新随从，然后新随从死亡）
+        # 使用递归深度限制避免无限循环
+        return cls._resolve_deaths_recursive(state, depth=0)
+
+    @classmethod
+    def _resolve_deaths_recursive(cls, state: GameState, depth: int) -> GameState:
+        """递归处理新产生的死亡"""
+        if depth > 5:  # 限制递归深度
+            return state
+
+        # 检查是否有新的死亡
+        has_new_deaths = False
+        for player_idx in range(2):
+            player = state.players[player_idx]
+            for minion in player.board:
+                actual_health = minion.max_health - minion.damage_taken
+                if actual_health <= 0:
+                    has_new_deaths = True
+                    break
+            if has_new_deaths:
+                break
+
+        if has_new_deaths:
+            return cls._resolve_deaths(state)
+
+        return state
+
+    @classmethod
+    def _apply_deathrattle(cls, state: GameState, player_idx: int, card) -> GameState:
+        """应用亡语效果"""
+        from hearthstone_cli.cards.parser import EffectParser
+
+        players = list(state.players)
+        player = players[player_idx]
+        enemy = players[1 - player_idx]
+
+        # 解析亡语效果
+        effects = EffectParser.parse_text(card.text)
+
+        for effect in effects:
+            # 召唤效果（最常见亡语）
+            if hasattr(effect, 'card_id') and 'summon' in str(type(effect)).lower():
+                # 解析召唤数量
+                count = getattr(effect, 'count', 1)
+                for _ in range(count):
+                    if len(player.board) < 7:
+                        minion = Minion(
+                            card_id="DEATHRATTLE_SUMMON",
+                            attack=1,
+                            health=1,
+                            max_health=1,
+                            attributes=frozenset(),
+                            enchantments=(),
+                            damage_taken=0,
+                            summoned_this_turn=True,
+                            exhausted=True,
+                        )
+                        player = replace(player, board=player.board + (minion,))
+
+            # 抽牌效果
+            elif hasattr(effect, 'count') and 'draw' in str(type(effect)).lower():
+                for _ in range(effect.count):
+                    if player.deck:
+                        card_drawn = player.deck[0]
+                        if len(player.hand) < 10:
+                            player = replace(
+                                player,
+                                hand=player.hand + (card_drawn,),
+                                deck=player.deck[1:]
+                            )
+                        else:
+                            player = replace(player, deck=player.deck[1:])
+
+            # 伤害效果（如对随机敌人造成伤害）
+            elif hasattr(effect, 'amount') and 'damage' in str(type(effect)).lower():
+                # 对敌方英雄造成伤害（简化）
+                new_health = max(0, enemy.hero.health - effect.amount)
+                enemy = replace(enemy, hero=replace(enemy.hero, health=new_health))
+                players[1 - player_idx] = enemy
+
+            # 治疗效果
+            elif hasattr(effect, 'amount') and 'heal' in str(type(effect)).lower():
+                new_health = min(30, player.hero.health + effect.amount)
+                player = replace(player, hero=replace(player.hero, health=new_health))
+
+        players[player_idx] = player
+        return replace(state, players=tuple(players))
 
     @classmethod
     def _apply_spell(cls, state: GameState, player_idx: int, card) -> GameState:
@@ -252,6 +415,9 @@ class GameLogic:
                     players[player_idx] = player
                     state = replace(state, players=tuple(players))
 
+        # 法术可能造成伤害，触发死亡结算
+        state = cls._resolve_deaths(state)
+
         return state
 
     @classmethod
@@ -315,6 +481,9 @@ class GameLogic:
                     player = replace(player, board=player.board + (minion,))
                     players[player_idx] = player
                     state = replace(state, players=tuple(players))
+
+        # 战吼可能造成伤害或召唤，触发死亡结算
+        state = cls._resolve_deaths(state)
 
         return state
 

@@ -35,7 +35,9 @@ class EffectParser:
         # 抽牌效果
         "draw": [
             (r"抽\s*(\d+)\s*张牌", lambda m: DrawEffect(int(m.group(1)), "friendly")),
+            (r"抽一张牌", lambda m: DrawEffect(1, "friendly")),  # 特殊处理"一张"
             (r"Draw\s+(\d+)\s+cards?", lambda m: DrawEffect(int(m.group(1)), "friendly")),
+            (r"Draw a card", lambda m: DrawEffect(1, "friendly")),  # 特殊处理"a"
             (r"双方各抽\s*(\d+)\s*张牌", lambda m: DrawEffect(int(m.group(1)), "both")),
         ],
         # 召唤效果
@@ -107,9 +109,33 @@ class EffectParser:
 
     @classmethod
     def parse_deathrattle(cls, text: str) -> List[Any]:
-        """解析亡语效果"""
+        """解析亡语效果
+
+        提取亡语描述部分的效果文本。
+        例如："<b>亡语：</b>抽一张牌。" -> 解析 "抽一张牌"
+        """
+        if not text:
+            return []
+
+        clean_text = cls._clean_html(text)
+
+        # 匹配亡语描述（支持中英文）
+        # 匹配 "亡语：xxx" 或 "Deathrattle: xxx" 后面的内容
+        deathrattle_patterns = [
+            r"亡语[：:]\s*(.+?)(?:\.|$)",
+            r"Deathrattle[:\s]+(.+?)(?:\.|$)",
+        ]
+
+        for pattern in deathrattle_patterns:
+            match = re.search(pattern, clean_text, re.IGNORECASE | re.DOTALL)
+            if match:
+                deathrattle_text = match.group(1).strip()
+                return cls.parse_text(deathrattle_text)
+
+        # 如果文本中包含亡语关键词但没有匹配到具体效果，尝试整体解析
         if "亡语" in text or "Deathrattle" in text:
-            return cls.parse_text(text)
+            return cls.parse_text(clean_text)
+
         return []
 
     @classmethod
