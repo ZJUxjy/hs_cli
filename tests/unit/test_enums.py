@@ -57,6 +57,42 @@ def test_ability_enum_has_rush():
     assert Ability.RUSH == "RUSH"
 
 
+def test_ability_enum_has_discover():
+    """Test that DISCOVER ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.DISCOVER == "DISCOVER"
+
+
+def test_ability_enum_has_combo():
+    """Test that COMBO ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.COMBO == "COMBO"
+
+
+def test_ability_enum_has_overload():
+    """Test that OVERLOAD ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.OVERLOAD == "OVERLOAD"
+
+
+def test_ability_enum_has_secret():
+    """Test that SECRET ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.SECRET == "SECRET"
+
+
+def test_ability_enum_has_freeze():
+    """Test that FREEZE ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.FREEZE == "FREEZE"
+
+
+def test_ability_enum_has_silence():
+    """Test that SILENCE ability exists."""
+    from hearthstone.models.enums import Ability
+    assert Ability.SILENCE == "SILENCE"
+
+
 def test_hero_class_values():
     """Test HeroClass enum has expected values."""
     assert HeroClass.WARRIOR == "WARRIOR"
