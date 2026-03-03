@@ -791,6 +791,75 @@ class CardEffect {
     }
     return true;
   }
+
+  // ========== 新增机制处理方法 ==========
+
+  /**
+   * 处理风怒
+   */
+  handleWindfury(target, context) {
+    target.windfury = true;
+    Logger.info(`${target.name} 获得风怒`);
+  }
+
+  /**
+   * 处理圣盾
+   */
+  handleDivineShield(target, context) {
+    target.divine_shield = true;
+    Logger.info(`${target.name} 获得圣盾`);
+  }
+
+  /**
+   * 处理潜行
+   */
+  handleStealth(target, context) {
+    target.stealth = true;
+    Logger.info(`${target.name} 获得潜行`);
+  }
+
+  /**
+   * 处理剧毒
+   */
+  handlePoisonous(attacker, target, context) {
+    if (target && target.health !== undefined) {
+      target.health = 0;
+      Logger.info(`${target.name} 被剧毒杀死`);
+    }
+  }
+
+  /**
+   * 处理吸血
+   */
+  handleLifesteal(attacker, target, context) {
+    const player = context.player;
+    if (player && attacker) {
+      const healAmount = attacker.attack || 0;
+      player.health = Math.min(player.health + healAmount, player.maxHealth);
+      Logger.info(`${player.name} 吸取 ${healAmount} 点生命`);
+    }
+  }
+
+  /**
+   * 处理冲锋（使随从可以攻击）
+   */
+  handleCharge(minion) {
+    if (minion) {
+      minion.canAttack = true;
+      minion.sleeping = false;
+      Logger.info(`${minion.name} 获得冲锋`);
+    }
+  }
+
+  /**
+   * 处理嘲讽
+   */
+  handleTaunt(minion) {
+    if (minion) {
+      minion.taunt = true;
+      Logger.info(`${minion.name} 获得嘲讽`);
+    }
+  }
 }
 
 module.exports = CardEffect;
