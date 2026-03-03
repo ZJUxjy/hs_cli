@@ -19,36 +19,28 @@ from hearthstone.engine.attack.attack_executor import AttackExecutor
 class GameEngine:
     """Main game engine that manages game state and actions."""
 
-    def __init__(self):
-        """Initialize game engine."""
-        self.state: Optional[GameState] = None
+    def __init__(self, state: Optional[GameState] = None):
+        """Initialize game engine with optional state."""
+        self.state: Optional[GameState] = state
         self.attack_validator = AttackValidator()
         self.attack_executor = AttackExecutor()
 
-    def initialize_game(
-        self,
-        player1_name: str,
-        player1_class: HeroClass,
-        player2_name: str,
-        player2_class: HeroClass
-    ):
-        """Initialize a new game."""
-        player1 = Player(
-            hero=Hero(hero_class=player1_class),
-            name=player1_name
-        )
-        player2 = Player(
-            hero=Hero(hero_class=player2_class),
-            name=player2_name
-        )
-
-        self.state = GameState(player1=player1, player2=player2)
+    def initialize_game(self):
+        """Initialize a new game - draw starting hands and set up mana."""
+        if self.state is None:
+            raise ValueError("Game state not set")
 
         # Set initial mana
-        player1.max_mana = 1
-        player1.mana = 1
-        player2.max_mana = 1
-        player2.mana = 1
+        self.state.player1.max_mana = 1
+        self.state.player1.mana = 1
+        self.state.player2.max_mana = 1
+        self.state.player2.mana = 1
+
+        # Draw starting hands (3 cards for player 1, 4 cards for player 2)
+        for _ in range(3):
+            self.state.player1.draw_card()
+        for _ in range(4):
+            self.state.player2.draw_card()
 
     def take_action(self, action: Action) -> ActionResult:
         """Execute an action and return result."""

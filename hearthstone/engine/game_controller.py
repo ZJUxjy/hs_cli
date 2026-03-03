@@ -28,7 +28,33 @@ class GameController:
 
     def start_game(self) -> GameState:
         """Start a new game."""
-        raise NotImplementedError("start_game is not yet implemented")
+        # Create players with decks
+        from hearthstone.models.hero import Hero
+        from hearthstone.models.player import Player
+
+        player1 = Player(
+            hero=Hero(hero_class=self.deck1.hero_class),
+            name="Player 1"
+        )
+        player1.deck = self.deck1.cards.copy()
+
+        player2 = Player(
+            hero=Hero(hero_class=self.deck2.hero_class),
+            name="Player 2"
+        )
+        player2.deck = self.deck2.cards.copy()
+
+        # Create game state
+        from hearthstone.models.game_state import GameState
+        state = GameState(player1=player1, player2=player2)
+
+        # Create game engine
+        self.engine = GameEngine(state)
+
+        # Initialize game (draw starting hands)
+        self.engine.initialize_game()
+
+        return state
 
     def get_valid_actions(self) -> List[Action]:
         """Get all legal actions for current player."""

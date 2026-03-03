@@ -4,17 +4,24 @@ from hearthstone.engine.game_engine import GameEngine
 from hearthstone.engine.action import EndTurnAction, PlayCardAction, AttackAction
 from hearthstone.models.card import Minion
 from hearthstone.models.enums import HeroClass
+from hearthstone.models.player import Player
+from hearthstone.models.hero import Hero
+from hearthstone.models.game_state import GameState
 
 
 def create_test_engine():
     """Create a test game engine with basic setup."""
-    engine = GameEngine()
-    engine.initialize_game(
-        player1_name="Player 1",
-        player1_class=HeroClass.MAGE,
-        player2_name="Player 2",
-        player2_class=HeroClass.WARRIOR
+    player1 = Player(
+        hero=Hero(hero_class=HeroClass.MAGE),
+        name="Player 1"
     )
+    player2 = Player(
+        hero=Hero(hero_class=HeroClass.WARRIOR),
+        name="Player 2"
+    )
+    state = GameState(player1=player1, player2=player2)
+    engine = GameEngine(state)
+    engine.initialize_game()
     return engine
 
 
