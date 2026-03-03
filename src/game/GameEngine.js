@@ -241,6 +241,14 @@ class GameEngine {
   }
 
   /**
+   * 结束当前玩家回合
+   */
+  endTurn() {
+    this.switchTurn();
+    return this.getGameState();
+  }
+
+  /**
    * 应用过载效果
    * @param {object} player - 玩家
    * @param {number} overloadValue - 过载值
