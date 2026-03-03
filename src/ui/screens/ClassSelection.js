@@ -1,11 +1,9 @@
 /**
- * 职业选择界面
+ * 职业选择界面 - 简化版
  */
 
 const blessed = require('blessed');
-const Logger = require('../../utils/logger');
 const ConfigData = require('../../data/ConfigData');
-const GameScreen = require('./GameScreen');
 
 class ClassSelection {
   constructor(screen, parent) {
@@ -14,250 +12,99 @@ class ClassSelection {
     this.container = null;
     this.classes = [];
     this.selectedIndex = 0;
-    this.classBoxes = [];
-    this.difficulty = 'normal';
-    this.onBack = null;
+    this.callback = null;
   }
 
-  /**
-   * 显示职业选择界面
-   */
-  show(onBack) {
-    this.onBack = onBack;
-    this.classes = Object.entries(ConfigData.getAllClasses()).map(([id, config]) => ({
-      id,
-      name: config.name,
-      heroPower: config.heroPower
-    }));
+  show(callback) {
+    this.callback = callback;
 
-    this.selectedIndex = 0;
+    // 加载职业配置
+    const classes = ConfigData.getAllClasses();
+    this.classes = Object.values(classes).filter(c => c.id);
 
-    this.createUI();
-    this.updateSelection();
-  }
-
-  /**
-   * 创建 UI
-   */
-  createUI() {
-    // 主容器
+    // 创建容器
     this.container = blessed.box({
       parent: this.parent,
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      tags: true
+      top: 'center',
+      left: 'center',
+      width: 70,
+      height: 20,
+      border: { type: 'line', fg: 'cyan' },
+      style: { fg: 'white', bg: 'black', border: { fg: 'cyan' } }
     });
 
     // 标题
-    const title = blessed.text({
+    blessed.text({
       parent: this.container,
-      top: 2,
+      top: 1,
       left: 'center',
-      content: '{bold}{fg:yellow}选择你的英雄{/fg}{/bold}',
-      tags: true,
-      style: { fg: 'white' }
+      content: '=== 选择你的英雄 ===',
+      style: { fg: 'yellow', bold: true }
     });
 
-    // 职业卡片容器
-    const cardContainer = blessed.box({
+    // 职业列表
+    this.listBox = blessed.box({
       parent: this.container,
-      top: 6,
-      left: 'center',
-      width: '80%',
-      height: 'auto',
-      style: { fg: 'white', bg: 'black' }
+      top: 3,
+      left: 0,
+      width: '100%',
+      height: this.classes.length + 2,
+      content: this.getListDisplay()
     });
 
-    // 为每个职业创建卡片
-    this.classes.forEach((cls, index) => {
-      const col = index % 2;
-      const row = Math.floor(index / 2);
-
-      const cardWidth = 40;
-      const cardHeight = 12;
-      const gap = 2;
-
-      const cardBox = blessed.box({
-        parent: cardContainer,
-        top: row * (cardHeight + gap),
-        left: col * (cardWidth + gap),
-        width: cardWidth,
-        height: cardHeight,
-        border: { type: 'line', fg: 'gray' },
-        style: {
-          fg: 'white',
-          bg: 'black',
-          border: { fg: 'gray' }
-        }
-      });
-
-      // 职业名称
-      const nameText = blessed.text({
-        parent: cardBox,
-        top: 1,
-        left: 'center',
-        content: `{bold}${cls.name}{/bold}`,
-        tags: true
-      });
-
-      // 生命值
-      const healthText = blessed.text({
-        parent: cardBox,
-        top: 3,
-        left: 2,
-        content: `生命: 30`
-      });
-
-      // 英雄技能
-      const powerText = blessed.text({
-        parent: cardBox,
-        top: 5,
-        left: 2,
-        content: `技能: ${cls.heroPower?.name || '无'}`
-      });
-
-      // 技能描述
-      const descText = blessed.text({
-        parent: cardBox,
-        top: 6,
-        left: 2,
-        content: cls.heroPower?.description || ''
-      });
-
-      // 快捷键提示
-      const keyText = blessed.text({
-        parent: cardBox,
-        bottom: 1,
-        left: 'center',
-        content: `[${index + 1}] 选择`
-      });
-
-      this.classBoxes.push({
-        box: cardBox,
-        name: nameText,
-        health: healthText,
-        power: powerText,
-        desc: descText,
-        key: keyText
-      });
-    });
-
-    // 底部提示
-    const hint = blessed.text({
+    // 提示
+    blessed.text({
       parent: this.container,
-      bottom: 3,
+      bottom: 1,
       left: 'center',
-      content: '↑↓←→ 选择  Enter 确认  Esc 返回主菜单',
-      tags: true,
+      content: '上下选择  Enter确认  Esc返回',
       style: { fg: 'gray' }
     });
 
-    // 绑定键盘事件
-    this.bindKeys();
-  }
-
-  /**
-   * 绑定键盘事件
-   */
-  bindKeys() {
-    // 方向键选择
-    this.screen.key(['up', 'down', 'left', 'right'], (ch) => {
-      this.handleDirection(ch);
-    });
-
-    // 数字键选择
-    for (let i = 1; i <= 9; i++) {
-      this.screen.key(String(i), () => {
-        if (i <= this.classes.length) {
-          this.selectedIndex = i - 1;
-          this.updateSelection();
-        }
-      });
-    }
-
-    // 回车确认
-    this.screen.key('enter', () => {
-      this.confirmSelection();
-    });
-
-    // Esc 返回
-    this.screen.key('escape', () => {
-      this.back();
-    });
-  }
-
-  /**
-   * 处理方向键
-   */
-  handleDirection(key) {
-    const cols = 2;
-    const len = this.classes.length;
-
-    if (key === 'up') {
-      this.selectedIndex = Math.max(0, this.selectedIndex - cols);
-    } else if (key === 'down') {
-      this.selectedIndex = Math.min(len - 1, this.selectedIndex + cols);
-    } else if (key === 'left') {
-      this.selectedIndex = Math.max(0, this.selectedIndex - 1);
-    } else if (key === 'right') {
-      this.selectedIndex = Math.min(len - 1, this.selectedIndex + 1);
-    }
-
-    this.updateSelection();
-  }
-
-  /**
-   * 更新选中状态
-   */
-  updateSelection() {
-    this.classBoxes.forEach((item, index) => {
-      if (index === this.selectedIndex) {
-        const color = this.classes[index].id === 'mage' ? 'yellow' : 'red';
-        item.box.style.border.fg = color;
-        item.name.setContent(`{bold}{fg:${color}}${this.classes[index].name}{/fg}{/bold}`);
-      } else {
-        item.box.style.border.fg = 'gray';
-        item.name.setContent(`{bold}${this.classes[index].name}{/bold}`);
-      }
-    });
+    // 键盘绑定
+    this.screen.key(['up', 'down'], () => this.navigate());
+    this.screen.key('enter', () => this.confirm());
+    this.screen.key('escape', () => this.back());
 
     this.screen.render();
   }
 
-  /**
-   * 确认选择
-   */
-  confirmSelection() {
-    const selectedClass = this.classes[this.selectedIndex];
-    Logger.info(`选择职业: ${selectedClass.name}`);
-
-    this.destroy();
-
-    const gameScreen = new GameScreen(this.screen, this.parent);
-    gameScreen.show(selectedClass.id, this.difficulty);
+  getListDisplay() {
+    return this.classes.map((cls, i) => {
+      const prefix = i === this.selectedIndex ? '> ' : '  ';
+      const power = cls.heroPower?.name || '无';
+      return `${prefix}${cls.name} (技能: ${power})`;
+    }).join('\n');
   }
 
-  /**
-   * 返回主菜单
-   */
+  navigate() {
+    this.selectedIndex = (this.selectedIndex + 1) % this.classes.length;
+    this.listBox.setContent(this.getListDisplay());
+    this.screen.render();
+  }
+
+  confirm() {
+    const selected = this.classes[this.selectedIndex];
+    this.destroy();
+
+    // 开始游戏
+    const GameScreen = require('./GameScreen');
+    const gameScreen = new GameScreen(this.screen, this.parent);
+    gameScreen.show(selected.id, 'normal');
+  }
+
   back() {
     this.destroy();
-    if (this.onBack) {
-      this.onBack();
-    }
+    const MainMenu = require('./MainMenu');
+    const menu = new MainMenu(this.screen, this.parent);
+    menu.show();
   }
 
-  /**
-   * 销毁界面
-   */
   destroy() {
     if (this.container) {
       this.container.destroy();
       this.container = null;
     }
-    this.classBoxes = [];
   }
 }
 
