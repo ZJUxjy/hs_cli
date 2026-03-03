@@ -185,7 +185,7 @@ class GameUI {
     const player = this.gameState.player;
     const heroEl = document.getElementById('player-hero');
 
-   ) {
+    if (heroEl) {
       const healthEl = heroEl.querySelector('.health');
       const armorEl = heroEl.querySelector('.armor');
 

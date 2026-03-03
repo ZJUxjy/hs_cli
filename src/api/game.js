@@ -35,7 +35,29 @@ router.post('/attack', (req, res) => {
 
 router.post('/endTurn', (req, res) => {
   // End turn logic
-  res.json(currentGame ? currentGame.getGameState() : { error: 'No active game' });
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+  currentGame.endTurn();
+  res.json(currentGame.getGameState());
+});
+
+router.post('/heroPower', (req, res) => {
+  // Hero power logic
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+  // Placeholder - actual implementation would use GameEngine's hero power
+  res.json(currentGame.getGameState());
+});
+
+router.post('/concede', (req, res) => {
+  // Concede logic
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+  currentGame.state.player.health = 0;
+  res.json(currentGame.getGameState());
 });
 
 module.exports = router;

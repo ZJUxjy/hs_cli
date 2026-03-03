@@ -2,31 +2,40 @@
 const API = {
   baseUrl: '/api',
 
+  // Helper to handle API responses
+  async _handleResponse(res) {
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.error || `HTTP ${res.status}`);
+    }
+    return res.json();
+  },
+
   // Card APIs
   async getCards() {
     const res = await fetch(`${this.baseUrl}/cards`);
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async getCard(id) {
     const res = await fetch(`${this.baseUrl}/cards/${id}`);
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async getCardsByClass(cardClass) {
     const res = await fetch(`${this.baseUrl}/cards/class/${cardClass}`);
-    return res.json();
+    return this._handleResponse(res);
   },
 
   // Deck APIs
   async getDecks() {
     const res = await fetch(`${this.baseUrl}/decks`);
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async getDeck(id) {
     const res = await fetch(`${this.baseUrl}/decks/${id}`);
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async createDeck(name, hero, mode = 'standard') {
@@ -35,7 +44,7 @@ const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, hero, mode })
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async updateDeck(id, data) {
@@ -44,14 +53,14 @@ const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async deleteDeck(id) {
     const res = await fetch(`${this.baseUrl}/decks/${id}`, {
       method: 'DELETE'
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async addCardToDeck(deckId, cardId) {
@@ -60,16 +69,16 @@ const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cardId })
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async removeCardFromDeck(deckId, cardId) {
-    const res = await fetch(`${this.baseUrl}/decks/${deckId}/cards/remove`, {
-      method: 'POST',
+    const res = await fetch(`${this.baseUrl}/decks/${deckId}/cards`, {
+      method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cardId })
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   // Game APIs
@@ -79,12 +88,12 @@ const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerClass, opponentClass, difficulty })
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async getGameState() {
     const res = await fetch(`${this.baseUrl}/game/state`);
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async playCard(cardIndex) {
@@ -93,7 +102,7 @@ const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cardIndex })
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async attack(attackerIndex, targetIndex, targetType) {
@@ -102,28 +111,28 @@ const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ attackerIndex, targetIndex, targetType })
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async endTurn() {
     const res = await fetch(`${this.baseUrl}/game/endTurn`, {
       method: 'POST'
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async useHeroPower() {
     const res = await fetch(`${this.baseUrl}/game/heroPower`, {
       method: 'POST'
     });
-    return res.json();
+    return this._handleResponse(res);
   },
 
   async concede() {
     const res = await fetch(`${this.baseUrl}/game/concede`, {
       method: 'POST'
     });
-    return res.json();
+    return this._handleResponse(res);
   }
 };
 
