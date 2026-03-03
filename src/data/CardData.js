@@ -10,6 +10,9 @@ class CardData {
     this.cards = [];
     this.byClass = {};
     this.byId = {};
+    this.byType = {};
+    this.byRarity = {};
+    this.byCost = {};
     this.load();
   }
 
@@ -47,11 +50,39 @@ class CardData {
   }
 
   index() {
+    // 初始化索引
+    this.byClass = {};
+    this.byType = {};
+    this.byRarity = {};
+    this.byCost = {};
+
+    // 预分配费用索引（0-10+）
+    for (let i = 0; i <= 12; i++) {
+      this.byCost[i] = [];
+    }
+
     this.cards.forEach(card => {
       this.byId[card.id] = card;
+
+      // 按职业索引
       const cls = card.cardClass || 'NEUTRAL';
       if (!this.byClass[cls]) this.byClass[cls] = [];
       this.byClass[cls].push(card);
+
+      // 按类型索引
+      const type = card.type || 'UNKNOWN';
+      if (!this.byType[type]) this.byType[type] = [];
+      this.byType[type].push(card);
+
+      // 按稀有度索引
+      const rarity = card.rarity || 'UNKNOWN';
+      if (!this.byRarity[rarity]) this.byRarity[rarity] = [];
+      this.byRarity[rarity].push(card);
+
+      // 按费用索引
+      const cost = card.cost || 0;
+      if (!this.byCost[cost]) this.byCost[cost] = [];
+      this.byCost[cost].push(card);
     });
   }
 
@@ -105,7 +136,7 @@ class CardData {
    * @returns {array}
    */
   getCardsByType(type) {
-    return this.cards.filter(c => c.type === type);
+    return this.byType[type] || [];
   }
 
   /**
@@ -114,7 +145,7 @@ class CardData {
    * @returns {array}
    */
   getCardsByRarity(rarity) {
-    return this.cards.filter(c => c.rarity === rarity);
+    return this.byRarity[rarity] || [];
   }
 
   /**
@@ -123,7 +154,7 @@ class CardData {
    * @returns {array}
    */
   getCardsByCost(cost) {
-    return this.cards.filter(c => c.cost === cost);
+    return this.byCost[cost] || [];
   }
 
   /**
