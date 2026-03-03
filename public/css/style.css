@@ -53,10 +53,57 @@ body {
 
 #menu-screen h1 {
   font-size: 56px;
-  margin-bottom: 60px;
+  margin-bottom: 20px;
   color: var(--accent-gold);
   text-shadow: 0 0 20px rgba(240, 192, 64, 0.5), 2px 2px 4px rgba(0,0,0,0.8);
   letter-spacing: 4px;
+}
+
+/* 语言选择器样式 */
+.language-selector {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.language-selector label {
+  color: var(--text-primary);
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+#language-select,
+#language-select-initial {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23aaaaaa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 35px;
+}
+
+#language-select:hover,
+#language-select-initial:hover {
+  border-color: var(--accent-gold);
+}
+
+#language-select:focus,
+#language-select-initial:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(240, 192, 64, 0.2);
+}
+
+#language-select option,
+#language-select-initial option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .menu-buttons {
@@ -660,6 +707,12 @@ body {
   color: var(--mana-color);
 }
 
+.spell-power {
+  font-size: 14px;
+  color: #9b59b6;
+  margin-left: 15px;
+}
+
 /* 英雄 */
 .hero {
   display: flex;
@@ -837,6 +890,7 @@ body {
 .stealth-icon { background: #888888; }
 .poisonous-icon { background: #4ad94a; }
 .lifesteal-icon { background: #d94ad9; }
+.reborn-icon { background: #00ced1; }
 
 /* 手牌 */
 .hand {
