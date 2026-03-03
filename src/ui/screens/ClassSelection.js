@@ -62,7 +62,8 @@ class ClassSelection {
     });
 
     // 键盘绑定
-    this.screen.key(['up', 'down'], () => this.navigate());
+    this.screen.key('up', () => this.navigate(-1));
+    this.screen.key('down', () => this.navigate(1));
     this.screen.key('enter', () => this.confirm());
     this.screen.key('escape', () => this.back());
 
@@ -77,8 +78,8 @@ class ClassSelection {
     }).join('\n');
   }
 
-  navigate() {
-    this.selectedIndex = (this.selectedIndex + 1) % this.classes.length;
+  navigate(direction) {
+    this.selectedIndex = (this.selectedIndex + direction + this.classes.length) % this.classes.length;
     this.listBox.setContent(this.getListDisplay());
     this.screen.render();
   }

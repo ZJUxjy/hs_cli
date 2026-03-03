@@ -57,7 +57,8 @@ class MainMenu {
     });
 
     // 绑定键盘
-    this.screen.key(['up', 'down'], () => this.navigate());
+    this.screen.key('up', () => this.navigate(-1));
+    this.screen.key('down', () => this.navigate(1));
     this.screen.key('enter', () => this.select());
     this.screen.key('escape', () => process.exit(0));
 
@@ -72,8 +73,8 @@ class MainMenu {
     }).join('\n');
   }
 
-  navigate() {
-    this.selectedIndex = (this.selectedIndex + 1) % this.menuItems.length;
+  navigate(direction) {
+    this.selectedIndex = (this.selectedIndex + direction + this.menuItems.length) % this.menuItems.length;
     this.menuBox.setContent(this.getMenuDisplay());
     this.screen.render();
   }
