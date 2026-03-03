@@ -73,8 +73,8 @@ const API = {
   },
 
   async removeCardFromDeck(deckId, cardId) {
-    const res = await fetch(`${this.baseUrl}/decks/${deckId}/cards`, {
-      method: 'DELETE',
+    const res = await fetch(`${this.baseUrl}/decks/${deckId}/cards/remove`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cardId })
     });

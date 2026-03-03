@@ -45,7 +45,7 @@ router.post('/:id/cards', (req, res) => {
 });
 
 // Remove a card from deck
-router.delete('/:id/cards', (req, res) => {
+router.post('/:id/cards/remove', (req, res) => {
   const { cardId } = req.body;
   if (!cardId) {
     return res.status(400).json({ error: 'cardId is required' });
