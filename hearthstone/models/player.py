@@ -1,6 +1,10 @@
 """Player model for Hearthstone game engine."""
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hearthstone.models.card import Minion
+
 from hearthstone.models.hero import Hero
 from hearthstone.models.card import Card
 
@@ -14,7 +18,7 @@ class Player:
     max_mana: int = 0
     hand: List[Card] = field(default_factory=list)
     deck: List[Card] = field(default_factory=list)
-    board: List = field(default_factory=list)  # Minions on board
+    board: List["Minion"] = field(default_factory=list)  # Minions on board
     graveyard: List[Card] = field(default_factory=list)
 
     def __post_init__(self):
