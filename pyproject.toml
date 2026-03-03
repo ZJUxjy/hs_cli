@@ -19,5 +19,8 @@ dev = [
     "pytest-cov>=4.0.0",
 ]
 
+[project.scripts]
+hearthstone-cli = "main:main"
+
 [tool.setuptools.packages.find]
 include = ["hearthstone*", "cli*"]
