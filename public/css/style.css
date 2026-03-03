@@ -345,6 +345,33 @@ body {
   font-weight: bold;
 }
 
+.deck-slot-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remove-card-btn {
+  background: rgba(217, 74, 74, 0.3);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.remove-card-btn:hover {
+  background: var(--accent-red);
+  color: #fff;
+}
+
 .deck-stats {
   text-align: center;
   font-size: 18px;

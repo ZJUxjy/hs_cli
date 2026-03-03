@@ -86,17 +86,17 @@ class DeckBuilderUI {
         item.classList.remove('dragging');
       });
 
-      // 单击添加卡牌，双击查看详情
+      // 单击显示详情，双击添加卡牌
       item.addEventListener('click', (e) => {
-        this.addCardToDeck(item.dataset.id);
-      });
-
-      item.addEventListener('dblclick', (e) => {
-        e.stopPropagation();
         const card = this.allCards.find(c => c.id === item.dataset.id);
         if (card) {
           this.showCardDetail(card);
         }
+      });
+
+      item.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        this.addCardToDeck(item.dataset.id);
       });
     });
   }
@@ -410,15 +410,30 @@ class DeckBuilderUI {
             <span class="card-cost">${card.cost || 0}</span>
             <span class="card-name">${card.name}</span>
           </div>
-          <span class="card-count">x${deckCard.count}</span>
+          <div class="deck-slot-actions">
+            <span class="card-count">x${deckCard.count}</span>
+            <button class="remove-card-btn" data-card-id="${deckCard.cardId}">&times;</button>
+          </div>
         </div>
       `;
     }).join('');
 
-    // Add click handlers to remove cards
+    // Add click handlers to remove cards (点击X按钮移除)
+    slots.querySelectorAll('.remove-card-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeCardFromDeck(btn.dataset.cardId);
+      });
+    });
+
+    // 点击卡牌查看详情
     slots.querySelectorAll('.deck-slot').forEach(slot => {
-      slot.addEventListener('click', () => {
-        this.removeCardFromDeck(slot.dataset.cardId);
+      slot.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-card-btn')) return;
+        const card = this.allCards.find(c => c.id === slot.dataset.cardId);
+        if (card) {
+          this.showCardDetail(card);
+        }
       });
     });
   }
