@@ -95,3 +95,7 @@ class RewardFunction:
         player_board_size = len(state.current_player.board)
         enemy_board_size = len(state.opposing_player.board)
         return player_board_size - enemy_board_size
+
+    def __repr__(self) -> str:
+        """Return string representation of RewardFunction."""
+        return f"RewardFunction(health_weight={self.health_weight}, board_control_weight={self.board_control_weight})"

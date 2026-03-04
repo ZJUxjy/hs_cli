@@ -71,3 +71,7 @@ class SelfPlayTrainer:
     def clear_history(self) -> None:
         """Clear episode history."""
         self.episode_history.clear()
+
+    def __repr__(self) -> str:
+        """Return string representation of SelfPlayTrainer."""
+        return f"SelfPlayTrainer(agent_class={self.agent_class}, deck_pool_size={len(self.deck_pool)}, episodes={len(self.episode_history)})"

@@ -121,3 +121,7 @@ class BatchSimulator:
             'avg_turns': results['total_turns'] / total_games,
             'avg_reward': results['total_reward'] / total_games,
         }
+
+    def __repr__(self) -> str:
+        """Return string representation of BatchSimulator."""
+        return f"BatchSimulator(num_workers={self.num_workers})"
