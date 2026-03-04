@@ -18,14 +18,14 @@ class CardFactory:
         """
         self.importer = importer or CardImporter()
 
-    def create_card(self, json_data: Dict[str, Any]) -> Card:
+    def create_card(self, json_data: Dict[str, Any]) -> Optional[Card]:
         """Create a Card instance from JSON data.
 
         Args:
             json_data: Dictionary containing card data from HearthstoneJSON.
 
         Returns:
-            A Card instance (Minion, Spell, or Weapon).
+            A Card instance (Minion, Spell, or Weapon), or None for HERO cards.
 
         Raises:
             ValueError: If the card type is not supported.
@@ -39,6 +39,8 @@ class CardFactory:
             return self._create_spell(json_data)
         elif card_type == CardType.WEAPON:
             return self._create_weapon(json_data)
+        elif card_type == CardType.HERO:
+            return self._create_hero(json_data)
         else:
             raise ValueError(f"Unsupported card type: {card_type_str}")
 
@@ -104,6 +106,19 @@ class CardFactory:
             attack=data.get('attack', 0),
             durability=data.get('durability', 0),
         )
+
+    def _create_hero(self, data: Dict[str, Any]) -> Optional[Card]:
+        """Skip HERO cards gracefully.
+
+        HERO cards are not playable cards in the deck, so they are skipped.
+
+        Args:
+            data: Dictionary containing hero data.
+
+        Returns:
+            None to indicate the card should be skipped.
+        """
+        return None
 
     def _extract_abilities(self, data: Dict[str, Any]) -> Set[Ability]:
         """Extract abilities from mechanics data.
