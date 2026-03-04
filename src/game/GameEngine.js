@@ -516,6 +516,8 @@ class GameEngine {
     // 存储战吼和亡语到随从对象
     minion.battlecry = card.effect?.battlecry || null;
     minion.deathrattle = card.effect?.deathrattle || null;
+    // 存储激励效果
+    minion.inspire = card.effect?.inspire || null;
 
     player.field.push(minion);
 
@@ -797,7 +799,27 @@ class GameEngine {
     }
 
     Logger.info(`${player.name} 使用了英雄技能 ${heroPower.name}`);
+
+    // 触发激励效果
+    this.triggerInspire(player);
+
     return true;
+  }
+
+  /**
+   * 触发激励效果
+   * @param {object} player - 玩家
+   */
+  triggerInspire(player) {
+    const CardEffect = require('./CardEffect');
+    const cardEffect = new CardEffect(this);
+
+    player.field.forEach(minion => {
+      if (minion.inspire) {
+        cardEffect.execute(minion.inspire, { player, card: minion });
+        Logger.info(`${minion.name} 的激励效果被触发`);
+      }
+    });
   }
 
   /**

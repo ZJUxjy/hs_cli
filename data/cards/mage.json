@@ -128,5 +128,15 @@
     "description": "发现一张法术牌",
     "effect": { "type": "discover", "discoverType": "spell" },
     "classes": ["mage"]
+  },
+  {
+    "id": "mage_silvermoon_guardian",
+    "name": "银月守卫",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "common",
+    "description": "3/3，激励：获得圣盾",
+    "effect": { "type": "summon", "attack": 3, "health": 3, "inspire": { "action": "buff", "divine_shield": true } },
+    "classes": ["mage"]
   }
 ]
