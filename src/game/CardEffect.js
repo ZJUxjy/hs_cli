@@ -55,7 +55,8 @@ class CardEffect {
     SPELLBURST: 'spellburst',
     TWIN: 'twin',
     HONORABLE_KILL: 'honorable_kill',
-    HERO: 'hero'
+    HERO: 'hero',
+    RECRUIT: 'recruit'
   };
 
   constructor(gameEngine) {
@@ -171,6 +172,8 @@ class CardEffect {
           return this.executeDiscover(effect, context);
         case 'inspire':
           return this.executeInspire(effect, context);
+        case 'recruit':
+          return this.executeRecruit(effect, context);
         default:
           Logger.warn(`未知效果类型: ${effect.type}`);
           return false;
@@ -992,6 +995,39 @@ class CardEffect {
           if (effect.divine_shield) m.divine_shield = true;
         });
         break;
+    }
+    return true;
+  }
+
+  /**
+   * 招募 - 从牌库中召唤随从
+   */
+  executeRecruit(effect, context) {
+    const { player } = context;
+    if (!player.deck || player.deck.length === 0) {
+      Logger.info('牌库为空，无法招募');
+      return false;
+    }
+
+    const recruitCount = effect.count || 1;
+
+    for (let i = 0; i < recruitCount && player.deck.length > 0; i++) {
+      // 从牌库中筛选随从卡牌
+      const deckMinions = player.deck.filter(c => c.type === 'MINION');
+      if (deckMinions.length === 0) break;
+
+      // 随机选择一个随从
+      const randomCard = deckMinions[Math.floor(Math.random() * deckMinions.length)];
+
+      // 从牌库中移除
+      const idx = player.deck.indexOf(randomCard);
+      if (idx > -1) {
+        player.deck.splice(idx, 1);
+      }
+
+      // 召唤随从
+      this.game.summonMinion(player, randomCard);
+      Logger.info(`招募: ${randomCard.name}`);
     }
     return true;
   }
