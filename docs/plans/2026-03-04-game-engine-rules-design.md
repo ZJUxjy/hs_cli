@@ -84,7 +84,7 @@
 | 回响 (Echo) | 回合结束时获得复制 |
 | 腐蚀 (Corrupt) | 使用更强卡牌时触发 |
 | 复生 (Reborn) | 亡语后以1血复活 |
-| 磁力 (Magnetic) |  attach to other mechs |
+| 磁力 (Magnetic) | 将自身磁力到机械随从上，合并攻击力/生命值/关键词 |
 | 奥秘 (Secret) | 敌方触发时生效 |
 | 任务/任务线 (Quest/Questline) | 满足条件获得奖励 |
 
