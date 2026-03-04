@@ -82,6 +82,44 @@ class RuleEngine {
   }
 
   /**
+   * 检查是否可以攻击英雄
+   * @param {object} attacker - 攻击方随从
+   * @param {object} opponent - 对手
+   * @returns {object} { valid: boolean, reason: string }
+   */
+  canAttackHero(attacker, opponent) {
+    // 检查是否被冻结
+    if (attacker.frozen) {
+      return { valid: false, reason: '随从被冻结' };
+    }
+
+    // 检查本回合是否已经攻击
+    if (attacker.hasAttacked) {
+      return { valid: false, reason: '本回合已攻击' };
+    }
+
+    // 检查是否沉睡
+    if (attacker.sleeping) {
+      return { valid: false, reason: '随从本回合无法攻击' };
+    }
+
+    // 如果有嘲讽随从，不能直接攻击英雄
+    if (opponent && opponent.field) {
+      const hasTaunt = opponent.field.some(m => m.taunt);
+      if (hasTaunt) {
+        return { valid: false, reason: '必须先攻击嘲讽随从' };
+      }
+    }
+
+    // 突袭随从不能攻击英雄
+    if (attacker.rush && !attacker.canAttackHero) {
+      return { valid: false, reason: '突袭随从不能攻击英雄' };
+    }
+
+    return { valid: true };
+  }
+
+  /**
    * 检查是否可以使用英雄技能
    * @param {object} player - 玩家
    * @returns {object} { valid: boolean, reason: string }
