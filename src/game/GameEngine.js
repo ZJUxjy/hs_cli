@@ -858,7 +858,23 @@ class GameEngine {
           shouldTrigger = event === 'attack';
           break;
         case 'own_minion_died':
+        case 'friendly_minion_died':
           shouldTrigger = event === 'minion_died';
+          break;
+        case 'enemy_spell_played':
+          shouldTrigger = event === 'spell_played';
+          break;
+        case 'friendly_hero_damaged':
+          shouldTrigger = event === 'hero_damaged';
+          break;
+        case 'enemy_hero_attacked':
+          shouldTrigger = event === 'hero_attacked';
+          break;
+        case 'turn_start':
+          shouldTrigger = event === 'turn_start';
+          break;
+        case 'draw':
+          shouldTrigger = event === 'draw';
           break;
       }
 
@@ -877,13 +893,101 @@ class GameEngine {
 
   /**
    * 执行奥秘效果
+   * @param {object} secret - 奥秘卡牌
+   * @param {object} data - 事件数据
    */
   triggerSecret(secret, data) {
     const player = this.state.player;
+    const opponent = this.getOpponent();
+    const effect = secret.effect?.effect || secret.effect;
+
     Logger.info(`${player.name} 的奥秘 ${secret.originalCard?.name || '奥秘'} 被触发`);
 
-    // 根据奥秘类型执行效果 - 简化处理
-    // 实际应根据奥秘ID执行不同效果
+    if (!effect) {
+      Logger.warn('奥秘没有效果配置');
+      return;
+    }
+
+    switch (effect.type) {
+      case 'damage':
+        // 对目标造成伤害
+        this.dealDamage(data.target || opponent.hero, effect.value || 1);
+        break;
+
+      case 'aoe_damage':
+        // 对所有敌人造成伤害
+        const enemies = this.getOpponent().minions || [];
+        enemies.forEach(minion => {
+          this.dealDamage(minion, effect.value || 1);
+        });
+        // 对敌人英雄造成伤害
+        this.dealDamage(opponent.hero, effect.value || 1);
+        break;
+
+      case 'freeze':
+        // 冻结目标
+        if (data.target) {
+          this.freezeMinion(data.target);
+        }
+        break;
+
+      case 'summon':
+        // 召唤随从
+        if (effect.cardId) {
+          this.summonMinion(effect.cardId, player.id);
+        }
+        break;
+
+      case 'buff':
+        // 增益效果
+        if (data.target) {
+          this.buffMinion(data.target, effect.attack || 0, effect.health || 0);
+        }
+        break;
+
+      case 'return':
+        // 移回手牌
+        if (data.target && data.target.minion) {
+          this.returnToHand(data.target.minion, player.id);
+        }
+        break;
+
+      case 'destroy':
+        // 消灭随从
+        if (data.target) {
+          this.destroyMinion(data.target);
+        }
+        break;
+
+      case 'gain_armor':
+        // 获得护甲
+        this.gainArmor(player.hero, effect.value || 1);
+        break;
+
+      case 'immune_next':
+        // 下次免疫
+        player.hero.immune = true;
+        break;
+
+      case 'counter':
+        // 反制法术（取消效果）
+        if (data.spell) {
+          Logger.info('法术被反制');
+          // 取消法术效果
+        }
+        break;
+
+      case 'transform_health':
+        // 改变生命值
+        if (data.target) {
+          data.target.maxHealth = effect.value;
+          data.target.health = Math.min(data.target.health, effect.value);
+        }
+        break;
+
+      default:
+        Logger.warn(`未知的奥秘效果类型: ${effect.type}`);
+    }
   }
 
   /**

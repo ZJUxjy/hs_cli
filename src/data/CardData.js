@@ -22,14 +22,13 @@ class CardData {
     if (fs.existsSync(officialPath)) {
       const data = fs.readFileSync(officialPath, 'utf8');
       this.cards = JSON.parse(data);
-      this.index();
-      return;
     }
 
-    // 回退到旧格式
+    // 同时加载其他JSON文件（奥秘、任务等自定义卡牌）
     const cardsDir = path.join(__dirname, '../../data/cards');
     if (!fs.existsSync(cardsDir)) {
       console.warn('卡牌目录不存在:', cardsDir);
+      this.index();
       return;
     }
 
@@ -37,16 +36,26 @@ class CardData {
     files.forEach(file => {
       if (file.endsWith('.json') && file !== 'all.json') {
         try {
-          const data = JSON.parse(fs.readFileSync(path.join(cardsDir, file), 'utf8'));
-          data.forEach(card => {
-            this.cards.push(card);
-            this.byId[card.id] = card;
+          const filePath = path.join(cardsDir, file);
+          const fileData = fs.readFileSync(filePath, 'utf8');
+          const data = JSON.parse(fileData);
+
+          // 确保是数组格式
+          const cardArray = Array.isArray(data) ? data : [data];
+          cardArray.forEach(card => {
+            // 检查是否已存在（避免重复），不存在则添加
+            if (!this.byId[card.id]) {
+              this.cards.push(card);
+              this.byId[card.id] = card;
+            }
           });
         } catch (err) {
           console.error('加载卡牌文件失败:', file, err);
         }
       }
     });
+
+    this.index();
   }
 
   index() {
