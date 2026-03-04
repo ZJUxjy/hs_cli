@@ -45,6 +45,7 @@ class CardEffect {
     INSPIRE: 'inspire',
     // 任务机制
     QUEST: 'quest',
+    QUESTLINE: 'questline',
     REWARD: 'reward',
     // 休眠机制
     DORMANT: 'dormant',
@@ -1094,6 +1095,24 @@ class CardEffect {
         minion.bloodlustBuff = null;
       }
     });
+  }
+
+  /**
+   * 适应 - 玩家选择进化选项
+   */
+  executeAdapt(effect, context) {
+    // 返回适应选项让玩家选择
+    const options = effect.options || [
+      { type: '+3_attack', text: '+3 攻击力', buff: { attack: 3 } },
+      { type: '+3_health', text: '+3 生命值并获得嘲讽', buff: { health: 3, taunt: true } },
+      { type: 'windfury', text: '风怒', buff: { windfury: true } }
+    ];
+
+    // 返回选择信息给 UI
+    return {
+      adapt: true,
+      options: options
+    };
   }
 }
 

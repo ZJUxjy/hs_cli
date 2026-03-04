@@ -310,6 +310,13 @@ class GameEngine {
       return this.getGameState();
     }
 
+    // 检查是否是任务线卡 - 任务线触发多阶段任务
+    if (card.effect?.type === 'questline') {
+      this.questManager.initQuestline(card, player);
+      player.hand.splice(cardIndex, 1);
+      return this.getGameState();
+    }
+
     // 检查是否是英雄卡
     if (CardType.isHero(card)) {
       // 处理英雄卡 - 变身
@@ -331,6 +338,22 @@ class GameEngine {
       return this.getGameState();
     }
 
+    // 检查是否是适应卡牌
+    if (card.effect?.adapt) {
+      // 返回适应选择信息
+      this.state.pendingAdapt = {
+        cardIndex: cardIndex,
+        card: card,
+        options: card.effect.options || [
+          { type: '+3_attack', text: '+3 攻击力', buff: { attack: 3 } },
+          { type: '+3_health', text: '+3 生命值并获得嘲讽', buff: { health: 3, taunt: true } },
+          { type: 'windfury', text: '风怒', buff: { windfury: true } }
+        ]
+      };
+      this.setMessage('请选择进化');
+      return this.getGameState();
+    }
+
     // 消耗法力
     player.mana -= card.cost;
 
@@ -349,8 +372,12 @@ class GameEngine {
     if (this.questManager) {
       if (CardType.isMinion(card)) {
         this.questManager.updateProgress(player, 'play_minion', { card });
+        // 更新任务线进度 - 召唤随从
+        this.questManager.updateQuestlineProgress(player, 'summon_minion', 1, { card });
       } else if (CardType.isSpell(card)) {
         this.questManager.updateProgress(player, 'play_spell', { card });
+        // 更新任务线进度 - 施放法术
+        this.questManager.updateQuestlineProgress(player, 'cast_spell', 1, { card });
       }
     }
 
@@ -1037,7 +1064,7 @@ class GameEngine {
     }
 
     // 使用 BattleCalculator 进行战斗
-    const result = battleCalc.battle(attacker, target);
+    const result = battleCalc.battle(attacker, target, this);
 
     // 风怒处理：攻击后检查是否可以再次攻击
     if (attacker.windfury && attacker.attacksRemaining > 0) {
@@ -1254,6 +1281,82 @@ class GameEngine {
     const selectedCard = discover.options[optionIndex];
     discover.callback(selectedCard);
     this.state.pendingDiscover = null;
+
+    return this.getGameState();
+  }
+
+  /**
+   * 处理适应选择
+   */
+  selectAdaptOption(optionIndex) {
+    if (!this.state.pendingAdapt) {
+      Logger.warn('没有待适应的选择');
+      return this.getGameState();
+    }
+
+    const { cardIndex, options, card } = this.state.pendingAdapt;
+    const selectedOption = options[optionIndex];
+
+    if (!selectedOption) {
+      this.setMessage('无效的选择');
+      return this.getGameState();
+    }
+
+    const player = this.state.player;
+
+    // 消耗法力
+    player.mana -= card.cost;
+
+    // 处理过载
+    if (card.effect && card.effect.overload && card.effect.overload > 0) {
+      this.applyOverload(player, card.effect.overload);
+    }
+
+    // 执行卡牌效果（召唤随从）
+    this.executeCardEffect(card, card.effect, {
+      player,
+      target: this.state.ai
+    });
+
+    // 获取刚召唤的随从（通常是最后一个）
+    const targetMinion = player.field[player.field.length - 1];
+
+    // 应用选择的buff
+    if (targetMinion && selectedOption.buff) {
+      if (selectedOption.buff.attack) {
+        targetMinion.attack += selectedOption.buff.attack;
+      }
+      if (selectedOption.buff.health) {
+        targetMinion.health += selectedOption.buff.health;
+        targetMinion.maxHealth += selectedOption.buff.health;
+      }
+      if (selectedOption.buff.taunt) {
+        targetMinion.taunt = true;
+      }
+      if (selectedOption.buff.windfury) {
+        targetMinion.windfury = true;
+      }
+      Logger.info(`${targetMinion.name} 选择了 ${selectedOption.text}`);
+    }
+
+    // 从手牌移除
+    player.hand.splice(cardIndex, 1);
+
+    // 更新任务进度
+    if (this.questManager) {
+      if (CardType.isMinion(card)) {
+        this.questManager.updateProgress(player, 'play_minion', { card });
+        // 更新任务线进度 - 召唤随从
+        this.questManager.updateQuestlineProgress(player, 'summon_minion', 1, { card });
+      } else if (CardType.isSpell(card)) {
+        this.questManager.updateProgress(player, 'play_spell', { card });
+        // 更新任务线进度 - 施放法术
+        this.questManager.updateQuestlineProgress(player, 'cast_spell', 1, { card });
+      }
+    }
+
+    // 清除适应状态
+    this.state.pendingAdapt = null;
 
     return this.getGameState();
   }
