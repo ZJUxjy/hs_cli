@@ -1,0 +1,708 @@
+/* deck-builder.css - 卡组构建器样式 */
+
+/* 卡组构建器屏幕 */
+#deck-builder-screen {
+  background: var(--bg-void);
+}
+
+/* 头部 */
+.deck-builder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background: linear-gradient(180deg, var(--bg-mystic) 0%, var(--bg-deep) 100%);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.deck-builder-header h2 {
+  font-family: var(--font-title);
+  font-size: var(--text-2xl);
+  color: var(--accent-gold);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.deck-builder-header h2::before {
+  content: '◆';
+  color: var(--accent-gold);
+  font-size: var(--text-lg);
+}
+
+/* 主容器 */
+.deck-builder-container {
+  display: flex;
+  gap: var(--space-4);
+  flex: 1;
+  padding: var(--space-4);
+  overflow: hidden;
+}
+
+/* 卡牌池 */
+.card-pool {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--bg-mystic) 0%, var(--bg-deep) 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+/* 搜索和筛选头部 */
+.card-pool-header {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.card-pool-header input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.card-pool-header input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.1);
+}
+
+.card-pool-header input[type="text"]::placeholder {
+  color: var(--text-muted);
+}
+
+.card-pool-header select {
+  padding: var(--space-3) var(--space-4);
+  padding-right: 35px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f0c040' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  min-width: 140px;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.card-pool-header select:hover,
+.card-pool-header select:focus {
+  border-color: var(--accent-gold);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.card-pool-header select option {
+  background: var(--bg-mystic);
+  color: var(--text-primary);
+  padding: var(--space-2);
+}
+
+/* 卡牌列表 */
+.card-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+  align-content: start;
+}
+
+/* 卡牌项 */
+.card-item {
+  position: relative;
+  padding: var(--space-3);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-mystic) 100%);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow: hidden;
+}
+
+/* 稀有度边框 */
+.card-item.rarity-common { border-color: var(--rarity-common); }
+.card-item.rarity-rare { border-color: var(--rarity-rare); box-shadow: 0 0 10px rgba(74, 144, 217, 0.2); }
+.card-item.rarity-epic { border-color: var(--rarity-epic); box-shadow: 0 0 10px rgba(155, 74, 217, 0.2); }
+.card-item.rarity-legendary {
+  border-color: var(--rarity-legendary);
+  box-shadow: 0 0 15px var(--rarity-legendary-glow);
+  animation: legendaryPulse 3s ease-in-out infinite;
+}
+
+@keyframes legendaryPulse {
+  0%, 100% { box-shadow: 0 0 15px var(--rarity-legendary-glow); }
+  50% { box-shadow: 0 0 25px var(--rarity-legendary-glow), 0 0 35px rgba(240, 192, 64, 0.3); }
+}
+
+/* 稀有度宝石 */
+.card-rarity-gem {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 12px;
+  height: 16px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card-rarity-gem::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.rarity-common .card-rarity-gem { background: var(--rarity-common); }
+.rarity-rare .card-rarity-gem { background: var(--rarity-rare); }
+.rarity-epic .card-rarity-gem { background: var(--rarity-epic); }
+.rarity-legendary .card-rarity-gem {
+  background: linear-gradient(135deg, var(--rarity-legendary) 0%, #d4a020 100%);
+}
+
+/* 卡牌费用 */
+.card-cost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--mana-blue) 0%, #3a7bc8 100%);
+  border-radius: 50%;
+  font-weight: var(--font-bold);
+  font-size: var(--text-base);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 卡牌名称 */
+.card-name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 卡牌类型 */
+.card-type {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 卡牌属性 */
+.card-stats {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.card-attack,
+.card-health {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+}
+
+.card-attack {
+  background: linear-gradient(135deg, #d9a74a 0%, #b08030 100%);
+  color: #000;
+}
+
+.card-health {
+  background: linear-gradient(135deg, var(--health-red) 0%, #b03030 100%);
+  color: white;
+}
+
+/* 卡牌悬停效果 */
+.card-item:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: var(--accent-gold);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(240, 192, 64, 0.2);
+  z-index: 10;
+}
+
+.card-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+/* 卡组面板 */
+.deck-panel {
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: linear-gradient(180deg, var(--bg-mystic) 0%, var(--bg-deep) 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  overflow: hidden;
+}
+
+/* 卡组名称输入 */
+.deck-name-input {
+  padding: var(--space-4) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 2px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-primary) !important;
+  font-size: var(--text-lg) !important;
+  font-weight: var(--font-semibold) !important;
+  transition: all var(--duration-fast) var(--ease-out) !important;
+}
+
+.deck-name-input:focus {
+  border-color: var(--accent-gold) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.1) !important;
+}
+
+.deck-name-input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* 英雄选择 */
+.deck-hero-select {
+  padding: var(--space-3) var(--space-4) !important;
+  padding-right: 40px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f0c040' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  border: 2px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--accent-gold) !important;
+  font-size: var(--text-base) !important;
+  font-weight: var(--font-semibold) !important;
+  cursor: pointer !important;
+  transition: all var(--duration-fast) var(--ease-out) !important;
+}
+
+.deck-hero-select:hover,
+.deck-hero-select:focus {
+  border-color: var(--accent-gold) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.deck-hero-select option {
+  background: var(--bg-mystic) !important;
+  color: var(--text-primary) !important;
+  padding: var(--space-2) !important;
+}
+
+/* 卡组卡槽 */
+.deck-slots {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-right: var(--space-2);
+  min-height: 300px;
+}
+
+.deck-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.deck-slot:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-standard);
+}
+
+.deck-slot.has-card {
+  border-style: solid;
+  border-color: var(--accent-gold);
+  background: rgba(240, 192, 64, 0.05);
+}
+
+.deck-slot .card-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--space-2);
+  background: var(--accent-gold);
+  color: var(--bg-void);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+}
+
+.deck-slot-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.remove-card-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(217, 74, 74, 0.2);
+  border: 1px solid var(--health-red);
+  border-radius: 50%;
+  color: var(--health-red);
+  font-size: var(--text-lg);
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.remove-card-btn:hover {
+  background: var(--health-red);
+  color: white;
+}
+
+/* 卡组统计 */
+.deck-stats {
+  text-align: center;
+  padding: var(--space-3);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--accent-gold);
+}
+
+.deck-stats .count-complete {
+  color: var(--accent-green);
+}
+
+/* 卡组操作按钮 */
+.deck-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.deck-actions button {
+  flex: 1;
+  padding: var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#btn-save-deck {
+  background: linear-gradient(180deg, #4a6a4a 0%, #2a3a2a 100%);
+  border: 2px solid #4ad94a;
+  color: white;
+}
+
+#btn-save-deck:hover {
+  background: linear-gradient(180deg, #5a7a5a 0%, #3a4a3a 100%);
+  box-shadow: 0 4px 15px rgba(74, 217, 74, 0.3);
+  transform: translateY(-2px);
+}
+
+#btn-clear-deck {
+  background: linear-gradient(180deg, #5a3a3a 0%, #3a2a2a 100%);
+  border: 2px solid var(--health-red);
+  color: white;
+}
+
+#btn-clear-deck:hover {
+  background: linear-gradient(180deg, #6a4a4a 0%, #4a3a3a 100%);
+  box-shadow: 0 4px 15px rgba(217, 74, 74, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 卡组选择屏幕 */
+#deck-select-screen {
+  background: var(--bg-void);
+  padding: var(--space-6);
+}
+
+#deck-select-screen h2 {
+  font-family: var(--font-title);
+  font-size: var(--text-3xl);
+  color: var(--accent-gold);
+  text-align: center;
+  margin-bottom: var(--space-8);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.deck-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.deck-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6);
+  background: linear-gradient(90deg, var(--bg-mystic) 0%, var(--bg-deep) 100%);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.deck-item:hover {
+  border-color: var(--accent-gold);
+  transform: translateX(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(240, 192, 64, 0.1);
+}
+
+.deck-info-wrapper {
+  flex: 1;
+}
+
+.deck-item .deck-name {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--accent-gold);
+  margin-bottom: var(--space-1);
+}
+
+.deck-item .deck-info {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.deck-item .deck-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.deck-item .deck-actions button {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.deck-item .deck-actions button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-gold);
+}
+
+.deck-edit-btn {
+  border-color: var(--mana-blue) !important;
+  color: var(--mana-blue) !important;
+}
+
+.deck-edit-btn:hover {
+  background: rgba(74, 144, 217, 0.2) !important;
+}
+
+.deck-play-btn {
+  border-color: #4ad94a !important;
+  color: #4ad94a !important;
+}
+
+.deck-play-btn:hover {
+  background: rgba(74, 217, 74, 0.2) !important;
+}
+
+.deck-delete-btn {
+  border-color: var(--health-red) !important;
+  color: var(--health-red) !important;
+}
+
+.deck-delete-btn:hover {
+  background: rgba(217, 74, 74, 0.2) !important;
+}
+
+/* 职业选择屏幕 */
+#class-select-screen {
+  background: var(--bg-void);
+  padding: var(--space-6);
+}
+
+#class-select-screen h2 {
+  font-family: var(--font-title);
+  font-size: var(--text-3xl);
+  color: var(--accent-gold);
+  text-align: center;
+  margin-bottom: var(--space-8);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.class-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-5);
+  max-width: 900px;
+  margin: 0 auto var(--space-8);
+}
+
+.class-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: linear-gradient(180deg, var(--bg-mystic) 0%, var(--bg-deep) 100%);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.class-option:hover {
+  border-color: var(--accent-gold);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(240, 192, 64, 0.15);
+}
+
+.class-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid var(--border-subtle);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.class-option:hover .class-icon {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 20px rgba(240, 192, 64, 0.3);
+}
+
+.class-option span {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+/* 职业颜色 */
+.mage-icon { background: linear-gradient(135deg, #4a90d9, #2070c0); }
+.warrior-icon { background: linear-gradient(135deg, #d9a74a, #b08030); }
+.hunter-icon { background: linear-gradient(135deg, #4ad94a, #30b030); }
+.druid-icon { background: linear-gradient(135deg, #d94a4a, #b03030); }
+.rogue-icon { background: linear-gradient(135deg, #d94ad9, #b030b0); }
+.priest-icon { background: linear-gradient(135deg, #ffffff, #cccccc); }
+.paladin-icon { background: linear-gradient(135deg, #f0c040, #d0a020); }
+.shaman-icon { background: linear-gradient(135deg, #4a4ad9, #3030b0); }
+.warlock-icon { background: linear-gradient(135deg, #6a2a8a, #4a1a6a); }
+.demonhunter-icon { background: linear-gradient(135deg, #ff6b6b, #c92a2a); }
+.deathknight-icon { background: linear-gradient(135deg, #4ad9d9, #2a8a8a); }
+
+/* 返回按钮 */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.back-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-standard);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.back-btn::before {
+  content: '‹';
+  font-size: var(--text-xl);
+}
+
+/* 响应式调整 */
+@media (max-width: 1024px) {
+  .deck-builder-container {
+    flex-direction: column;
+  }
+
+  .deck-panel {
+    width: 100%;
+    max-height: 300px;
+  }
+
+  .card-list {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .card-pool-header {
+    flex-direction: column;
+  }
+
+  .card-pool-header input[type="text"],
+  .card-pool-header select {
+    width: 100%;
+  }
+
+  .class-list {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .class-option {
+    padding: var(--space-3);
+  }
+
+  .class-icon {
+    width: 50px;
+    height: 50px;
+  }
+}

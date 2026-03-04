@@ -1,0 +1,678 @@
+/* game-board.css - 对战场景样式 */
+
+/* 游戏屏幕 */
+#game-screen {
+  background: var(--bg-void);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 对战场景背景 */
+.battlefield-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 神秘石质地基 */
+.battlefield-background::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(26, 26, 46, 0.9) 0%, transparent 70%),
+    linear-gradient(180deg, transparent 0%, rgba(10, 10, 20, 0.8) 100%);
+}
+
+/* 顶部装饰 - 如悬挂的符文或吊灯 */
+.battlefield-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 100px;
+  background: radial-gradient(ellipse at center, rgba(240, 192, 64, 0.1) 0%, transparent 70%);
+}
+
+/* 魔法能量流动效果 */
+.energy-flow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(74, 144, 217, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(217, 74, 74, 0.08) 0%, transparent 40%);
+  animation: energyPulse 8s ease-in-out infinite;
+}
+
+@keyframes energyPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* 游戏信息栏 */
+.game-info {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-6);
+  background: linear-gradient(180deg, rgba(18, 18, 31, 0.95) 0%, rgba(10, 10, 20, 0.9) 100%);
+  border-bottom: 2px solid var(--border-subtle);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+#turn-indicator {
+  font-family: var(--font-title);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--accent-gold);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+#turn-indicator::before {
+  content: '◈';
+  font-size: var(--text-lg);
+}
+
+.mana-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+}
+
+.mana-crystal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--mana-blue) 0%, #3a7bc8 100%);
+  border-radius: 50%;
+  font-size: var(--text-sm);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(74, 144, 217, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.mana-crystal.spent {
+  background: linear-gradient(135deg, #3a3a5a 0%, #2a2a3a 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#player-spell-power {
+  font-size: var(--text-sm);
+  color: #9b59b6;
+  background: rgba(155, 89, 182, 0.1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
+/* 战场布局 */
+.battlefield {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) var(--space-6);
+  gap: var(--space-4);
+  overflow: hidden;
+}
+
+/* 英雄区域 */
+.hero-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 敌方英雄 */
+#enemy-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: linear-gradient(135deg, rgba(217, 74, 74, 0.1) 0%, rgba(42, 42, 74, 0.3) 100%);
+  border: 2px solid rgba(217, 74, 74, 0.3);
+  border-radius: var(--radius-xl);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+#enemy-hero:hover {
+  border-color: rgba(217, 74, 74, 0.6);
+  box-shadow: 0 0 20px rgba(217, 74, 74, 0.2);
+}
+
+/* 玩家英雄 */
+#player-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: linear-gradient(135deg, rgba(74, 217, 74, 0.1) 0%, rgba(42, 42, 74, 0.3) 100%);
+  border: 2px solid rgba(74, 217, 74, 0.3);
+  border-radius: var(--radius-xl);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+#player-hero:hover {
+  border-color: rgba(74, 217, 74, 0.6);
+  box-shadow: 0 0 20px rgba(74, 217, 74, 0.2);
+}
+
+/* 英雄头像 */
+.hero-portrait {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-mystic) 100%);
+  border: 4px solid;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.enemy-portrait {
+  border-color: var(--health-red);
+  box-shadow: 0 0 15px rgba(217, 74, 74, 0.3);
+}
+
+.player-portrait {
+  border-color: #4ad94a;
+  box-shadow: 0 0 15px rgba(74, 217, 74, 0.3);
+}
+
+/* 英雄状态 */
+.hero-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.health-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--health-red);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.health-display::before {
+  content: '♥';
+  font-size: var(--text-xl);
+}
+
+.armor-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--armor-gold);
+}
+
+.armor-display::before {
+  content: '🛡';
+  font-size: var(--text-lg);
+}
+
+/* 手牌数量 */
+.hand-count {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* 战场区域 */
+.field-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 0;
+}
+
+/* 战场 */
+.field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--border-subtle);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.field:empty::after {
+  content: '战场为空';
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  font-style: italic;
+}
+
+.enemy-field {
+  background: linear-gradient(180deg, rgba(217, 74, 74, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
+  border-color: rgba(217, 74, 74, 0.2);
+}
+
+.player-field {
+  background: linear-gradient(180deg, rgba(74, 217, 74, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
+  border-color: rgba(74, 217, 74, 0.2);
+}
+
+/* 随从样式 */
+.minion {
+  position: relative;
+  width: 100px;
+  height: 130px;
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-mystic) 100%);
+  border: 3px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-2);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.minion:hover {
+  transform: translateY(-8px);
+  border-color: var(--accent-gold);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(240, 192, 64, 0.2);
+}
+
+.minion.can-attack {
+  border-color: #4ad94a;
+  box-shadow: 0 0 15px rgba(74, 217, 74, 0.4);
+  animation: canAttackGlow 2s ease-in-out infinite;
+}
+
+@keyframes canAttackGlow {
+  0%, 100% { box-shadow: 0 0 15px rgba(74, 217, 74, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(74, 217, 74, 0.6); }
+}
+
+.minion.selected {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 25px var(--accent-gold-glow);
+  transform: translateY(-12px) scale(1.05);
+}
+
+.minion.enemy {
+  border-color: rgba(217, 74, 74, 0.5);
+}
+
+/* 随从名称 */
+.minion-name {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-align: center;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  margin-bottom: var(--space-1);
+}
+
+/* 随从状态图标区 */
+.minion-mechanics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+  margin-bottom: auto;
+}
+
+.mechanic-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-bold);
+}
+
+/* 机制图标颜色 */
+.charge-icon { background: linear-gradient(135deg, #d94a4a, #b03030); }
+.rush-icon { background: linear-gradient(135deg, #d94ad9, #b030b0); }
+.taunt-icon { background: linear-gradient(135deg, #d9a74a, #b08030); }
+.windfury-icon { background: linear-gradient(135deg, #4a90d9, #3070c0); }
+.divine-shield-icon { background: linear-gradient(135deg, #f0c040, #d0a020); }
+.stealth-icon { background: linear-gradient(135deg, #888888, #666666); }
+.poisonous-icon { background: linear-gradient(135deg, #4ad94a, #30b030); }
+.lifesteal-icon { background: linear-gradient(135deg, #d94ad9, #b030b0); }
+.reborn-icon { background: linear-gradient(135deg, #00ced1, #00a0a0); }
+
+/* 嘲讽标识 */
+.minion-taunt::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px solid #d9a74a;
+  border-radius: calc(var(--radius-lg) + 2px);
+  pointer-events: none;
+}
+
+/* 随从属性 */
+.minion-stats {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: auto;
+}
+
+.minion-attack {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #d9a74a 0%, #b08030 100%);
+  border-radius: 50%;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: #000;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.minion-health {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--health-red) 0%, #b03030 100%);
+  border-radius: 50%;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* 玩家手牌区 */
+.player-hand-area {
+  position: relative;
+  z-index: 10;
+  padding: var(--space-4) var(--space-6);
+  background: linear-gradient(180deg, transparent 0%, rgba(10, 10, 20, 0.8) 100%);
+}
+
+#player-hand {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  min-height: 140px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#player-hand:empty::after {
+  content: '手牌为空';
+  color: var(--text-muted);
+  font-size: var(--text-base);
+  align-self: center;
+}
+
+/* 手牌中的卡牌 */
+#player-hand .card {
+  position: relative;
+  width: 100px;
+  height: 140px;
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-mystic) 100%);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  flex-shrink: 0;
+}
+
+#player-hand .card:hover {
+  transform: translateY(-20px) scale(1.05);
+  border-color: var(--accent-gold);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(240, 192, 64, 0.2);
+  z-index: 100;
+}
+
+#player-hand .card.can-play {
+  border-color: #4ad94a;
+  box-shadow: 0 0 15px rgba(74, 217, 74, 0.3);
+  animation: canPlayPulse 2s ease-in-out infinite;
+}
+
+@keyframes canPlayPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(74, 217, 74, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(74, 217, 74, 0.5); }
+}
+
+#player-hand .card.selected {
+  transform: translateY(-30px) scale(1.1);
+  border-color: var(--accent-gold);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px var(--accent-gold-glow);
+  z-index: 101;
+}
+
+/* 游戏控制区 */
+.game-controls {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  background: linear-gradient(180deg, rgba(10, 10, 20, 0.9) 0%, rgba(18, 18, 31, 0.95) 100%);
+  border-top: 2px solid var(--border-subtle);
+}
+
+.game-controls button {
+  padding: var(--space-4) var(--space-8);
+  font-family: var(--font-title);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  border: 2px solid transparent;
+}
+
+#btn-end-turn {
+  background: linear-gradient(180deg, #4a6a4a 0%, #2a3a2a 100%);
+  border-color: #4ad94a;
+  color: white;
+  box-shadow: 0 4px 15px rgba(74, 217, 74, 0.3);
+}
+
+#btn-end-turn:hover {
+  background: linear-gradient(180deg, #5a7a5a 0%, #3a4a3a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(74, 217, 74, 0.4);
+}
+
+#btn-use-hero-power {
+  background: linear-gradient(180deg, #5a4a3a 0%, #3a2a2a 100%);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+#btn-use-hero-power:hover {
+  background: linear-gradient(180deg, #6a5a4a 0%, #4a3a3a 100%);
+  transform: translateY(-2px);
+}
+
+#btn-concede {
+  background: linear-gradient(180deg, #5a3a3a 0%, #3a2a2a 100%);
+  border-color: var(--health-red);
+  color: white;
+  font-size: var(--text-sm);
+  padding: var(--space-3) var(--space-5);
+}
+
+#btn-concede:hover {
+  background: linear-gradient(180deg, #6a4a4a 0%, #4a3a3a 100%);
+  transform: translateY(-2px);
+}
+
+.control-btn {
+  padding: var(--space-3) var(--space-5) !important;
+  font-size: var(--text-sm) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--border-standard) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 游戏消息 */
+#game-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.game-message-content {
+  padding: var(--space-5) var(--space-10);
+  background: linear-gradient(135deg, rgba(18, 18, 31, 0.98) 0%, rgba(10, 10, 20, 0.98) 100%);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-title);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--accent-gold);
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(240, 192, 64, 0.2);
+  animation: messageAppear 0.5s var(--ease-out) forwards, messageDisappear 0.5s var(--ease-out) 2.5s forwards;
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes messageDisappear {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 1024px) {
+  .hero-portrait {
+    width: 60px;
+    height: 60px;
+  }
+
+  .health-display {
+    font-size: var(--text-2xl);
+  }
+
+  .minion {
+    width: 80px;
+    height: 110px;
+  }
+
+  #player-hand .card {
+    width: 80px;
+    height: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .battlefield {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .field {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .minion {
+    width: 65px;
+    height: 90px;
+  }
+
+  .minion-attack,
+  .minion-health {
+    width: 24px;
+    height: 24px;
+    font-size: var(--text-sm);
+  }
+
+  #player-hand {
+    min-height: 100px;
+  }
+
+  #player-hand .card {
+    width: 65px;
+    height: 100px;
+  }
+
+  .game-controls {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .game-controls button {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
+  }
+}
