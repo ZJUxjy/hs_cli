@@ -299,6 +299,22 @@ class GameEngine {
       target: this.state.ai
     });
 
+    // 处理连击 - 手牌中有其他卡牌时触发
+    if (card.effect?.combo) {
+      const cardEffect = new CardEffect(this);
+      // 临时修改 effect type 为 combo 以触发 executeCombo
+      const originalType = card.effect.type;
+      card.effect.type = 'combo';
+      cardEffect.execute(card, {
+        player,
+        target: this.state.ai,
+        card,
+        effect: card.effect
+      });
+      // 恢复原始 type
+      card.effect.type = originalType;
+    }
+
     // 处理 Echo 机制：Echo 卡牌保留在手中
     if (card.effect?.echo) {
       Logger.info(`${card.name} 具有回响，打出后保留在手中`);

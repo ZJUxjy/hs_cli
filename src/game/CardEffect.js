@@ -147,6 +147,8 @@ class CardEffect {
           return this.executeTotem(effect, context);
         case 'mana':
           return this.executeMana(effect, context);
+        case 'choose':
+          return this.executeChoose(effect, context);
         default:
           Logger.warn(`未知效果类型: ${effect.type}`);
           return false;
@@ -790,6 +792,19 @@ class CardEffect {
       Logger.info(`${player.name} 获得 ${effect.value} 点法力水晶`);
     }
     return true;
+  }
+
+  /**
+   * 抉择 - 选择两种效果之一
+   */
+  executeChoose(effect, context) {
+    // 返回抉择信息给 UI，让玩家选择
+    return {
+      choose: true,
+      card: context.card,
+      choice1: effect.choice1,
+      choice2: effect.choice2
+    };
   }
 
   // ========== 新增机制处理方法 ==========
