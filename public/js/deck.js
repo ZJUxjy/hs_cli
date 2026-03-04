@@ -111,6 +111,36 @@ class DeckBuilderUI {
       item.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('cardId', item.dataset.id);
         item.classList.add('dragging');
+
+        // 设置自定义拖拽图像 - 只显示卡牌信息
+        const card = this.allCards.find(c => c.id === item.dataset.id);
+        if (card) {
+          const dragImage = document.createElement('div');
+          dragImage.style.cssText = `
+            position: absolute;
+            top: -1000px;
+            padding: 8px 12px;
+            background: linear-gradient(180deg, #2a2a4a 0%, #1a1a2e 100%);
+            border: 2px solid #f0c040;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          `;
+          dragImage.innerHTML = `
+            <span style="background: #4a90d9; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">${card.cost || 0}</span>
+            <span>${this.getCardName(card)}</span>
+          `;
+          document.body.appendChild(dragImage);
+          e.dataTransfer.setDragImage(dragImage, 50, 20);
+
+          // 延迟移除临时元素
+          setTimeout(() => dragImage.remove(), 0);
+        }
       });
 
       item.addEventListener('dragend', () => {
