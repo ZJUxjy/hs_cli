@@ -22,17 +22,19 @@ class TurnManager {
       player.maxMana = Math.min(player.maxMana + 1, 10);
     }
 
-    // 处理过载（来自上个回合）
+    // 处理过载（来自上个回合）- 注意：需要在设置mana之后处理
+    // 先恢复法力值（第一回合或之前没有过载）
+    player.mana = player.maxMana;
+
+    // 然后应用过载锁定
     if (player.overload && player.overload > 0) {
       const overloadedMana = Math.max(0, player.maxMana - player.overload);
-      player.mana = Math.min(player.mana, overloadedMana);
+      player.mana = overloadedMana;
       Logger.info(`${player.hero} 本回合过载锁定 ${player.overload} 点法力`);
       player.overload = 0;
     }
 
-    // 重置当前法力值
-    player.mana = player.maxMana;
-    
+    // 重置当前法力值（已完成，包含在上面）
     // 重置英雄技能
     player.usedHeroPower = false;
     

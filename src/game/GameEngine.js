@@ -272,8 +272,26 @@ class GameEngine {
       return this.getGameState();
     }
 
+    // 检查是否是抉择卡牌
+    if (card.effect?.choose) {
+      // 返回抉择信息，暂停打牌
+      this.state.pendingChoice = {
+        cardIndex: cardIndex,
+        card: card,
+        choice1: card.effect.choice1,
+        choice2: card.effect.choice2
+      };
+      this.state.message = '请选择效果';
+      return this.getGameState();
+    }
+
     // 消耗法力
     player.mana -= card.cost;
+
+    // 处理过载 - 下回合锁定法力
+    if (card.effect && card.effect.overload && card.effect.overload > 0) {
+      this.applyOverload(player, card.effect.overload);
+    }
 
     // 执行卡牌效果
     this.executeCardEffect(card, card.effect, {
@@ -289,6 +307,39 @@ class GameEngine {
       // 普通卡牌从手牌移除
       player.hand.splice(cardIndex, 1);
     }
+
+    return this.getGameState();
+  }
+
+  /**
+   * 选择抉择选项
+   * @param {number} option - 选项 (1 或 2)
+   * @returns {object} 游戏状态
+   */
+  chooseOption(option) {
+    if (!this.state || !this.state.pendingChoice) {
+      return this.getGameState();
+    }
+
+    const { cardIndex, card } = this.state.pendingChoice;
+    const player = this.state.player;
+
+    // 消耗法力
+    player.mana -= card.cost;
+
+    // 执行选择的效果
+    const choice = option === 1 ? card.effect.choice1 : card.effect.choice2;
+    this.executeCardEffect(card, choice, {
+      player,
+      target: this.state.ai
+    });
+
+    // 移除手牌
+    player.hand.splice(cardIndex, 1);
+
+    // 清除抉择状态
+    this.state.pendingChoice = null;
+    this.state.message = '';
 
     return this.getGameState();
   }

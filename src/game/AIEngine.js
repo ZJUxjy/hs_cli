@@ -349,6 +349,12 @@ class AIEngine {
     // 扣除法力
     ai.mana -= card.cost;
 
+    // 处理过载 - 下回合锁定法力
+    if (card.effect && card.effect.overload && card.effect.overload > 0) {
+      ai.overload = (ai.overload || 0) + card.effect.overload;
+      Logger.info(`>>> 敌方过载 ${card.effect.overload} 点法力`);
+    }
+
     Logger.info(`>>> 敌方打出了 ${card.name}`);
 
     // 执行效果
