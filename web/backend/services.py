@@ -22,7 +22,6 @@ class GameService:
         try:
             deck1 = self.deck_manager.load_deck(deck1_id)
         except FileNotFoundError:
- e:
             raise ValueError(f"Deck '{deck1_id}' not found")
         try:
             deck2 = self.deck_manager.load_deck(deck2_id)

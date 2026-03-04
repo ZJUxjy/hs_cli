@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException
 from web.backend.schemas import GameStateSchema, ActionSchema, StartGameSchema
 from web.backend.services import game_service
+from hearthstone.engine.action import PlayCardAction, AttackAction, EndTurnAction
 
 router = APIRouter()
 
