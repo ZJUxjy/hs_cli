@@ -311,7 +311,7 @@ class GameEngine {
     }
 
     // 检查是否是英雄卡
-    if (card.type === 'HERO') {
+    if (CardType.isHero(card)) {
       // 处理英雄卡 - 变身
       this.transformIntoHero(player, card);
       player.hand.splice(cardIndex, 1);
