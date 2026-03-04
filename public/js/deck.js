@@ -322,6 +322,12 @@ class DeckBuilderUI {
       clearBtn.addEventListener('click', () => this.clearDeck());
     }
 
+    // Auto fill button
+    const autoFillBtn = document.getElementById('btn-auto-fill');
+    if (autoFillBtn) {
+      autoFillBtn.addEventListener('click', () => this.autoFillDeck());
+    }
+
     // Deck slots drop zone
     const deckSlots = document.getElementById('deck-slots');
     if (deckSlots) {
@@ -515,8 +521,9 @@ class DeckBuilderUI {
     const countEl = document.getElementById('deck-count');
     if (countEl) {
       const total = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
-      countEl.textContent = i18n.t('ui.deck.deckCount', { count: total });
-      countEl.style.color = total === 30 ? '#4ad94a' : '#f0c040';
+      const maxCards = 30;
+      countEl.textContent = `${total}/${maxCards}`;
+      countEl.style.color = total >= 30 ? '#4ad94a' : '#f0c040';
     }
   }
 
@@ -531,6 +538,68 @@ class DeckBuilderUI {
 
       document.getElementById('deck-name').value = '';
     }
+  }
+
+  autoFillDeck() {
+    // 获取当前职业
+    const heroClass = this.currentDeck.hero?.toUpperCase() || 'MAGE';
+    const classMap = {
+      mage: 'MAGE', warrior: 'WARRIOR', hunter: 'HUNTER',
+      druid: 'DRUID', rogue: 'ROGUE', priest: 'PRIEST',
+      paladin: 'PALADIN', shaman: 'SHAMAN', warlock: 'WARLOCK',
+      demonhunter: 'DEMONHUNTER', deathknight: 'DEATHKNIGHT'
+    };
+    const playerClass = classMap[heroClass] || 'MAGE';
+
+    // 筛选可用卡牌（当前职业 + 中立）
+    const availableCards = this.allCards.filter(card => {
+      return card.collectible &&
+        (card.cardClass === playerClass || card.cardClass === 'NEUTRAL') &&
+        card.type !== 'HERO';
+    });
+
+    if (availableCards.length === 0) {
+      alert('没有可用的卡牌');
+      return;
+    }
+
+    // 清空当前卡组
+    this.currentDeck.cards = [];
+
+    // 随机填充直到30张
+    const maxCards = 30;
+    const cardCountMap = new Map(); // 跟踪每张卡的数量
+
+    while (this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0) < maxCards) {
+      // 随机选择一张卡
+      const randomCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+      const cardId = randomCard.id;
+
+      // 检查数量限制
+      const isLegendary = randomCard.rarity === 'LEGENDARY';
+      const currentCount = cardCountMap.get(cardId) || 0;
+
+      if (isLegendary && currentCount >= 1) {
+        continue; // 传说卡最多1张
+      }
+      if (!isLegendary && currentCount >= 2) {
+        continue; // 普通卡最多2张
+      }
+
+      // 添加卡牌
+      const existing = this.currentDeck.cards.find(c => c.cardId === cardId);
+      if (existing) {
+        existing.count++;
+      } else {
+        this.currentDeck.cards.push({ cardId, count: 1 });
+      }
+      cardCountMap.set(cardId, (cardCountMap.get(cardId) || 0) + 1);
+    }
+
+    // 保存并更新UI
+    this.saveToStorage();
+    this.renderDeckSlots();
+    this.updateDeckCount();
   }
 
   async saveDeck() {
