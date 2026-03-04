@@ -82,7 +82,7 @@ class GameEngine {
     const allCards = CardData.getCardsByClassWithEffect(heroClass);
 
     const classCards = allCards.filter(c =>
-      c.collectible && (c.type === 'MINION' || c.type === 'SPELL' || c.type === 'WEAPON' || c.type === 'HERO')
+      c.collectible && (CardType.isMinion(c) || CardType.isSpell(c) || CardType.isWeapon(c) || CardType.isHero(c))
     );
 
     // 如果筛选后卡牌太少，回退到所有卡
