@@ -238,6 +238,18 @@ class GameScreen {
     const ai = state.ai;
     const player = state.player;
 
+    // 格式化随从显示
+    const formatMinion = (m) => {
+      let status = '';
+      if (m.taunt) status += '!';
+      if (m.divineShield) status += '#';
+      if (m.frozen) status += '*';
+      if (m.stealth) status += '@';
+      if (m.poisonous) status += '~';
+      if (m.lifesteal) status += '+';
+      return `[${m.attack}/${m.health}]${status}`;
+    };
+
     // 敌方信息
     let enemyHeroText = `敌方 (${ai.hero})\n` +
       `生命: ${ai.health}/${ai.maxHealth}\n` +
@@ -270,7 +282,7 @@ class GameScreen {
     // 敌方战场
     this.boxes.enemyField.setContent(
       `敌方战场: ` +
-      ai.field.map(m => `[${m.attack}/${m.health}]`).join(' ')
+      ai.field.map(m => formatMinion(m)).join(' ')
     );
 
     // 玩家战场
@@ -278,7 +290,7 @@ class GameScreen {
       `战场: ` +
       player.field.map((m, i) => {
         const sel = i === this.state.selectedFieldIndex ? '>' : '';
-        return `${sel}[${m.attack}/${m.health}]`;
+        return `${sel}${formatMinion(m)}`;
       }).join(' ')
     );
 
