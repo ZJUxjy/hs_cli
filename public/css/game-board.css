@@ -287,6 +287,21 @@
   border-color: rgba(74, 217, 74, 0.2);
 }
 
+/* 拖拽目标区域高亮 */
+.field.drag-over,
+.player-field.drag-over,
+.enemy-field.drag-over {
+  background-color: rgba(255, 215, 0, 0.15);
+  border: 2px dashed #ffd700;
+  box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+#enemy-hero.drag-over {
+  background-color: rgba(255, 68, 68, 0.15);
+  border: 2px dashed #ff4444;
+  box-shadow: inset 0 0 20px rgba(255, 68, 68, 0.3);
+}
+
 /* 随从样式 */
 .minion {
   position: relative;
@@ -314,6 +329,17 @@
   border-color: #4ad94a;
   box-shadow: 0 0 15px rgba(74, 217, 74, 0.4);
   animation: canAttackGlow 2s ease-in-out infinite;
+  cursor: grab;
+}
+
+.minion.can-attack:active {
+  cursor: grabbing;
+}
+
+/* 拖拽时的样式 */
+.minion.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
 }
 
 @keyframes canAttackGlow {
@@ -478,6 +504,17 @@
   border-color: #4ad94a;
   box-shadow: 0 0 15px rgba(74, 217, 74, 0.3);
   animation: canPlayPulse 2s ease-in-out infinite;
+  cursor: grab;
+}
+
+#player-hand .card.can-play:active {
+  cursor: grabbing;
+}
+
+/* 拖拽时的样式 */
+#player-hand .card.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
 }
 
 @keyframes canPlayPulse {

@@ -5,6 +5,12 @@ class GameUI {
     this.selectedCardIndex = null;
     this.selectedMinionIndex = null;
     this.isPlayerTurn = true;
+    // 拖拽状态
+    this.dragState = {
+      type: null,        // 'card' | 'minion'
+      sourceIndex: null,
+      element: null
+    };
   }
 
   async startGame(playerClass, opponentClass = 'warrior') {
@@ -95,6 +101,9 @@ class GameUI {
 
     // 绑定存档按钮事件
     this.bindSaveEvents();
+
+    // 绑定拖拽事件
+    this.bindDragEvents();
   }
 
   // 绑定存档按钮事件
@@ -108,6 +117,103 @@ class GameUI {
 
     if (loadBtn) {
       loadBtn.onclick = () => this.showLoadDialog();
+    }
+  }
+
+  // 绑定拖拽事件
+  bindDragEvents() {
+    // 手牌拖拽 - 出牌
+    const playerHand = document.getElementById('player-hand');
+    if (playerHand) {
+      playerHand.addEventListener('dragstart', (e) => {
+        const cardEl = e.target.closest('.card');
+        if (cardEl) {
+          const index = parseInt(cardEl.dataset.index);
+          this.dragState = { type: 'card', sourceIndex: index };
+          e.dataTransfer.setData('text/plain', index);
+        }
+      });
+    }
+
+    // 战场区域 - 放置卡牌
+    const playerField = document.getElementById('player-field');
+    if (playerField) {
+      playerField.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        playerField.classList.add('drag-over');
+      });
+
+      playerField.addEventListener('dragleave', () => {
+        playerField.classList.remove('drag-over');
+      });
+
+      playerField.addEventListener('drop', (e) => {
+        e.preventDefault();
+        playerField.classList.remove('drag-over');
+        if (this.dragState.type === 'card') {
+          this.playCard(this.dragState.sourceIndex);
+          this.dragState = { type: null, sourceIndex: null };
+        }
+      });
+    }
+
+    // 己方随从拖拽 - 攻击
+    const playerFieldMinions = document.querySelectorAll('#player-field .minion');
+    playerFieldMinions.forEach((minion, index) => {
+      if (minion.dataset.canAttack === 'true') {
+        minion.draggable = true;
+        minion.addEventListener('dragstart', (e) => {
+          this.dragState = { type: 'minion', sourceIndex: index };
+        });
+      }
+    });
+
+    // 敌方随从区域 - 放置攻击
+    const enemyField = document.getElementById('enemy-field');
+    if (enemyField) {
+      enemyField.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        enemyField.classList.add('drag-over');
+      });
+
+      enemyField.addEventListener('dragleave', () => {
+        enemyField.classList.remove('drag-over');
+      });
+
+      enemyField.addEventListener('drop', (e) => {
+        e.preventDefault();
+        enemyField.classList.remove('drag-over');
+        if (this.dragState.type === 'minion') {
+          const targetEl = e.target.closest('.minion');
+          if (targetEl) {
+            const targetIndex = parseInt(targetEl.dataset.index);
+            this.attackMinion(this.dragState.sourceIndex, targetIndex);
+          }
+          this.dragState = { type: null, sourceIndex: null };
+        }
+      });
+    }
+
+    // 敌方英雄区域 - 放置攻击英雄
+    const enemyHero = document.getElementById('enemy-hero');
+    if (enemyHero) {
+      enemyHero.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        enemyHero.classList.add('drag-over');
+      });
+
+      enemyHero.addEventListener('dragleave', () => {
+        enemyHero.classList.remove('drag-over');
+      });
+
+      enemyHero.addEventListener('drop', (e) => {
+        e.preventDefault();
+        enemyHero.classList.remove('drag-over');
+        if (this.dragState.type === 'minion') {
+          this.attackHero(this.dragState.sourceIndex);
+          this.dragState = { type: null, sourceIndex: null };
+        }
+      });
     }
   }
 
@@ -231,10 +337,10 @@ class GameUI {
     const minions = player.field || [];
 
     field.innerHTML = minions.map((minion, i) => {
-      const canAttack = minion.canAttack !== false && this.isPlayerTurn;
+      const canAttack = minion.canAttack !== false && this.isPlayerTurn && !minion.sleeping && !minion.frozen && !minion.hasAttacked;
       return `
         <div class="minion ${canAttack ? 'can-attack' : ''} ${this.selectedMinionIndex === i ? 'selected' : ''}"
-             data-index="${i}">
+             data-index="${i}" data-can-attack="${canAttack}">
           ${minion.taunt ? '<span class="minion-taunt"></span>' : ''}
           ${minion.charge ? '<span class="mechanic-icon charge-icon">C</span>' : ''}
           ${minion.rush ? '<span class="mechanic-icon rush-icon">R</span>' : ''}
@@ -252,6 +358,9 @@ class GameUI {
         </div>
       `;
     }).join('');
+
+    // 重新绑定拖拽事件
+    this.bindDragEvents();
   }
 
   renderPlayerHero() {
@@ -278,7 +387,7 @@ class GameUI {
       const canPlay = card.cost <= player.mana && this.isPlayerTurn;
       return `
         <div class="card ${canPlay ? 'can-play' : ''} ${this.selectedCardIndex === i ? 'selected' : ''}"
-             data-index="${i}">
+             data-index="${i}" draggable="${canPlay}">
           <span class="card-cost">${card.cost}</span>
           <span class="card-name">${card.name}</span>
           <span class="card-text">${card.text || ''}</span>
@@ -289,6 +398,9 @@ class GameUI {
         </div>
       `;
     }).join('');
+
+    // 重新绑定拖拽事件
+    this.bindDragEvents();
   }
 
   updateControls() {
