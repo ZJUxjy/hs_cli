@@ -118,5 +118,15 @@
     "description": "3/5，吸血",
     "effect": { "type": "summon", "attack": 3, "health": 5, "lifesteal": true },
     "classes": ["mage"]
+  },
+  {
+    "id": "mage_tome_of_wisdom",
+    "name": "智慧宝珠",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "rare",
+    "description": "发现一张法术牌",
+    "effect": { "type": "discover", "discoverType": "spell" },
+    "classes": ["mage"]
   }
 ]

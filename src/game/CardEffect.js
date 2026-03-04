@@ -40,7 +40,8 @@ class CardEffect {
     DIVINE_SHIELD: 'divine_shield',
     IMMUNE: 'immune',
     CHOOSE: 'choose',
-    LIFESTEAL: 'lifesteal'
+    LIFESTEAL: 'lifesteal',
+    DISCOVER: 'discover'
   };
 
   constructor(gameEngine) {
@@ -152,6 +153,8 @@ class CardEffect {
           return this.executeChoose(effect, context);
         case 'lifesteal':
           return this.executeLifesteal(effect, context);
+        case 'discover':
+          return this.executeDiscover(effect, context);
         default:
           Logger.warn(`未知效果类型: ${effect.type}`);
           return false;
@@ -857,6 +860,35 @@ class CardEffect {
       return false;
     }
     context.target.lifesteal = true;
+    return true;
+  }
+
+  /**
+   * 执行发现效果
+   */
+  executeDiscover(effect, context) {
+    const DiscoverPool = require('./DiscoverPool');
+    const discoverPool = new DiscoverPool(this.game);
+
+    const discoverType = effect.discoverType || 'class';
+    const options = discoverPool.getDiscoverOptions(
+      discoverType,
+      context.player.hero,
+      3
+    );
+
+    // 设置待抉择状态
+    this.game.state.pendingDiscover = {
+      player: context.player,
+      options: options,
+      card: context.card,
+      callback: (selectedCard) => {
+        // 将选中的卡牌加入手牌
+        context.player.hand.push(selectedCard);
+        Logger.info(`${context.player.name} 发现了 ${selectedCard.name}`);
+      }
+    };
+
     return true;
   }
 

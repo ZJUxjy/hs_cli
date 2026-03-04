@@ -885,6 +885,30 @@ class GameEngine {
     // 根据奥秘类型执行效果 - 简化处理
     // 实际应根据奥秘ID执行不同效果
   }
+
+  /**
+   * 选择发现的卡牌
+   * @param {number} optionIndex - 选项索引
+   * @returns {object} 游戏状态
+   */
+  selectDiscover(optionIndex) {
+    if (!this.state.pendingDiscover) {
+      Logger.warn('没有待发现的卡牌');
+      return null;
+    }
+
+    const discover = this.state.pendingDiscover;
+    if (optionIndex < 0 || optionIndex >= discover.options.length) {
+      Logger.warn('无效的发现选项索引');
+      return null;
+    }
+
+    const selectedCard = discover.options[optionIndex];
+    discover.callback(selectedCard);
+    this.state.pendingDiscover = null;
+
+    return this.getGameState();
+  }
 }
 
 module.exports = GameEngine;
