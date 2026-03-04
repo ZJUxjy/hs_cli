@@ -4,6 +4,7 @@
 
 const ConfigData = require('../data/ConfigData');
 const Logger = require('../utils/logger');
+const CardType = require('../utils/cardUtils');
 
 class TurnManager {
   constructor(gameEngine) {
@@ -150,7 +151,7 @@ class TurnManager {
     // 可以打出的卡牌
     player.hand.forEach((card, index) => {
       if (card.cost <= player.mana) {
-        if (card.type === 'minion') {
+        if (CardType.isMinion(card)) {
           if (player.field.length < 7) {
             actions.push({ type: 'play_card', card, index, targetType: 'none' });
           }
