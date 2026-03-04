@@ -64,7 +64,14 @@ class TurnManager {
 
     // 随从可以攻击
     player.field.forEach(minion => {
-      minion.canAttack = !minion.sleeping && !minion.frozen && !minion.hasAttacked;
+      // 风怒随从每回合可以攻击两次
+      if (minion.windfury) {
+        minion.attacksRemaining = 2;
+        minion.canAttack = !minion.sleeping && !minion.frozen && !minion.hasAttacked;
+      } else {
+        minion.attacksRemaining = 1;
+        minion.canAttack = !minion.sleeping && !minion.frozen && !minion.hasAttacked;
+      }
     });
 
     state.phase = 'main';
@@ -114,7 +121,14 @@ class TurnManager {
         m.frozen = false;
         Logger.info(`${m.name} 解冻了`);
       }
-      m.canAttack = !m.sleeping && !m.frozen && !m.hasAttacked;
+      // 风怒随从每回合可以攻击两次
+      if (m.windfury) {
+        m.attacksRemaining = 2;
+        m.canAttack = !m.sleeping && !m.frozen && !m.hasAttacked;
+      } else {
+        m.attacksRemaining = 1;
+        m.canAttack = !m.sleeping && !m.frozen && !m.hasAttacked;
+      }
     });
 
     // 清除上一位玩家的攻击状态

@@ -244,7 +244,16 @@ class BattleCalculator {
     }
 
     const damage = this.calculateDamage(targetPlayer, attacker.attack);
-    attacker.hasAttacked = true;
+
+    // 风怒处理：攻击后检查是否可以再次攻击
+    if (attacker.windfury && attacker.attacksRemaining > 0) {
+      attacker.attacksRemaining--;
+      attacker.canAttack = attacker.attacksRemaining > 0;
+      Logger.info(`${attacker.name} 风怒，可再次攻击（剩余 ${attacker.attacksRemaining} 次）`);
+    } else {
+      attacker.hasAttacked = true;
+      attacker.canAttack = false;
+    }
 
     // 处理吸血
     if (attacker.lifesteal || (attacker.card && attacker.card.effect && attacker.card.effect.lifesteal)) {
