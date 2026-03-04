@@ -3,6 +3,7 @@
  */
 
 const Logger = require('../utils/logger');
+const CardType = require('../utils/cardUtils');
 
 class RuleEngine {
   constructor(gameEngine) {
@@ -27,7 +28,7 @@ class RuleEngine {
     }
 
     // 检查随从数量
-    if (card.type === 'minion') {
+    if (CardType.isMinion(card)) {
       const maxField = 7;
       if (player.field.length >= maxField) {
         return { valid: false, reason: '战场已满' };
