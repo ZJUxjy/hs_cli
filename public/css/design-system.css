@@ -1,0 +1,169 @@
+/* design-system.css - 设计系统基础 */
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Quicksand:wght@400;500;600;700&family=MedievalSharp&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap');
+
+:root {
+  /* ===== 颜色系统 ===== */
+
+  /* 主色调 - 深邃神秘 */
+  --bg-void: #0a0a14;
+  --bg-deep: #12121f;
+  --bg-mystic: #1a1a2e;
+  --bg-ethereal: #252542;
+  --bg-card: #2a2a4a;
+  --bg-card-hover: #3a3a5a;
+
+  /* 强调色 - 奇幻金辉 */
+  --accent-gold: #f0c040;
+  --accent-gold-light: #f8d870;
+  --accent-gold-dark: #c9a030;
+  --accent-gold-glow: rgba(240, 192, 64, 0.4);
+
+  /* 职业色彩 */
+  --class-mage: #4a90d9;
+  --class-warrior: #d9a74a;
+  --class-hunter: #4ad94a;
+  --class-druid: #d94a4a;
+  --class-rogue: #d94ad9;
+  --class-priest: #ffffff;
+  --class-paladin: #f0c040;
+  --class-shaman: #4a4ad9;
+  --class-warlock: #6a2a8a;
+  --class-demonhunter: #ff6b6b;
+  --class-deathknight: #4ad9d9;
+  --class-neutral: #8a8a8a;
+
+  /* 游戏状态色 */
+  --mana-blue: #4a90d9;
+  --mana-glow: rgba(74, 144, 217, 0.5);
+  --health-red: #d94a4a;
+  --health-glow: rgba(217, 74, 74, 0.5);
+  --armor-gold: #f0c040;
+  --attack-amber: #d9a74a;
+  --durability-gray: #888888;
+
+  /* 稀有度色彩 */
+  --rarity-common: #8a8a8a;
+  --rarity-rare: #4a90d9;
+  --rarity-epic: #9b4ad9;
+  --rarity-legendary: #f0c040;
+  --rarity-legendary-glow: rgba(240, 192, 64, 0.6);
+
+  /* 边框与分隔线 */
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-standard: rgba(255, 255, 255, 0.2);
+  --border-highlight: rgba(240, 192, 64, 0.3);
+  --border-gold: rgba(240, 192, 64, 0.5);
+
+  /* 文字颜色 */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-gold: #f0c040;
+  --text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+
+  /* ===== 字体系统 ===== */
+  --font-title: 'Cinzel', 'Noto Serif SC', serif;
+  --font-body: 'Quicksand', 'Noto Sans SC', sans-serif;
+  --font-fantasy: 'MedievalSharp', cursive;
+
+  /* 字号 */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+
+  /* 字重 */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* ===== 间距系统 ===== */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* ===== 圆角系统 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ===== 阴影系统 ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+  --shadow-gold: 0 0 20px rgba(240, 192, 64, 0.3);
+  --shadow-glow: 0 0 30px rgba(240, 192, 64, 0.2);
+
+  /* ===== 动画系统 ===== */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+
+  /* ===== 卡牌尺寸 ===== */
+  --card-width: 120px;
+  --card-height: 168px;
+  --card-width-sm: 80px;
+  --card-height-sm: 112px;
+  --card-width-lg: 160px;
+  --card-height-lg: 224px;
+
+  /* ===== 英雄/头像尺寸 ===== */
+  --hero-size: 80px;
+  --hero-size-lg: 120px;
+  --hero-size-sm: 60px;
+
+  /* ===== Z-Index 层级 ===== */
+  --z-base: 1;
+  --z-card: 10;
+  --z-overlay: 50;
+  --z-modal: 100;
+  --z-tooltip: 200;
+  --z-toast: 300;
+}
+
+/* ===== 职业颜色工具类 ===== */
+.class-mage { --class-color: var(--class-mage); }
+.class-warrior { --class-color: var(--class-warrior); }
+.class-hunter { --class-color: var(--class-hunter); }
+.class-druid { --class-color: var(--class-druid); }
+.class-rogue { --class-color: var(--class-rogue); }
+.class-priest { --class-color: var(--class-priest); }
+.class-paladin { --class-color: var(--class-paladin); }
+.class-shaman { --class-color: var(--class-shaman); }
+.class-warlock { --class-color: var(--class-warlock); }
+.class-demonhunter { --class-color: var(--class-demonhunter); }
+.class-deathknight { --class-color: var(--class-deathknight); }
+.class-neutral { --class-color: var(--class-neutral); }
+
+/* ===== 稀有度颜色工具类 ===== */
+.rarity-common { --rarity-color: var(--rarity-common); }
+.rarity-rare { --rarity-color: var(--rarity-rare); }
+.rarity-epic { --rarity-color: var(--rarity-epic); }
+.rarity-legendary { --rarity-color: var(--rarity-legendary); }
