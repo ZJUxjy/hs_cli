@@ -100,6 +100,32 @@ router.get('/choice', (req, res) => {
   });
 });
 
+// 发现机制 - 选择发现的卡牌
+router.post('/discover', (req, res) => {
+  const { optionIndex } = req.body;
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+  const gameState = currentGame.selectDiscover(optionIndex);
+  res.json(gameState);
+});
+
+// 获取当前发现状态
+router.get('/discover', (req, res) => {
+  if (!currentGame || !currentGame.state.pendingDiscover) {
+    return res.json({ pending: false });
+  }
+  res.json({
+    pending: true,
+    options: currentGame.state.pendingDiscover.options.map(c => ({
+      id: c.id,
+      name: c.name,
+      cost: c.cost,
+      description: c.description
+    }))
+  });
+});
+
 // 保存游戏
 router.post('/save', (req, res) => {
   const { profileId = 'default' } = req.body;

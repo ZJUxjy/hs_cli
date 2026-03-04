@@ -218,5 +218,15 @@
     "description": "6/5，亡语：随机召唤一个野兽",
     "effect": { "type": "summon", "attack": 6, "health": 5 },
     "classes": ["hunter"]
+  },
+  {
+    "id": "hunter_honorable_hunter",
+    "name": "荣誉猎手",
+    "type": "minion",
+    "cost": 5,
+    "rarity": "rare",
+    "description": "4/4，荣誉击杀：抽一张牌",
+    "effect": { "type": "summon", "attack": 4, "health": 4, "honorableKill": { "type": "draw_card", "value": 1 } },
+    "classes": ["hunter"]
   }
 ]

@@ -110,6 +110,36 @@
     "classes": ["mage"]
   },
   {
+    "id": "mage_vampire",
+    "name": "吸血法师",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "rare",
+    "description": "3/5，吸血",
+    "effect": { "type": "summon", "attack": 3, "health": 5, "lifesteal": true },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_tome_of_wisdom",
+    "name": "智慧宝珠",
+    "type": "spell",
+    "cost": 3,
+    "rarity": "rare",
+    "description": "发现一张法术牌",
+    "effect": { "type": "discover", "discoverType": "spell" },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_silvermoon_guardian",
+    "name": "银月守卫",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "common",
+    "description": "3/3，激励：获得圣盾",
+    "effect": { "type": "summon", "attack": 3, "health": 3, "inspire": { "action": "buff", "divine_shield": true } },
+    "classes": ["mage"]
+  },
+  {
     "id": "mage_doom_sayer",
     "name": "末日预言者",
     "type": "minion",
@@ -117,6 +147,26 @@
     "rarity": "epic",
     "description": "休眠（2回合）。唤醒：对所有敌人造成3点伤害",
     "effect": { "type": "summon", "attack": 5, "health": 5, "dormant": { "turns": 2, "effect": { "type": "aoe_damage", "value": 3 } } },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_echo_bolt",
+    "name": "回响冰霜",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "rare",
+    "description": "造成2点伤害。回响：在你的回合结束时获得一张此卡牌的复制",
+    "effect": { "type": "damage", "value": 2, "echo": true },
+    "classes": ["mage"]
+  },
+  {
+    "id": "mage_spellburst_mage",
+    "name": "星界法师",
+    "type": "minion",
+    "cost": 5,
+    "rarity": "epic",
+    "description": "4/4，法术爆发：使所有友方随从获得+2/+2",
+    "effect": { "type": "summon", "attack": 4, "health": 4, "spellburst": { "type": "buff", "attack": 2, "health": 2 } },
     "classes": ["mage"]
   }
 ]

@@ -20,5 +20,6 @@
   { "id": "druid_mark", "name": "爪击", "type": "spell", "cost": 1, "rarity": "common", "description": "造成2点伤害，连击：改为4点", "effect": { "type": "damage", "value": 2 }, "classes": ["druid"] },
   { "id": "druid_bark", "name": "树皮术", "type": "spell", "cost": 3, "rarity": "common", "description": "抉择：获得4点护甲，或对一个随从造成3点伤害", "effect": { "type": "choose" }, "classes": ["druid"] },
   { "id": "druid_ancient_war2", "name": "上古之神", "type": "minion", "cost": 8, "rarity": "legendary", "description": "8/8，嘲讽，战吼：对所有敌人造成3点伤害", "effect": { "type": "summon", "attack": 8, "health": 8, "taunt": true, "battlecry": { "type": "aoe_damage", "value": 3 } }, "classes": ["druid"] },
-  { "id": "druid_twig", "name": "世界之树的枝条", "type": "weapon", "cost": 7, "rarity": "legendary", "description": "5/8，亡语：将该武器移回你的手牌", "effect": { "type": "weapon", "attack": 5, "durability": 8, "deathrattle": { "type": "bounce" } }, "classes": ["druid"] }
+  { "id": "druid_twig", "name": "世界之树的枝条", "type": "weapon", "cost": 7, "rarity": "legendary", "description": "5/8，亡语：将该武器移回你的手牌", "effect": { "type": "weapon", "attack": 5, "durability": 8, "deathrattle": { "type": "bounce" } }, "classes": ["druid"] },
+  { "id": "druid_reborn_treant", "name": "复生树人", "type": "minion", "cost": 2, "rarity": "common", "description": "2/2，复生", "effect": { "type": "summon", "attack": 2, "health": 2, "reborn": true }, "classes": ["druid"] }
 ]

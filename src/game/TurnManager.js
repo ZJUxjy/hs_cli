@@ -41,6 +41,14 @@ class TurnManager {
     // 抽一张牌
     this.game.drawCard(player, 1);
 
+    // 处理回响卡牌 - 回合开始时复制回响卡牌到手中
+    this.game.processEchoCards(player);
+
+    // 重置法术爆发状态
+    player.field.forEach(minion => {
+      minion.spellburstUsed = false;
+    });
+
     // 唤醒所有随从（解除冻结）
     player.field.forEach(minion => {
       minion.sleeping = false;

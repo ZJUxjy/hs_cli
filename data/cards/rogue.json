@@ -20,5 +20,6 @@
   { "id": "rogue_poisoned", "name": "淬毒", "type": "spell", "cost": 3, "rarity": "common", "description": "使你的武器获得剧毒", "effect": { "type": "weapon_buff", "poisonous": true }, "classes": ["rogue"] },
   { "id": "rogue_shirley", "name": "空灵", "type": "minion", "cost": 2, "rarity": "rare", "description": "2/2，潜行，连击：获得+2/+2", "effect": { "type": "summon", "attack": 2, "health": 2, "stealth": true }, "classes": ["rogue"] },
   { "id": "rogue_ambush", "name": "伏击", "type": "spell", "cost": 2, "rarity": "rare", "description": "奥秘：当敌人打出随从时，召唤一个4/4的刺客", "effect": { "type": "secret", "trigger": "enemy_minion_played" }, "classes": ["rogue"] },
-  { "id": "rogue_blade", "name": "暗影之刃", "type": "weapon", "cost": 5, "rarity": "epic", "description": "5/3，连击：造成两次伤害", "effect": { "type": "weapon", "attack": 5, "durability": 3 }, "classes": ["rogue"] }
+  { "id": "rogue_blade", "name": "暗影之刃", "type": "weapon", "cost": 5, "rarity": "epic", "description": "5/3，连击：造成两次伤害", "effect": { "type": "weapon", "attack": 5, "durability": 3 }, "classes": ["rogue"] },
+  { "id": "rogue_twin_assassin", "name": "双子刺客", "type": "minion", "cost": 4, "rarity": "epic", "description": "3/3，双生：战吼和亡语触发两次", "effect": { "type": "summon", "attack": 3, "health": 3, "twin": true, "battlecry": { "type": "damage", "value": 2 } }, "classes": ["rogue"] }
 ]

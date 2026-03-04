@@ -47,7 +47,14 @@ class CardEffect {
     QUEST: 'quest',
     REWARD: 'reward',
     // 休眠机制
-    DORMANT: 'dormant'
+    DORMANT: 'dormant',
+    // 新增机制
+    ECHO: 'echo',
+    REBORN: 'reborn',
+    CORRUPT: 'corrupt',
+    SPELLBURST: 'spellburst',
+    TWIN: 'twin',
+    HONORABLE_KILL: 'honorable_kill'
   };
 
   constructor(gameEngine) {
@@ -157,6 +164,12 @@ class CardEffect {
           return this.executeMana(effect, context);
         case 'choose':
           return this.executeChoose(effect, context);
+        case 'lifesteal':
+          return this.executeLifesteal(effect, context);
+        case 'discover':
+          return this.executeDiscover(effect, context);
+        case 'inspire':
+          return this.executeInspire(effect, context);
         default:
           Logger.warn(`未知效果类型: ${effect.type}`);
           return false;
@@ -852,15 +865,46 @@ class CardEffect {
   }
 
   /**
-   * 处理吸血
+   * 执行吸血效果
    */
-  handleLifesteal(attacker, target, context) {
-    const player = context.player;
-    if (player && attacker) {
-      const healAmount = attacker.attack || 0;
-      player.health = Math.min(player.health + healAmount, player.maxHealth);
-      Logger.info(`${player.name} 吸取 ${healAmount} 点生命`);
+  executeLifesteal(effect, context) {
+    // 吸血效果需要标记到攻击/伤害上
+    // 实际处理在 BattleCalculator 中
+    if (!context.target) {
+      Logger.warn('吸血效果执行失败: 目标不存在');
+      return false;
     }
+    context.target.lifesteal = true;
+    return true;
+  }
+
+  /**
+   * 执行发现效果
+   */
+  executeDiscover(effect, context) {
+    const DiscoverPool = require('./DiscoverPool');
+    const discoverPool = new DiscoverPool(this.game);
+
+    const discoverType = effect.discoverType || 'class';
+    const options = discoverPool.getDiscoverOptions(
+      discoverType,
+      context.player.hero,
+      3
+    );
+
+    // 设置待抉择状态
+    this.game.state.pendingDiscover = {
+      player: context.player,
+      options: options,
+      card: context.card,
+      callback: (selectedCard) => {
+        // 将选中的卡牌加入手牌
+        context.player.hand.push(selectedCard);
+        Logger.info(`${context.player.name} 发现了 ${selectedCard.name}`);
+      }
+    };
+
+    return true;
   }
 
   /**
@@ -882,6 +926,50 @@ class CardEffect {
       minion.taunt = true;
       Logger.info(`${minion.name} 获得嘲讽`);
     }
+  }
+
+  /**
+   * 执行激励效果
+   */
+  executeInspire(effect, context) {
+    switch (effect.action) {
+      case 'damage':
+        const opponent = context.player === this.game.state.player
+          ? this.game.state.ai
+          : this.game.state.player;
+        opponent.health -= effect.value;
+        Logger.info(`激励造成 ${effect.value} 点伤害`);
+        break;
+      case 'heal':
+        context.player.health = Math.min(
+          context.player.health + effect.value,
+          context.player.maxHealth
+        );
+        break;
+      case 'summon':
+        if (effect.card_id) {
+          const CardData = require('../data/CardData');
+          const card = CardData.getCard(effect.card_id);
+          if (card) {
+            this.game.summonMinion(context.player, card);
+          }
+        }
+        break;
+      case 'armor':
+        context.player.armor += effect.value;
+        break;
+      case 'draw_card':
+        this.game.drawCard(context.player, effect.value || 1);
+        break;
+      case 'buff':
+        context.player.field.forEach(m => {
+          if (effect.attack) m.attack += effect.attack;
+          if (effect.health) m.health += effect.health;
+          if (effect.divine_shield) m.divine_shield = true;
+        });
+        break;
+    }
+    return true;
   }
 }
 

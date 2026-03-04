@@ -98,5 +98,25 @@
     "description": "6/6，免疫",
     "effect": { "type": "summon", "attack": 6, "health": 6, "immune": true },
     "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_reborn_warrior",
+    "name": "复生战士",
+    "type": "minion",
+    "cost": 3,
+    "rarity": "rare",
+    "description": "3/3，复生",
+    "effect": { "type": "summon", "attack": 3, "health": 3, "reborn": true },
+    "classes": ["warrior"]
+  },
+  {
+    "id": "warrior_honorable_killer",
+    "name": "荣誉守卫",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "rare",
+    "description": "3/4，荣誉击杀：使所有友方随从获得+1/+1",
+    "effect": { "type": "summon", "attack": 3, "health": 4, "honorableKill": { "type": "buff", "attack": 1, "health": 1 } },
+    "classes": ["warrior"]
   }
 ]

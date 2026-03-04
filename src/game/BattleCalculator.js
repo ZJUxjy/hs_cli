@@ -160,15 +160,45 @@ class BattleCalculator {
       this.calculateDamage(minion2, minion1.attack);
     }
 
-    // 检查死亡
+    // 检查死亡（需要在吸血和荣誉击杀之前）
     const minion1Dead = minion1.health <= 0;
     const minion2Dead = minion2.health <= 0;
+
+    // 荣誉击杀检测 - 在 minion2 死亡时触发
+    if (minion2Dead && minion1.honorableKill && minion1.owner) {
+      this.triggerHonorableKill(minion1, minion1.owner);
+    }
+
+    // 荣誉击杀检测 - 在 minion1 死亡时触发（被反击杀死）
+    if (minion1Dead && minion2.honorableKill && minion2.owner) {
+      this.triggerHonorableKill(minion2, minion2.owner);
+    }
 
     if (minion1Dead) {
       Logger.info(`${minion1.name} 阵亡`);
     }
     if (minion2Dead) {
       Logger.info(`${minion2.name} 阵亡`);
+    }
+
+    // 处理吸血 - 攻击者吸取生命
+    // 如果目标死亡，使用攻击力；否则使用实际伤害量（不能超过攻击力）
+    if (minion1.lifesteal || (minion1.card && minion1.card.effect && minion1.card.effect.lifesteal)) {
+      let healAmount;
+      if (minion2Dead) {
+        // 目标死亡，吸取等同于攻击力的生命
+        healAmount = minion1.attack;
+      } else {
+        // 目标未死亡，吸取实际造成的伤害（不超过攻击力）
+        const actualDamage = minion2.maxHealth - minion2.health;
+        healAmount = Math.min(actualDamage, minion1.attack);
+      }
+      if (minion1.owner) {
+        minion1.owner.health = Math.min(minion1.owner.health + healAmount, minion1.owner.maxHealth);
+        Logger.info(`${minion1.owner.name} 吸血恢复 ${healAmount} 点生命值`);
+      } else {
+        Logger.warn('吸血处理失败: 攻击者 owner 不存在');
+      }
     }
 
     return {
@@ -215,6 +245,19 @@ class BattleCalculator {
 
     const damage = this.calculateDamage(targetPlayer, attacker.attack);
     attacker.hasAttacked = true;
+
+    // 处理吸血
+    if (attacker.lifesteal || (attacker.card && attacker.card.effect && attacker.card.effect.lifesteal)) {
+      const healAmount = Math.min(damage, targetPlayer.health);
+      // 获取攻击者的所属玩家 - 通过参数传递
+      if (attacker.owner) {
+        attacker.owner.health = Math.min(attacker.owner.health + healAmount, attacker.owner.maxHealth);
+        Logger.info(`${attacker.owner.name} 吸血恢复 ${healAmount} 点生命值`);
+      } else {
+        Logger.warn('吸血处理失败: 攻击者 owner 不存在');
+      }
+    }
+
     return damage;
   }
 
@@ -262,6 +305,73 @@ class BattleCalculator {
       minion.frozen = true;
       Logger.info(`${minion.name} 被冻结`);
     });
+  }
+
+  /**
+   * 检查并触发荣誉击杀
+   * @param {object} attacker - 攻击随从
+   * @param {object} target - 目标随从
+   * @param {object} owner - 攻击者所属玩家
+   */
+  checkHonorableKill(attacker, target, owner) {
+    if (!attacker.honorableKill) return;
+
+    // 只有击杀敌方随从时才触发
+    if (target.health > 0) return;
+
+    const effect = attacker.honorableKill;
+
+    if (effect.type === 'buff') {
+      // 增强所有友方随从
+      owner.field.forEach(m => {
+        if (effect.attack) m.attack += effect.attack;
+        if (effect.health) {
+          m.health += effect.health;
+          m.maxHealth = Math.max(m.maxHealth, m.health);
+        }
+      });
+      Logger.info(`${attacker.name} 荣誉击杀，友方随从获得 +${effect.attack || 0}/+${effect.health || 0}`);
+    } else if (effect.type === 'draw_card') {
+      // 抽牌效果
+      const player = owner;
+      for (let i = 0; i < (effect.value || 1); i++) {
+        if (player.deck.length > 0 && player.hand.length < 10) {
+          player.hand.push(player.deck.pop());
+        }
+      }
+      Logger.info(`${attacker.name} 荣誉击杀，${owner.name} 抽 ${effect.value || 1} 张牌`);
+    }
+  }
+
+  /**
+   * 触发荣誉击杀效果（简化版本，用于战斗后）
+   * @param {object} attacker - 攻击随从
+   * @param {object} owner - 攻击者所属玩家
+   */
+  triggerHonorableKill(attacker, owner) {
+    if (!attacker.honorableKill || !owner) return;
+
+    const effect = attacker.honorableKill;
+
+    if (effect.type === 'buff') {
+      // 增强所有友方随从
+      owner.field.forEach(m => {
+        if (effect.attack) m.attack += effect.attack;
+        if (effect.health) {
+          m.health += effect.health;
+          m.maxHealth = Math.max(m.maxHealth, m.health);
+        }
+      });
+      Logger.info(`${attacker.name} 荣誉击杀，友方随从获得 +${effect.attack || 0}/+${effect.health || 0}`);
+    } else if (effect.type === 'draw_card') {
+      // 抽牌效果
+      for (let i = 0; i < (effect.value || 1); i++) {
+        if (owner.deck.length > 0 && owner.hand.length < 10) {
+          owner.hand.push(owner.deck.pop());
+        }
+      }
+      Logger.info(`${attacker.name} 荣誉击杀，${owner.name} 抽 ${effect.value || 1} 张牌`);
+    }
   }
 }
 
