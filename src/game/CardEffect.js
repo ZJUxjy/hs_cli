@@ -851,11 +851,17 @@ class CardEffect {
    */
   handleLifesteal(attacker, target, context) {
     const player = context.player;
-    if (player && attacker) {
-      const healAmount = attacker.attack || 0;
-      player.health = Math.min(player.health + healAmount, player.maxHealth);
-      Logger.info(`${player.name} 吸取 ${healAmount} 点生命`);
+    if (!player) {
+      Logger.warn('吸血处理失败: 玩家不存在');
+      return;
     }
+    if (!attacker) {
+      Logger.warn('吸血处理失败: 攻击者不存在');
+      return;
+    }
+    const healAmount = attacker.attack || 0;
+    player.health = Math.min(player.health + healAmount, player.maxHealth);
+    Logger.info(`${player.name} 吸取 ${healAmount} 点生命`);
   }
 
   /**
@@ -864,9 +870,11 @@ class CardEffect {
   executeLifesteal(effect, context) {
     // 吸血效果需要标记到攻击/伤害上
     // 实际处理在 BattleCalculator 中
-    if (context.target) {
-      context.target.lifesteal = true;
+    if (!context.target) {
+      Logger.warn('吸血效果执行失败: 目标不存在');
+      return false;
     }
+    context.target.lifesteal = true;
     return true;
   }
 

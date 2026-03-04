@@ -162,10 +162,12 @@ class BattleCalculator {
 
     // 处理吸血 - 攻击者吸取生命
     if (minion1.lifesteal || (minion1.card && minion1.card.effect && minion1.card.effect.lifesteal)) {
-      const healAmount = Math.min(minion1.attack, minion2.health > 0 ? minion2.attack : minion1.attack);
+      const healAmount = Math.min(minion1.attack, minion2.health);
       if (minion1.owner) {
         minion1.owner.health = Math.min(minion1.owner.health + healAmount, minion1.owner.maxHealth);
         Logger.info(`${minion1.owner.name} 吸血恢复 ${healAmount} 点生命值`);
+      } else {
+        Logger.warn('吸血处理失败: 攻击者 owner 不存在');
       }
     }
 
@@ -232,6 +234,8 @@ class BattleCalculator {
       if (attacker.owner) {
         attacker.owner.health = Math.min(attacker.owner.health + healAmount, attacker.owner.maxHealth);
         Logger.info(`${attacker.owner.name} 吸血恢复 ${healAmount} 点生命值`);
+      } else {
+        Logger.warn('吸血处理失败: 攻击者 owner 不存在');
       }
     }
 
