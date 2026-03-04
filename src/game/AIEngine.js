@@ -5,6 +5,7 @@
 const Logger = require('../utils/logger');
 const CardEffect = require('./CardEffect');
 const BattleCalculator = require('./BattleCalculator');
+const CardType = require('../utils/cardUtils');
 
 class AIEngine {
   constructor(gameEngine) {
@@ -82,7 +83,7 @@ class AIEngine {
 
     // 2. 打出随从
     const playableMinions = ai.hand
-      .filter(c => c.type === 'minion' && c.cost <= ai.mana && ai.field.length < 7)
+      .filter(c => CardType.isMinion(c) && c.cost <= ai.mana && ai.field.length < 7)
       .sort((a, b) => b.cost - a.cost);
 
     playableMinions.forEach(card => {
@@ -92,14 +93,14 @@ class AIEngine {
     });
 
     // 3. 打出英雄卡 (高价值，优先打出)
-    const heroCards = ai.hand.filter(c => c.type === 'HERO' && c.cost <= ai.mana);
+    const heroCards = ai.hand.filter(c => CardType.isHero(c) && c.cost <= ai.mana);
     heroCards.forEach(card => {
       actions.push({ type: 'play_card', card, targetType: 'none', priority: 10 });
     });
 
     // 4. 打出法术
     const playableSpells = ai.hand
-      .filter(c => c.type === 'spell' && c.cost <= ai.mana);
+      .filter(c => CardType.isSpell(c) && c.cost <= ai.mana);
 
     playableSpells.forEach(card => {
       const targetType = this.getSpellTargetType(card);
@@ -174,18 +175,18 @@ class AIEngine {
     }
 
     // 简单策略：优先打英雄卡，然后随从，然后法术，最后攻击
-    const heroPlays = actionable.filter(a => a.type === 'play_card' && a.card.type === 'HERO');
+    const heroPlays = actionable.filter(a => a.type === 'play_card' && CardType.isHero(a.card));
     if (heroPlays.length > 0) {
       return heroPlays[0];
     }
 
-    const minionPlays = actionable.filter(a => a.type === 'play_card' && a.card.type === 'minion');
+    const minionPlays = actionable.filter(a => a.type === 'play_card' && CardType.isMinion(a.card));
     if (minionPlays.length > 0) {
       // 选择费用最高的
       return minionPlays.sort((a, b) => b.card.cost - a.card.cost)[0];
     }
 
-    const spellPlays = actionable.filter(a => a.type === 'play_card' && a.card.type === 'spell');
+    const spellPlays = actionable.filter(a => a.type === 'play_card' && CardType.isSpell(a.card));
     if (spellPlays.length > 0) {
       return spellPlays[0];
     }
@@ -369,10 +370,10 @@ class AIEngine {
     Logger.info(`>>> 敌方打出了 ${card.name}`);
 
     // 执行效果
-    if (card.type === 'minion') {
+    if (CardType.isMinion(card)) {
       // 召唤随从
       this.game.summonMinion(ai, card);
-    } else if (card.type === 'HERO') {
+    } else if (CardType.isHero(card)) {
       // 英雄卡变身
       this.game.transformIntoHero(ai, card);
       Logger.info(`>>> 敌方变身为 ${card.name}！`);
