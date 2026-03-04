@@ -1022,6 +1022,59 @@ class GameEngine {
   }
 
   /**
+   * 随从攻击随从
+   * @param {object} player - 攻击者所属玩家
+   * @param {object} attacker - 攻击随从
+   * @param {object} target - 目标随从
+   */
+  attackMinion(player, attacker, target) {
+    const BattleCalculator = require('./BattleCalculator');
+    const battleCalc = new BattleCalculator();
+
+    if (!attacker || !target) {
+      Logger.warn('攻击目标无效');
+      return;
+    }
+
+    // 使用 BattleCalculator 进行战斗
+    const result = battleCalc.resolveCombat(attacker, target);
+
+    // 标记攻击者已攻击
+    attacker.hasAttacked = true;
+
+    // 处理亡语
+    this.removeDeadMinions();
+
+    // 检查游戏结束
+    this.checkGameEnd();
+
+    return result;
+  }
+
+  /**
+   * 随从攻击英雄
+   * @param {object} player - 攻击者所属玩家
+   * @param {object} attacker - 攻击随从
+   */
+  attackHero(player, attacker) {
+    const opponent = player.id === 'player' ? this.state.ai : this.state.player;
+
+    const BattleCalculator = require('./BattleCalculator');
+    const battleCalc = new BattleCalculator();
+
+    // 使用 BattleCalculator 攻击英雄
+    battleCalc.attackHero(attacker, opponent);
+
+    // 标记攻击者已攻击
+    attacker.hasAttacked = true;
+
+    // 检查游戏结束
+    this.checkGameEnd();
+
+    return opponent.health;
+  }
+
+  /**
    * 检查奥秘触发
    * @param {string} event - 事件类型
    * @param {object} data - 事件数据
