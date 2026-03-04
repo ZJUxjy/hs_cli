@@ -18,7 +18,10 @@ class GameScreen {
     this.boxes = {};
     this.state = {
       mode: 'select',
-      selectedHandIndex: -1
+      selectedHandIndex: -1,
+      selectedFieldIndex: -1,
+      attackMode: false,
+      attackTarget: null
     };
   }
 
@@ -166,6 +169,31 @@ class GameScreen {
     this.screen.key('s', () => {
       if (self.screen.currentScreen === 'game') self.saveGame();
     });
+
+    // A - 进入攻击模式
+    this.screen.key('a', () => {
+      if (self.screen.currentScreen === 'game') self.enterAttackMode();
+    });
+
+    // 数字键选择战场随从
+    for (let i = 1; i <= 7; i++) {
+      this.screen.key(String(i), () => {
+        if (self.screen.currentScreen === 'game') {
+          if (self.state.attackMode) {
+            self.selectAttackTarget(i - 1);
+          } else {
+            self.selectFieldMinion(i - 1);
+          }
+        }
+      });
+    }
+
+    // 攻击确认
+    this.screen.key('enter', () => {
+      if (self.screen.currentScreen === 'game' && self.state.attackMode) {
+        self.confirmAttack();
+      }
+    });
   }
 
   selectHandCard(index) {
@@ -211,6 +239,70 @@ class GameScreen {
         this.update();
       }, 500);
     }
+  }
+
+  enterAttackMode() {
+    const state = this.game.getGameState();
+    const player = state.player;
+
+    // 检查是否有可攻击的随从
+    if (player.field.length === 0) {
+      this.game.setMessage('没有随从可以攻击');
+      return;
+    }
+
+    this.state.attackMode = true;
+    this.state.selectedFieldIndex = 0;
+    this.game.setMessage('选择要攻击的随从 (1-7)');
+    this.update();
+  }
+
+  selectFieldMinion(index) {
+    const state = this.game.getGameState();
+    if (index >= 0 && index < state.player.field.length) {
+      this.state.selectedFieldIndex = index;
+      this.game.setMessage(`选择: ${state.player.field[index].name}`);
+      this.update();
+    }
+  }
+
+  selectAttackTarget(index) {
+    const state = this.game.getGameState();
+    const opponent = state.ai;
+
+    if (index === 7) {
+      this.state.attackTarget = 'hero';
+      this.game.setMessage('按Enter确认攻击敌方英雄');
+    } else if (index >= 0 && index < opponent.field.length) {
+      this.state.attackTarget = opponent.field[index];
+      this.game.setMessage('按Enter确认攻击 ' + opponent.field[index].name);
+    }
+    this.update();
+  }
+
+  confirmAttack() {
+    const state = this.game.getGameState();
+    const attacker = state.player.field[this.state.selectedFieldIndex];
+
+    if (!attacker) {
+      this.game.setMessage('请先选择随从');
+      this.state.attackMode = false;
+      this.update();
+      return;
+    }
+
+    if (this.state.attackTarget === 'hero') {
+      this.game.attackHero(state.player, attacker);
+      this.game.setMessage(`${attacker.name} 攻击了敌方英雄`);
+    } else if (this.state.attackTarget) {
+      this.game.attackMinion(state.player, attacker, this.state.attackTarget);
+      this.game.setMessage(`${attacker.name} 攻击了 ${this.state.attackTarget.name}`);
+    }
+
+    this.state.attackMode = false;
+    this.state.attackTarget = null;
+    this.state.selectedFieldIndex = -1;
+    this.update();
   }
 
   saveGame() {
@@ -309,6 +401,9 @@ class GameScreen {
     let statusText = `回合: ${state.turn} | ${state.message}`;
     if (state.currentPlayer === 'ai') {
       statusText += ' [敌方回合]';
+    }
+    if (this.state.attackMode) {
+      statusText += ' [攻击模式]';
     }
     this.boxes.status.setContent(statusText);
 
