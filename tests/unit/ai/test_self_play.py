@@ -58,3 +58,13 @@ def test_get_stats():
 
     assert stats['episodes'] == 2
     assert stats['avg_turns'] == 15.0
+
+
+def test_select_decks_empty_pool():
+    """Test that empty deck_pool raises clear error."""
+    from hearthstone.ai.self_play import SelfPlayTrainer
+
+    trainer = SelfPlayTrainer(agent_class=None, deck_pool=[])
+
+    with pytest.raises(ValueError, match="deck_pool is empty"):
+        trainer.select_decks()

@@ -21,16 +21,22 @@ class SelfPlayTrainer:
         """Select random decks for both players.
 
         Returns:
-            Tuple of (deck1, deck2) selected from the deck pool
+            Tuple of (deck1, deck2) for player 1 and player 2.
+
+        Raises:
+            ValueError: If deck_pool is empty.
         """
+        if len(self.deck_pool) == 0:
+            raise ValueError("deck_pool is empty, cannot select decks")
+
         if len(self.deck_pool) >= 2:
-            # Select two different decks for self-play
             deck1, deck2 = random.sample(self.deck_pool, 2)
         else:
             # If only one deck, use it for both players
-            deck1 = random.choice(self.deck_pool)
-            deck2 = random.choice(self.deck_pool)
-        return (deck1, deck2)
+            deck1 = self.deck_pool[0]
+            deck2 = self.deck_pool[0]
+
+        return deck1, deck2
 
     def record_episode(self, result: Dict[str, Any]) -> None:
         """Record episode result for analysis.
