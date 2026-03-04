@@ -49,6 +49,10 @@ class TurnManager {
       }
     });
 
+    // 检查休眠随从唤醒（当前玩家和对手）
+    this.game.checkDormantWakeup(this.game.state.player);
+    this.game.checkDormantWakeup(this.game.state.ai);
+
     // 随从可以攻击
     player.field.forEach(minion => {
       minion.canAttack = !minion.sleeping && !minion.frozen && !minion.hasAttacked;

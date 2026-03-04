@@ -108,5 +108,15 @@
     "description": "对所有敌方随从造成4点伤害",
     "effect": { "type": "aoe_damage", "value": 4 },
     "classes": ["mage"]
+  },
+  {
+    "id": "mage_doom_sayer",
+    "name": "末日预言者",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "epic",
+    "description": "休眠（2回合）。唤醒：对所有敌人造成3点伤害",
+    "effect": { "type": "summon", "attack": 5, "health": 5, "dormant": { "turns": 2, "effect": { "type": "aoe_damage", "value": 3 } } },
+    "classes": ["mage"]
   }
 ]

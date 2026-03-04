@@ -39,7 +39,15 @@ class CardEffect {
     COMBO: 'combo',
     DIVINE_SHIELD: 'divine_shield',
     IMMUNE: 'immune',
-    CHOOSE: 'choose'
+    CHOOSE: 'choose',
+    LIFESTEAL: 'lifesteal',
+    DISCOVER: 'discover',
+    INSPIRE: 'inspire',
+    // 任务机制
+    QUEST: 'quest',
+    REWARD: 'reward',
+    // 休眠机制
+    DORMANT: 'dormant'
   };
 
   constructor(gameEngine) {

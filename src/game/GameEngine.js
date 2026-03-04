@@ -517,6 +517,18 @@ class GameEngine {
     minion.battlecry = card.effect?.battlecry || null;
     minion.deathrattle = card.effect?.deathrattle || null;
 
+    // 休眠处理
+    if (card.effect?.dormant) {
+      minion.dormant = {
+        turns: card.effect.dormant.turns || 2,
+        awakened: false,
+        wakeEffect: card.effect.dormant.effect || null
+      };
+      minion.sleeping = true;
+      minion.canAttack = false;
+      Logger.info(`${minion.name} 进入休眠状态，将在未来 ${minion.dormant.turns} 回合后唤醒`);
+    }
+
     player.field.push(minion);
 
     // 触发战吼
@@ -884,6 +896,74 @@ class GameEngine {
 
     // 根据奥秘类型执行效果 - 简化处理
     // 实际应根据奥秘ID执行不同效果
+  }
+
+  /**
+   * 检查休眠随从唤醒
+   * @param {object} player - 玩家
+   */
+  checkDormantWakeup(player) {
+    if (!player.field) return;
+
+    player.field.forEach(minion => {
+      if (minion.dormant && !minion.dormant.awakened) {
+        minion.dormant.turns--;
+
+        if (minion.dormant.turns <= 0) {
+          minion.dormant.awakened = true;
+          minion.sleeping = false;
+          minion.canAttack = true;
+          Logger.info(`${minion.name} 醒来了！`);
+
+          if (minion.dormant.wakeEffect) {
+            this.executeWakeEffect(minion, minion.dormant.wakeEffect);
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * 执行唤醒效果
+   * @param {object} minion - 随从
+   * @param {object} wakeEffect - 唤醒效果
+   */
+  executeWakeEffect(minion, wakeEffect) {
+    const player = this.getCurrentPlayer();
+    const opponent = this.getOpponent();
+
+    switch (wakeEffect.type) {
+      case 'aoe_damage':
+        // 对所有敌人造成伤害
+        const battleCalc = require('./BattleCalculator');
+        battleCalc.aoeDamage(opponent.field, wakeEffect.value);
+        Logger.info(`${minion.name} 唤醒时对所有敌人造成了 ${wakeEffect.value} 点伤害`);
+        break;
+      case 'damage':
+        // 对随机目标造成伤害
+        const target = opponent.field.length > 0
+          ? opponent.field[Math.floor(Math.random() * opponent.field.length)]
+          : opponent;
+        if (target.health !== undefined) {
+          const bc = require('./BattleCalculator');
+          bc.calculateDamage(target, wakeEffect.value);
+        } else {
+          target.health -= wakeEffect.value;
+        }
+        Logger.info(`${minion.name} 唤醒时造成了 ${wakeEffect.value} 点伤害`);
+        break;
+      case 'buff':
+        // 增强自身
+        if (wakeEffect.attack) minion.attack += wakeEffect.attack;
+        if (wakeEffect.health) {
+          minion.health += wakeEffect.health;
+          minion.maxHealth = Math.max(minion.maxHealth, minion.health);
+        }
+        Logger.info(`${minion.name} 唤醒时获得了 ${wakeEffect.attack || 0}/${wakeEffect.health || 0} 的增益`);
+        break;
+      default:
+        Logger.warn(`未知的唤醒效果类型: ${wakeEffect.type}`);
+    }
   }
 }
 
