@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>炉石传说 CLI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 主菜单 -->
+    <div id="menu-screen" class="screen hidden">
+      <h1>炉石传说 CLI</h1>
+      <div class="language-selector">
+        <label for="language-select">语言:</label>
+        <select id="language-select">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+        </select>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-new-game" class="menu-btn">新游戏</button>
+        <button id="btn-deck-builder" class="menu-btn">卡组构建</button>
+        <button id="btn-deck-list" class="menu-btn">我的卡组</button>
+      </div>
+    </div>
+
+    <!-- 初始加载时显示的主菜单（未初始化i18n） -->
+    <div id="menu-screen-initial" class="screen">
+      <h1>炉石传说 CLI</h1>
+      <div class="language-selector">
+        <label for="language-select-initial">语言:</label>
+        <select id="language-select-initial">
+          <option value="zh" selected>中文</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+        </select>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-start-initial" class="menu-btn">开始游戏</button>
+        <button id="btn-deck-initial" class="menu-btn">卡组构建</button>
+      </div>
+    </div>
+
+    <!-- 卡组选择界面 -->
+    <div id="deck-select-screen" class="screen hidden">
+      <h2>选择卡组</h2>
+      <div id="deck-list" class="deck-list"></div>
+      <button id="btn-back-from-deck-select" class="back-btn">返回</button>
+    </div>
+
+    <!-- 卡组构建 -->
+    <div id="deck-builder-screen" class="screen hidden">
+      <div class="deck-builder-header">
+        <h2>卡组构建</h2>
+        <button id="btn-back-from-builder" class="back-btn">返回</button>
+      </div>
+      <div class="deck-builder-container">
+        <div class="card-pool">
+          <div class="card-pool-header">
+            <input type="text" id="card-search" placeholder="搜索卡牌...">
+            <select id="card-class-filter" class="filter-select">
+              <option value="">全部职业</option>
+              <option value="MAGE">法师</option>
+              <option value="WARRIOR">战士</option>
+              <option value="HUNTER">猎人</option>
+              <option value="DRUID">德鲁伊</option>
+              <option value="ROGUE">盗贼</option>
+              <option value="PRIEST">牧师</option>
+              <option value="PALADIN">圣骑士</option>
+              <option value="SHAMAN">萨满</option>
+              <option value="WARLOCK">术士</option>
+              <option value="DEMONHUNTER">恶魔猎手</option>
+              <option value="DEATHKNIGHT">死亡骑士</option>
+              <option value="NEUTRAL">中立</option>
+            </select>
+            <select id="card-rarity-filter" class="filter-select">
+              <option value="">全部稀有度</option>
+              <option value="COMMON">普通</option>
+              <option value="RARE">稀有</option>
+              <option value="EPIC">史诗</option>
+              <option value="LEGENDARY">传说</option>
+            </select>
+          </div>
+          <div id="card-list" class="card-list"></div>
+        </div>
+        <div class="deck-panel">
+          <input type="text" id="deck-name" placeholder="卡组名称" class="deck-name-input">
+          <select id="deck-hero" class="deck-hero-select">
+            <option value="mage">法师</option>
+            <option value="warrior">战士</option>
+            <option value="hunter">猎人</option>
+            <option value="druid">德鲁伊</option>
+            <option value="rogue">盗贼</option>
+            <option value="priest">牧师</option>
+            <option value="paladin">圣骑士</option>
+            <option value="shaman">萨满</option>
+            <option value="warlock">术士</option>
+            <option value="demonhunter">恶魔猎手</option>
+            <option value="deathknight">死亡骑士</option>
+          </select>
+          <div id="deck-slots" class="deck-slots"></div>
+          <div class="deck-stats">
+            <span id="deck-count">0/30</span>
+          </div>
+          <div class="deck-actions">
+            <button id="btn-save-deck">保存卡组</button>
+            <button id="btn-clear-deck">清空</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div id="game-screen" class="screen hidden">
+      <div id="game-info" class="game-info">
+        <span id="turn-indicator">回合 1</span>
+        <span id="player-mana">法力: 1/1</span>
+        <span id="player-spell-power" class="spell-power">法强: +0</span>
+      </div>
+
+      <!-- 敌方信息 -->
+      <div id="enemy-hero" class="hero enemy-hero">
+        <div class="hero-portrait enemy-portrait"></div>
+        <div class="hero-stats">
+          <span class="health">30</span>
+          <span class="armor">0</span>
+        </div>
+        <div class="hand-count">手牌: ?</div>
+      </div>
+
+      <!-- 敌方战场 -->
+      <div id="enemy-field" class="field enemy-field"></div>
+
+      <!-- 玩家战场 -->
+      <div id="player-field" class="field player-field"></div>
+
+      <!-- 玩家信息 -->
+      <div id="player-hero" class="hero player-hero">
+        <div class="hero-portrait player-portrait"></div>
+        <div class="hero-stats">
+          <span class="health">30</span>
+          <span class="armor">0</span>
+        </div>
+      </div>
+
+      <!-- 玩家手牌 -->
+      <div id="player-hand" class="hand player-hand"></div>
+
+      <!-- 游戏控制 -->
+      <div id="game-controls" class="game-controls">
+        <button id="btn-save-game" class="control-btn">保存</button>
+        <button id="btn-load-game" class="control-btn">加载</button>
+        <button id="btn-end-turn">结束回合</button>
+        <button id="btn-use-hero-power" class="hidden">使用英雄技能</button>
+        <button id="btn-concede">认输</button>
+      </div>
+
+      <!-- 游戏消息 -->
+      <div id="game-message" class="game-message"></div>
+    </div>
+
+    <!-- 职业选择界面 -->
+    <div id="class-select-screen" class="screen hidden">
+      <h2>选择你的职业</h2>
+      <div id="class-list" class="class-list">
+        <div class="class-option" data-class="mage">
+          <div class="class-icon mage-icon"></div>
+          <span>法师</span>
+        </div>
+        <div class="class-option" data-class="warrior">
+          <div class="class-icon warrior-icon"></div>
+          <span>战士</span>
+        </div>
+        <div class="class-option" data-class="hunter">
+          <div class="class-icon hunter-icon"></div>
+          <span>猎人</span>
+        </div>
+        <div class="class-option" data-class="druid">
+          <div class="class-icon druid-icon"></div>
+          <span>德鲁伊</span>
+        </div>
+        <div class="class-option" data-class="rogue">
+          <div class="class-icon rogue-icon"></div>
+          <span>盗贼</span>
+        </div>
+        <div class="class-option" data-class="priest">
+          <div class="class-icon priest-icon"></div>
+          <span>牧师</span>
+        </div>
+        <div class="class-option" data-class="paladin">
+          <div class="class-icon paladin-icon"></div>
+          <span>圣骑士</span>
+        </div>
+        <div class="class-option" data-class="shaman">
+          <div class="class-icon shaman-icon"></div>
+          <span>萨满</span>
+        </div>
+        <div class="class-option" data-class="warlock">
+          <div class="class-icon warlock-icon"></div>
+          <span>术士</span>
+        </div>
+        <div class="class-option" data-class="demonhunter">
+          <div class="class-icon demonhunter-icon"></div>
+          <span>恶魔猎手</span>
+        </div>
+        <div class="class-option" data-class="deathknight">
+          <div class="class-icon deathknight-icon"></div>
+          <span>死亡骑士</span>
+        </div>
+      </div>
+      <button id="btn-back-from-class" class="back-btn">返回</button>
+    </div>
+
+    <!-- 卡牌详情弹窗 -->
+    <div id="card-detail-modal" class="modal hidden">
+      <div class="modal-content card-detail">
+        <button class="modal-close">&times;</button>
+        <div class="card-detail-header">
+          <span class="card-detail-cost">0</span>
+          <div class="card-detail-title">
+            <h3 class="card-detail-name">卡牌名称</h3>
+            <span class="card-detail-type">类型</span>
+          </div>
+        </div>
+        <div class="card-detail-text">卡牌描述</div>
+        <div class="card-detail-stats">
+          <span class="card-detail-attack">0</span>
+          <span class="card-detail-health">0</span>
+        </div>
+        <div class="card-detail-mechanics"></div>
+        <div class="card-detail-info">
+          <span class="card-detail-rarity">稀有度</span>
+          <span class="card-detail-set">卡牌包</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 抉择弹窗 -->
+    <div id="choice-dialog" class="dialog hidden">
+      <div class="dialog-content">
+        <h3>选择效果</h3>
+        <div class="choice-options">
+          <button id="btn-choice-1" class="choice-btn">选项1</button>
+          <button id="btn-choice-2" class="choice-btn">选项2</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/deck.js"></script>
+  <script src="/js/game.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
