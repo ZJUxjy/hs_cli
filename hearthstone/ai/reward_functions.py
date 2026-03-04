@@ -1,5 +1,11 @@
 """Reward function for reinforcement learning training."""
 
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hearthstone.models.game_state import GameState
+    from hearthstone.engine.action import Action
+
 
 class RewardFunction:
     """Calculates rewards for AI training based on game state changes."""
@@ -22,7 +28,12 @@ class RewardFunction:
             board_control_weight if board_control_weight is not None else self.BOARD_CONTROL_WEIGHT
         )
 
-    def calculate(self, old_state, new_state, action):
+    def calculate(
+        self,
+        old_state: Optional["GameState"],
+        new_state: "GameState",
+        action: Optional["Action"]
+    ) -> float:
         """Calculate reward based on state transition.
 
         Args:
