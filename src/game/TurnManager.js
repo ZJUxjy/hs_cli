@@ -74,6 +74,13 @@ class TurnManager {
       }
     });
 
+    // 回合开始时移除嗜血buff
+    if (player.field) {
+      const CardEffect = require('./CardEffect');
+      const cardEffect = new CardEffect(this.game);
+      cardEffect.removeBloodlust(player);
+    }
+
     state.phase = 'main';
     // 不需要设置 currentPlayer，switchTurn 已经设置好了
     state.message = `${player.name} 的回合`;
@@ -88,13 +95,21 @@ class TurnManager {
    */
   endTurn() {
     const state = this.game.getGameState();
-    
+
     // 结束当前玩家回合
     const currentPlayer = this.game.getCurrentPlayer();
     currentPlayer.field.forEach(m => {
       m.hasAttacked = false;
       m.sleeping = true;
     });
+
+    // 回合结束时触发嗜血效果
+    const hasBloodlustMinion = currentPlayer.field.some(m => m.bloodlust);
+    if (hasBloodlustMinion) {
+      const CardEffect = require('./CardEffect');
+      const cardEffect = new CardEffect(this.game);
+      cardEffect.executeBloodlust({ attack: 3 }, { player: currentPlayer });
+    }
 
     // 切换玩家
     this.switchTurn();

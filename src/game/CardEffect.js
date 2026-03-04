@@ -56,7 +56,9 @@ class CardEffect {
     TWIN: 'twin',
     HONORABLE_KILL: 'honorable_kill',
     HERO: 'hero',
-    RECRUIT: 'recruit'
+    RECRUIT: 'recruit',
+    OVERKILL: 'overkill',
+    BLOODLUST: 'bloodlust'
   };
 
   constructor(gameEngine) {
@@ -174,6 +176,10 @@ class CardEffect {
           return this.executeInspire(effect, context);
         case 'recruit':
           return this.executeRecruit(effect, context);
+        case 'overkill':
+          return this.executeOverkill(effect, context);
+        case 'bloodlust':
+          return this.executeBloodlust(effect, context);
         default:
           Logger.warn(`未知效果类型: ${effect.type}`);
           return false;
@@ -1030,6 +1036,64 @@ class CardEffect {
       Logger.info(`招募: ${randomCard.name}`);
     }
     return true;
+  }
+
+  /**
+   * 超杀 - 伤害溢出时触发
+   */
+  executeOverkill(effect, context) {
+    const { target, player, attacker } = context;
+    if (!effect || !player) return false;
+
+    Logger.info(`${attacker ? attacker.name : 'Unknown'} 超杀触发!`);
+
+    // 超杀效果：造成额外伤害或召唤随从
+    if (effect.damage) {
+      // 对随机敌人造成伤害
+      const opponent = this.game.getOpponent();
+      if (opponent) {
+        opponent.health -= effect.damage;
+        Logger.info(`超杀造成额外 ${effect.damage} 点伤害`);
+      }
+    }
+
+    if (effect.summon) {
+      // 召唤随从
+      this.game.summonMinion(player, effect.summon);
+    }
+
+    return true;
+  }
+
+  /**
+   * 嗜血 - 回合结束时所有友方随从获得攻击力
+   */
+  executeBloodlust(effect, context) {
+    const { player } = context;
+    if (!player.field || player.field.length === 0) return false;
+
+    const bonus = effect.attack || 3;
+    player.field.forEach(minion => {
+      minion.attack += bonus;
+      // 添加嗜血标记，回合结束时移除
+      minion.bloodlustBuff = bonus;
+    });
+
+    Logger.info(`嗜血: 友方随从获得 +${bonus} 攻击力`);
+    return true;
+  }
+
+  /**
+   * 移除嗜血buff - 回合开始时调用
+   */
+  removeBloodlust(player) {
+    if (!player.field) return;
+    player.field.forEach(minion => {
+      if (minion.bloodlustBuff) {
+        minion.attack -= minion.bloodlustBuff;
+        minion.bloodlustBuff = null;
+      }
+    });
   }
 }
 
