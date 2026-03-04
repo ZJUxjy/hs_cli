@@ -1,10 +1,31 @@
 """炉石传说CLI游戏入口"""
 
+import os
+
 from hearthstone_cli.engine.game import GameLogic
 from hearthstone_cli.engine.deck import Deck
 from hearthstone_cli.cli.ui import CLIInterface
 from hearthstone_cli.cards.database import CardDatabase
 from hearthstone_cli.cards.loader import CardLoader
+from hearthstone_cli.i18n import _, set_language
+
+
+def show_language_menu():
+    """显示语言选择菜单"""
+    # 先打印英文和中文混合的菜单（此时i18n尚未初始化）
+    print("\n" + "=" * 40)
+    print("Select Language / 选择语言")
+    print("=" * 40)
+    print("1. English")
+    print("2. 简体中文 (zhCN)")
+    print("=" * 40)
+
+    choice = input("Enter choice / 输入选择 (default: 2): ").strip()
+
+    if choice == "1":
+        return "enUS"
+    else:
+        return "zhCN"
 
 
 def load_cards():
@@ -13,12 +34,12 @@ def load_cards():
 
     # 尝试从 HearthstoneJSON 加载
     try:
-        print("正在加载卡牌数据...")
+        print(_("Loading card data..."))
         # 加载所有标准扩展包
         loader = CardLoader(locale="zhCN")
         standard_sets = loader.get_standard_sets()
 
-        print(f"标准模式扩展包: {len(standard_sets)} 个")
+        print(_("Standard sets: {}").format(len(standard_sets)))
 
         # 加载随从和法术卡牌
         count = db.load_from_hearthstonejson(
@@ -27,11 +48,11 @@ def load_cards():
             card_types=["MINION", "SPELL"],  # 加载随从和法术
             collectible_only=True,
         )
-        print(f"已加载 {count} 张卡牌（随从+法术）")
+        print(_("Loaded {} cards (minions + spells)").format(count))
         return True
     except Exception as e:
-        print(f"从网络加载失败: {e}")
-        print("使用本地测试卡牌...")
+        print(_("Failed to load from network: {}").format(e))
+        print(_("Using local test cards..."))
         load_test_cards()
         return False
 
@@ -126,8 +147,12 @@ def create_demo_deck():
 
 
 def main():
+    # 显示语言选择菜单（在初始化i18n之前）
+    lang = show_language_menu()
+    set_language(lang)
+
     print("=" * 60)
-    print("炉石传说 CLI 游戏")
+    print(_("Hearthstone CLI Game"))
     print("=" * 60)
 
     # 加载卡牌
@@ -141,24 +166,24 @@ def main():
         minions = [c for c in all_cards if c.card_type.value == "MINION"]
         spells = [c for c in all_cards if c.card_type.value == "SPELL"]
 
-        print(f"\n数据库中有 {len(all_cards)} 张卡牌:")
-        print(f"  - 随从: {len(minions)} 张")
-        print(f"  - 法术: {len(spells)} 张")
+        print(_("\nDatabase has {} cards:").format(len(all_cards)))
+        print(_("  - Minions: {}").format(len(minions)))
+        print(_("  - Spells: {}").format(len(spells)))
 
-        print("\n示例卡牌:")
+        print(_("\nExample cards:"))
         # 显示一些随从
-        print("  随从:")
+        print(_("  Minions:"))
         for card in sorted(minions, key=lambda c: c.cost)[:3]:
             print(f"    [{card.cost}费] {card.name} ({card.attack}/{card.health})")
         # 显示一些法术
-        print("  法术:")
+        print(_("  Spells:"))
         for card in sorted(spells, key=lambda c: c.cost)[:3]:
             text = card.text[:20] + "..." if len(card.text) > 20 else card.text
             print(f"    [{card.cost}费] {card.name} - {text}")
 
     # 创建卡组并开始游戏
     deck = create_demo_deck()
-    print(f"\n创建了演示卡组（{len(deck)} 张卡牌）")
+    print(_("\nCreated demo deck ({} cards)").format(len(deck)))
 
     game = GameLogic.create_game(deck1=deck, deck2=deck, seed=42)
 

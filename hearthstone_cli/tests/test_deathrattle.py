@@ -99,7 +99,7 @@ class TestDeathrattleMechanics:
             board=(attacker,),
             secrets=frozenset(),
             graveyard=tuple(),
-            exhausted_minions=frozenset(),
+            attacks_this_turn=tuple(),
             hero_power_used=False,
         )
         player1 = PlayerState(
@@ -110,7 +110,7 @@ class TestDeathrattleMechanics:
             board=(minion_with_deathrattle,),
             secrets=frozenset(),
             graveyard=tuple(),
-            exhausted_minions=frozenset(),
+            attacks_this_turn=tuple(),
             hero_power_used=False,
         )
 
@@ -184,7 +184,7 @@ class TestDeathrattleMechanics:
             board=(attacker,),
             secrets=frozenset(),
             graveyard=tuple(),
-            exhausted_minions=frozenset(),
+            attacks_this_turn=tuple(),
             hero_power_used=False,
         )
         player1 = PlayerState(
@@ -195,7 +195,7 @@ class TestDeathrattleMechanics:
             board=(minion,),
             secrets=frozenset(),
             graveyard=tuple(),
-            exhausted_minions=frozenset(),
+            attacks_this_turn=tuple(),
             hero_power_used=False,
         )
 
@@ -267,7 +267,7 @@ class TestDeathrattleMechanics:
             board=(attacker,),
             secrets=frozenset(),
             graveyard=tuple(),
-            exhausted_minions=frozenset(),
+            attacks_this_turn=tuple(),
             hero_power_used=False,
         )
         player1 = PlayerState(
@@ -278,7 +278,7 @@ class TestDeathrattleMechanics:
             board=(minion_no_deathrattle,),
             secrets=frozenset(),
             graveyard=tuple(),
-            exhausted_minions=frozenset(),
+            attacks_this_turn=tuple(),
             hero_power_used=False,
         )
 

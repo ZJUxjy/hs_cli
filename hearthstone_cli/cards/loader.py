@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Any
 import requests
 
 from hearthstone_cli.cards.data import CardData, CardType, Rarity, Class
+from hearthstone_cli.i18n import _
 
 
 # HearthstoneJSON API  endpoints
@@ -46,13 +47,13 @@ class CardLoader:
 
         # 检查缓存
         if not force_refresh and cache_path.exists():
-            print(f"使用缓存的卡牌数据: {cache_path}")
+            print(_("Using cached card data: {}").format(cache_path))
             with open(cache_path, "r", encoding="utf-8") as f:
                 return json.load(f)
 
         # 下载数据
         url = HSJSON_URLS["latest"].format(locale=self.locale)
-        print(f"正在下载卡牌数据: {url}")
+        print(_("Downloading card data: {}").format(url))
 
         try:
             response = requests.get(url, timeout=30)
@@ -63,14 +64,14 @@ class CardLoader:
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(cards, f, ensure_ascii=False, indent=2)
 
-            print(f"已下载 {len(cards)} 张卡牌")
+            print(_("Downloaded {} cards").format(len(cards)))
             return cards
 
         except requests.RequestException as e:
-            print(f"下载失败: {e}")
+            print(_("Download failed: {}").format(e))
             # 如果下载失败但有缓存，使用缓存
             if cache_path.exists():
-                print("使用缓存的卡牌数据")
+                print(_("Using cached card data"))
                 with open(cache_path, "r", encoding="utf-8") as f:
                     return json.load(f)
             raise
@@ -146,7 +147,7 @@ class CardLoader:
             )
 
         except (KeyError, ValueError) as e:
-            print(f"解析卡牌失败 {card.get('id', 'unknown')}: {e}")
+            print(_("Failed to parse card {}: {}").format(card.get('id', 'unknown'), e))
             return None
 
     def _parse_card_type(self, type_str: str) -> CardType:

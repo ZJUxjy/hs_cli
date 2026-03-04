@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import FrozenSet, Optional, Tuple
+from typing import Any, FrozenSet, Optional, Tuple
 
 
 class Zone(Enum):
@@ -25,6 +25,7 @@ class Attribute(Enum):
     POISONOUS = auto()      # 剧毒
     LIFESTEAL = auto()      # 吸血
     ELUSIVE = auto()        # 魔免
+    FROZEN = auto()         # 冻结
 
 
 @dataclass(frozen=True)
@@ -38,12 +39,25 @@ class WeaponState:
 
 
 @dataclass(frozen=True)
+class HeroPower:
+    """英雄技能状态."""
+    name: str
+    cost: int
+    damage: int = 0
+    heal: int = 0
+    armor: int = 0
+    description: str = ""
+    target_required: bool = False
+
+
+@dataclass(frozen=True)
 class HeroState:
     """Hero state."""
     health: int
     max_health: int = 30
     armor: int = 0
     weapon: Optional[WeaponState] = None
+    hero_power: Optional[HeroPower] = None
 
 
 @dataclass(frozen=True)
@@ -94,12 +108,15 @@ class Card:
     health: Optional[int] = None
     durability: Optional[int] = None
     attributes: FrozenSet[Attribute] = field(default_factory=frozenset)
+    text: str = ""
 
 
 @dataclass(frozen=True)
 class Secret:
     """Secret state."""
     card_id: str
+    trigger_type: str  # "attack_hero", "play_minion", "cast_spell", "take_damage", etc.
+    effect_data: Tuple[Tuple[str, Any], ...] = field(default_factory=tuple)  # Hashable format
 
 
 @dataclass(frozen=True)
@@ -112,8 +129,9 @@ class PlayerState:
     board: Tuple[Minion, ...]
     secrets: FrozenSet[Secret]
     graveyard: Tuple[Card, ...]
-    exhausted_minions: FrozenSet[int]
+    attacks_this_turn: Tuple[Tuple[int, int], ...]  # [(minion_index, attack_count), ...]
     hero_power_used: bool
+    fatigue_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -146,7 +164,7 @@ class GameState:
             board=(),
             secrets=frozenset(),
             graveyard=(),
-            exhausted_minions=frozenset(),
+            attacks_this_turn=tuple(),
             hero_power_used=False,
         )
         return cls(

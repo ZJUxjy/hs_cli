@@ -1,0 +1,181 @@
+# Simplified Chinese translations for hearthstone_cli
+# Copyright (C) 2024
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: Chinese\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "你好"
+
+msgid "You"
+msgstr "你"
+
+msgid "Opponent"
+msgstr "对手"
+
+msgid "Armor"
+msgstr "护甲"
+
+msgid "Mana"
+msgstr "水晶"
+
+msgid "Hand: {} cards"
+msgstr "手牌: {} 张"
+
+msgid "Hand: "
+msgstr "手牌: "
+
+msgid "Board:"
+msgstr "场上:"
+
+msgid "Board: (empty)"
+msgstr "场上: (空)"
+
+msgid "Taunt"
+msgstr "嘲讽"
+
+msgid "Divine Shield"
+msgstr "圣盾"
+
+msgid "Windfury"
+msgstr "风怒"
+
+msgid "Charge"
+msgstr "冲锋"
+
+msgid "Stealth"
+msgstr "潜行"
+
+msgid "Poisonous"
+msgstr "剧毒"
+
+msgid "Lifesteal"
+msgstr "吸血"
+
+msgid "Exhausted"
+msgstr "已攻击"
+
+msgid "End Turn"
+msgstr "结束回合"
+
+msgid "Hero"
+msgstr "英雄"
+
+msgid "Enemy Hero"
+msgstr "敌方英雄"
+
+msgid "Attack: {} → {}"
+msgstr "攻击: {} → {}"
+
+msgid "(Spell)"
+msgstr "(法术)"
+
+msgid "Play [{} mana] {} {}"
+msgstr "打出 [{}费] {} {}"
+
+msgid "Available actions:"
+msgstr "可执行的行动:"
+
+msgid "Choose action (or 'q' to quit): "
+msgstr "选择行动 (或输入 'q' 退出): "
+
+msgid "Invalid choice, please try again"
+msgstr "无效的选择，请重试"
+
+msgid "Please enter a number"
+msgstr "请输入数字"
+
+msgid "Opponent is thinking..."
+msgstr "对手思考中..."
+
+msgid "You win!"
+msgstr "你赢了！"
+
+msgid "You lose..."
+msgstr "你输了..."
+
+msgid "Draw"
+msgstr "平局"
+
+msgid "Hearthstone CLI Game"
+msgstr "炉石传说 CLI 游戏"
+
+msgid "Loading card data..."
+msgstr "正在加载卡牌数据..."
+
+msgid "Standard sets: {}"
+msgstr "标准模式扩展包: {} 个"
+
+msgid "Loaded {} cards (minions + spells)"
+msgstr "已加载 {} 张卡牌（随从+法术）"
+
+msgid "Failed to load from network: {}"
+msgstr "从网络加载失败: {}"
+
+msgid "Using local test cards..."
+msgstr "使用本地测试卡牌..."
+
+msgid "Database has {} cards:"
+msgstr "数据库中有 {} 张卡牌:"
+
+msgid "  - Minions: {}"
+msgstr "  - 随从: {} 张"
+
+msgid "  - Spells: {}"
+msgstr "  - 法术: {} 张"
+
+msgid "Example cards:"
+msgstr "示例卡牌:"
+
+msgid "  Minions:"
+msgstr "  随从:"
+
+msgid "  Spells:"
+msgstr "  法术:"
+
+msgid "Created demo deck ({} cards)"
+msgstr "创建了演示卡组（{} 张卡牌）"
+
+msgid "Using cached card data: {}"
+msgstr "使用缓存的卡牌数据: {}"
+
+msgid "Downloading card data: {}"
+msgstr "正在下载卡牌数据: {}"
+
+msgid "Downloaded {} cards"
+msgstr "已下载 {} 张卡牌"
+
+msgid "Download failed: {}"
+msgstr "下载失败: {}"
+
+msgid "Using cached card data"
+msgstr "使用缓存的卡牌数据"
+
+msgid "Failed to parse card {}: {}"
+msgstr "解析卡牌失败 {}: {}"
+
+msgid "Select Language / 选择语言"
+msgstr "选择语言 / Select Language"
+
+msgid "Enter choice / 输入选择 (default: 2): "
+msgstr "输入选择 / Enter choice (default: 2): "
+
+msgid "Hero Power: {} ({} mana)"
+msgstr "英雄技能: {} ({} 法力)"
+
+msgid "Hero Power"
+msgstr "英雄技能"
+
+msgid "Frozen"
+msgstr "冻结"
+
+msgid "Silenced"
+msgstr "沉默"

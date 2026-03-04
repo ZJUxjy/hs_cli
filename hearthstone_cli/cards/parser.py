@@ -14,6 +14,8 @@ from hearthstone_cli.cards.effects import (
     DestroyEffect,
     GainArmorEffect,
     GainManaEffect,
+    AuraEffect,
+    OverloadEffect,
 )
 
 
@@ -27,10 +29,11 @@ class EffectParser:
     PATTERNS = {
         # 伤害效果
         "damage": [
+            # AOE patterns must come before single target patterns
+            (r"对所有(?:敌人|敌方|敌方随从)造成\s*(\d+)\s*点伤害", lambda m: DamageEffect(int(m.group(1)), "all_enemies")),
+            (r"Deal\s+(\d+)\s+ damage to all (?:enemies|enemy minions)", lambda m: DamageEffect(int(m.group(1)), "all_enemies")),
             (r"造成\s*(\d+)\s*点伤害", lambda m: DamageEffect(int(m.group(1)), "target")),
             (r"Deal\s+(\d+)\s+ damage", lambda m: DamageEffect(int(m.group(1)), "target")),
-            (r"对所有敌人造成\s*(\d+)\s*点伤害", lambda m: DamageEffect(int(m.group(1)), "all_enemies")),
-            (r"Deal\s+(\d+)\s+ damage to all enemies", lambda m: DamageEffect(int(m.group(1)), "all_enemies")),
         ],
         # 抽牌效果
         "draw": [
@@ -68,6 +71,20 @@ class EffectParser:
             (r"消灭", lambda m: DestroyEffect("target")),
             (r"Destroy", lambda m: DestroyEffect("target")),
         ],
+        # 光环效果 - 持续增益其他随从
+        "aura": [
+            # 暴风城勇士: 你的其他随从获得+1/+1
+            (r"你的其他随从获得\+(\d+)/\+(\d+)", lambda m: AuraEffect(attack_bonus=int(m.group(1)), health_bonus=int(m.group(2)), target_selector="other_minions")),
+            (r"Your other minions have \+(\d+)/\+(\d+)", lambda m: AuraEffect(attack_bonus=int(m.group(1)), health_bonus=int(m.group(2)), target_selector="other_minions")),
+            # 团队领袖: 你的其他随从获得+攻击力
+            (r"你的其他随从获得\+(\d+)点攻击力", lambda m: AuraEffect(attack_bonus=int(m.group(1)), health_bonus=0, target_selector="other_minions")),
+            (r"Your other minions have \+(\d+) Attack", lambda m: AuraEffect(attack_bonus=int(m.group(1)), health_bonus=0, target_selector="other_minions")),
+        ],
+        # 过载效果
+        "overload": [
+            (r"过载：\s*\(?(\d+)\)?", lambda m: OverloadEffect(amount=int(m.group(1)))),
+            (r"Overload[：:]?\s*\(?(\d+)\)?", lambda m: OverloadEffect(amount=int(m.group(1)))),
+        ],
     }
 
     @classmethod
@@ -95,6 +112,7 @@ class EffectParser:
                     try:
                         effect = factory(match)
                         effects.append(effect)
+                        break  # 只匹配第一个模式，避免重复效果
                     except (ValueError, IndexError):
                         continue
 
@@ -137,6 +155,196 @@ class EffectParser:
             return cls.parse_text(clean_text)
 
         return []
+
+    @classmethod
+    def parse_aura(cls, text: str) -> Optional[AuraEffect]:
+        """解析光环效果
+
+        解析持续生效的增益效果，如暴风城勇士的"你的其他随从获得+1/+1"。
+        """
+        if not text:
+            return None
+
+        clean_text = cls._clean_html(text)
+
+        # 检查是否有光环描述
+        # 中文：你的其他随从获得...
+        # 英文：Your other minions have...
+        aura_keywords = [
+            r"你的其他随从",
+            r"Your other minions",
+        ]
+
+        has_aura = any(re.search(kw, clean_text, re.IGNORECASE) for kw in aura_keywords)
+        if not has_aura:
+            return None
+
+        # 尝试匹配光环模式
+        for pattern, factory in cls.PATTERNS.get("aura", []):
+            match = re.search(pattern, clean_text, re.IGNORECASE)
+            if match:
+                try:
+                    return factory(match)
+                except (ValueError, IndexError):
+                    continue
+
+        return None
+
+    @classmethod
+    def parse_overload(cls, text: str) -> int:
+        """解析过载效果
+
+        解析卡牌描述中的过载数值。
+        例如："过载：(2)" 返回 2
+
+        Returns:
+            过载数值，如果没有过载则返回 0
+        """
+        if not text:
+            return 0
+
+        clean_text = cls._clean_html(text)
+
+        # 尝试匹配过载模式
+        for pattern, factory in cls.PATTERNS.get("overload", []):
+            match = re.search(pattern, clean_text, re.IGNORECASE)
+            if match:
+                try:
+                    effect = factory(match)
+                    if isinstance(effect, OverloadEffect):
+                        return effect.amount
+                except (ValueError, IndexError):
+                    continue
+
+        return 0
+
+    @classmethod
+    def requires_target(cls, text: str) -> bool:
+        """检查效果是否需要选择目标
+
+        根据卡牌文本判断是否需要在施放时选择目标。
+        例如："对一个随从造成2点伤害" 需要选择目标
+        """
+        if not text:
+            return False
+
+        clean_text = cls._clean_html(text)
+
+        # AOE效果（不需要选择单个目标）
+        aoe_patterns = [
+            r"所有(?:敌人|敌方|随从)",
+            r"all (?:enemies|enemy|minions)",
+        ]
+        for pattern in aoe_patterns:
+            if re.search(pattern, clean_text, re.IGNORECASE):
+                return False
+
+        # 需要目标的模式（指定单个目标）
+        target_patterns = [
+            # 中文模式
+            r"对(?:一个|目标|敌方)?(?:随从|角色|英雄)",
+            r"(?:消灭|伤害|治疗|恢复).{0,10}(?:一个|目标)",
+            r"选择一个",
+            # 对带有"造成X点伤害"但没有"所有"的，也需要目标
+            r"造成\s*\d+\s*点伤害(?!.*所有)",
+            # 英文模式
+            r"Deal \d+ damage to (?:a|an|target|any)",
+            r"(?:Destroy|Restore|Heal).{0,20}(?:a|an|target)",
+            r"Choose (?:a|an|one)",
+            r"Deal \d+ damage(?!.*all enemies)",
+        ]
+
+        for pattern in target_patterns:
+            if re.search(pattern, clean_text, re.IGNORECASE):
+                return True
+
+        return False
+
+    @classmethod
+    def is_secret(cls, text: str) -> bool:
+        """检查是否是奥秘卡牌"""
+        if not text:
+            return False
+        clean_text = cls._clean_html(text)
+        return "奥秘" in clean_text or "Secret" in clean_text
+
+    @classmethod
+    def get_secret_trigger(cls, text: str) -> str:
+        """获取奥秘的触发类型"""
+        if not text:
+            return "unknown"
+
+        clean_text = cls._clean_html(text)
+
+        # 常见奥秘触发条件
+        triggers = [
+            (r"当你的英雄受到攻击", "attack_hero"),
+            (r"在敌方英雄攻击后", "after_hero_attack"),
+            (r"在敌方攻击后", "after_attack"),
+            (r"当.*攻击你的英雄", "attack_hero"),
+            (r"在对手使用一张随从牌后", "play_minion"),
+            (r"在对手使用一张牌后", "play_card"),
+            (r"在对手施放一个法术后", "cast_spell"),
+            (r"在你的对手使用.*时", "play_card"),
+            (r"当你的英雄受到伤害", "hero_damaged"),
+            (r"After your opponent plays a minion", "play_minion"),
+            (r"When a character attacks your hero", "attack_hero"),
+            (r"When your hero takes damage", "hero_damaged"),
+            (r"When your opponent casts a spell", "cast_spell"),
+            (r"Secret.*When", "unknown"),  # Generic secret pattern
+        ]
+
+        for pattern, trigger_type in triggers:
+            if re.search(pattern, clean_text, re.IGNORECASE):
+                return trigger_type
+
+        return "unknown"
+
+    @classmethod
+    def get_target_type(cls, text: str) -> str:
+        """获取目标类型
+
+        Returns:
+            "enemy_minion" - 敌方随从
+            "enemy_character" - 敌方角色（随从或英雄）
+            "enemy_hero" - 敌方英雄
+            "any_minion" - 任意随从
+            "any_character" - 任意角色
+            "friendly_minion" - 友方随从
+            "none" - 不需要目标
+        """
+        if not text:
+            return "none"
+
+        clean_text = cls._clean_html(text)
+
+        # AOE效果
+        aoe_patterns = [
+            r"所有(?:敌人|敌方|随从)",
+            r"all (?:enemies|enemy|minions)",
+        ]
+        for pattern in aoe_patterns:
+            if re.search(pattern, clean_text, re.IGNORECASE):
+                return "none"
+
+        # 按优先级匹配
+        patterns = [
+            (r"对(?:一个|目标)?敌方(?:随从|角色)", "enemy_minion"),
+            (r"Deal \d+ damage to (?:an )?enemy minion", "enemy_minion"),
+            (r"对(?:一个|目标)?敌方英雄", "enemy_hero"),
+            (r"Deal \d+ damage to (?:the )?enemy hero", "enemy_hero"),
+            (r"消灭(?:一个|目标)?(?:敌方)?随从", "enemy_minion"),
+            (r"(?:Destroy|destroy) (?:a|an|target|any) (?:enemy )?minion", "enemy_minion"),
+            (r"造成\s*\d+\s*点伤害(?!.*所有)", "any_character"),  # 简单的伤害效果
+            (r"Deal \d+ damage(?! to all)", "any_character"),  # 简单的伤害效果
+            (r"对(?:一个|目标)?(?:敌方)?(?:随从|角色)", "any_character"),
+        ]
+
+        for pattern, target_type in patterns:
+            if re.search(pattern, clean_text, re.IGNORECASE):
+                return target_type
+
+        return "none"
 
     @classmethod
     def _clean_html(cls, text: str) -> str:

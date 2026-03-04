@@ -52,7 +52,7 @@ def create_test_player(
     mana_current: int = 1,
     mana_max: int = 1,
     board: tuple = (),
-    exhausted_minions: frozenset = frozenset(),
+    attacks_this_turn: tuple = (),
 ) -> PlayerState:
     """Create a test player state."""
     return PlayerState(
@@ -63,7 +63,7 @@ def create_test_player(
         board=board,
         secrets=frozenset(),
         graveyard=(),
-        exhausted_minions=exhausted_minions,
+        attacks_this_turn=attacks_this_turn,
         hero_power_used=False,
     )
 
@@ -329,7 +329,8 @@ def test_attack_marks_attacker_exhausted():
     new_state = GameLogic.apply_action(state, action)
 
     # Assert
-    assert 0 in new_state.players[0].exhausted_minions
+    attacks_dict = dict(new_state.players[0].attacks_this_turn)
+    assert attacks_dict.get(0, 0) == 1
 
 
 def test_attack_hero_deals_damage_to_hero():

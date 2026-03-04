@@ -55,3 +55,4 @@ class CardData:
     effect: Optional[Any] = None
     battlecry: Optional[Any] = None
     deathrattle: Optional[Any] = None
+    aura: Optional[Any] = None

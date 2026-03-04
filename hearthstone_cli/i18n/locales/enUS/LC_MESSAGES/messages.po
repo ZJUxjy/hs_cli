@@ -1,0 +1,181 @@
+# English translations for hearthstone_cli
+# Copyright (C) 2024
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "Hello"
+
+msgid "You"
+msgstr "You"
+
+msgid "Opponent"
+msgstr "Opponent"
+
+msgid "Armor"
+msgstr "Armor"
+
+msgid "Mana"
+msgstr "Mana"
+
+msgid "Hand: {} cards"
+msgstr "Hand: {} cards"
+
+msgid "Hand: "
+msgstr "Hand: "
+
+msgid "Board:"
+msgstr "Board:"
+
+msgid "Board: (empty)"
+msgstr "Board: (empty)"
+
+msgid "Taunt"
+msgstr "Taunt"
+
+msgid "Divine Shield"
+msgstr "Divine Shield"
+
+msgid "Windfury"
+msgstr "Windfury"
+
+msgid "Charge"
+msgstr "Charge"
+
+msgid "Stealth"
+msgstr "Stealth"
+
+msgid "Poisonous"
+msgstr "Poisonous"
+
+msgid "Lifesteal"
+msgstr "Lifesteal"
+
+msgid "Exhausted"
+msgstr "Exhausted"
+
+msgid "End Turn"
+msgstr "End Turn"
+
+msgid "Hero"
+msgstr "Hero"
+
+msgid "Enemy Hero"
+msgstr "Enemy Hero"
+
+msgid "Attack: {} → {}"
+msgstr "Attack: {} → {}"
+
+msgid "(Spell)"
+msgstr "(Spell)"
+
+msgid "Play [{} mana] {} {}"
+msgstr "Play [{} mana] {} {}"
+
+msgid "Available actions:"
+msgstr "Available actions:"
+
+msgid "Choose action (or 'q' to quit): "
+msgstr "Choose action (or 'q' to quit): "
+
+msgid "Invalid choice, please try again"
+msgstr "Invalid choice, please try again"
+
+msgid "Please enter a number"
+msgstr "Please enter a number"
+
+msgid "Opponent is thinking..."
+msgstr "Opponent is thinking..."
+
+msgid "You win!"
+msgstr "You win!"
+
+msgid "You lose..."
+msgstr "You lose..."
+
+msgid "Draw"
+msgstr "Draw"
+
+msgid "Hearthstone CLI Game"
+msgstr "Hearthstone CLI Game"
+
+msgid "Loading card data..."
+msgstr "Loading card data..."
+
+msgid "Standard sets: {}"
+msgstr "Standard sets: {}"
+
+msgid "Loaded {} cards (minions + spells)"
+msgstr "Loaded {} cards (minions + spells)"
+
+msgid "Failed to load from network: {}"
+msgstr "Failed to load from network: {}"
+
+msgid "Using local test cards..."
+msgstr "Using local test cards..."
+
+msgid "Database has {} cards:"
+msgstr "Database has {} cards:"
+
+msgid "  - Minions: {}"
+msgstr "  - Minions: {}"
+
+msgid "  - Spells: {}"
+msgstr "  - Spells: {}"
+
+msgid "Example cards:"
+msgstr "Example cards:"
+
+msgid "  Minions:"
+msgstr "  Minions:"
+
+msgid "  Spells:"
+msgstr "  Spells:"
+
+msgid "Created demo deck ({} cards)"
+msgstr "Created demo deck ({} cards)"
+
+msgid "Using cached card data: {}"
+msgstr "Using cached card data: {}"
+
+msgid "Downloading card data: {}"
+msgstr "Downloading card data: {}"
+
+msgid "Downloaded {} cards"
+msgstr "Downloaded {} cards"
+
+msgid "Download failed: {}"
+msgstr "Download failed: {}"
+
+msgid "Using cached card data"
+msgstr "Using cached card data"
+
+msgid "Failed to parse card {}: {}"
+msgstr "Failed to parse card {}: {}"
+
+msgid "Select Language / 选择语言"
+msgstr "Select Language / 选择语言"
+
+msgid "Enter choice / 输入选择 (default: 2): "
+msgstr "Enter choice / 输入选择 (default: 2): "
+
+msgid "Hero Power: {} ({} mana)"
+msgstr "Hero Power: {} ({} mana)"
+
+msgid "Hero Power"
+msgstr "Hero Power"
+
+msgid "Frozen"
+msgstr "Frozen"
+
+msgid "Silenced"
+msgstr "Silenced"

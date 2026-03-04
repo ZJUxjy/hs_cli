@@ -36,7 +36,7 @@ def test_player_state_is_frozen():
         board=(),
         secrets=frozenset(),
         graveyard=(),
-        exhausted_minions=frozenset(),
+        attacks_this_turn=tuple(),
         hero_power_used=False,
     )
     with pytest.raises(AttributeError):
@@ -63,7 +63,7 @@ def test_player_state_creation():
         board=(),
         secrets=frozenset(),
         graveyard=(),
-        exhausted_minions=frozenset(),
+        attacks_this_turn=tuple(),
         hero_power_used=False,
     )
 
@@ -285,13 +285,14 @@ def test_enchantment_is_frozen():
 
 def test_secret_creation():
     """Test secret creation."""
-    secret = Secret(card_id="EX1_609")
+    secret = Secret(card_id="EX1_609", trigger_type="play_minion")
     assert secret.card_id == "EX1_609"
+    assert secret.trigger_type == "play_minion"
 
 
 def test_secret_is_frozen():
     """Test that Secret is immutable."""
-    secret = Secret(card_id="EX1_609")
+    secret = Secret(card_id="EX1_609", trigger_type="attack_hero")
     with pytest.raises(AttributeError):
         secret.card_id = "EX1_610"
 
@@ -336,8 +337,8 @@ def test_attribute_enum():
 
 def test_player_with_secrets():
     """Test player state with secrets."""
-    secret1 = Secret(card_id="EX1_609")
-    secret2 = Secret(card_id="EX1_610")
+    secret1 = Secret(card_id="EX1_609", trigger_type="play_minion")
+    secret2 = Secret(card_id="EX1_610", trigger_type="attack_hero")
     hero = HeroState(health=30)
     mana = ManaState(current=1, max_mana=1)
     player = PlayerState(
@@ -348,7 +349,7 @@ def test_player_with_secrets():
         board=(),
         secrets=frozenset({secret1, secret2}),
         graveyard=(),
-        exhausted_minions=frozenset(),
+        attacks_this_turn=tuple(),
         hero_power_used=False,
     )
     assert len(player.secrets) == 2
@@ -390,7 +391,7 @@ def test_player_with_board():
         board=(minion1, minion2),
         secrets=frozenset(),
         graveyard=(),
-        exhausted_minions=frozenset(),
+        attacks_this_turn=tuple(),
         hero_power_used=False,
     )
     assert len(player.board) == 2
