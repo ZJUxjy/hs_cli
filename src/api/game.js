@@ -34,8 +34,45 @@ router.post('/play', (req, res) => {
 
 router.post('/attack', (req, res) => {
   const { attackerIndex, targetIndex, targetType } = req.body;
-  // Implement attack logic
-  res.json(currentGame ? currentGame.getGameState() : { error: 'No active game' });
+
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+
+  const state = currentGame.getGameState();
+  const player = state.player;
+
+  // Check if attacker is valid
+  if (attackerIndex < 0 || attackerIndex >= player.field.length) {
+    return res.status(400).json({ error: 'Invalid attacker index' });
+  }
+
+  const attacker = player.field[attackerIndex];
+
+  // Check if attacker can attack
+  if (!attacker.canAttack || attacker.hasAttacked || attacker.sleeping || attacker.frozen) {
+    return res.status(400).json({ error: 'Attacker cannot attack' });
+  }
+
+  try {
+    if (targetType === 'hero') {
+      // Attack enemy hero
+      currentGame.attackHero(player, attacker);
+    } else if (targetType === 'minion') {
+      // Attack enemy minion
+      const opponent = state.ai;
+      if (targetIndex < 0 || targetIndex >= opponent.field.length) {
+        return res.status(400).json({ error: 'Invalid target index' });
+      }
+      const target = opponent.field[targetIndex];
+      currentGame.attackMinion(player, attacker, target);
+    }
+
+    res.json(currentGame.getGameState());
+  } catch (err) {
+    console.error('Attack error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.post('/endTurn', (req, res) => {
