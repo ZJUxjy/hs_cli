@@ -80,3 +80,18 @@ class AuraEffect:
 class OverloadEffect:
     """过载效果 - 下回合锁定法力水晶"""
     amount: int = 0
+
+
+@dataclass(frozen=True)
+class ComboEffect:
+    """连击效果 - 本回合打出过其他牌后触发"""
+    base_effect: Optional[object] = None  # 基础效果（未触发连击时）
+    combo_effect: Optional[object] = None  # 连击效果（触发连击时）
+
+
+@dataclass(frozen=True)
+class DiscoverEffect:
+    """发现效果 - 三选一机制"""
+    card_type: str = "any"  # 卡牌类型限制: any, minion, spell, weapon
+    card_class: str = "any"  # 职业限制: any, neutral, 或特定职业
+    cost_range: tuple = (0, 10)  # 费用范围 (min, max)

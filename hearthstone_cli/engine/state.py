@@ -132,6 +132,7 @@ class PlayerState:
     attacks_this_turn: Tuple[Tuple[int, int], ...]  # [(minion_index, attack_count), ...]
     hero_power_used: bool
     fatigue_count: int = 0
+    cards_played_this_turn: int = 0  # 本回合打出的卡牌数量（用于连击）
 
 
 @dataclass(frozen=True)

@@ -85,6 +85,16 @@ class EffectParser:
             (r"过载：\s*\(?(\d+)\)?", lambda m: OverloadEffect(amount=int(m.group(1)))),
             (r"Overload[：:]?\s*\(?(\d+)\)?", lambda m: OverloadEffect(amount=int(m.group(1)))),
         ],
+        # 连击效果 - 在_clean_html之后匹配（无HTML标签）
+        "combo": [
+            (r"连击[:：](.+?)(?:。|$)", lambda m: m.group(1).strip()),
+            (r"Combo[:：]\s*(.+?)(?:\.|$)", lambda m: m.group(1).strip()),
+        ],
+        # 发现效果 - 在_clean_html之后匹配（无HTML标签）
+        "discover": [
+            (r"发现一张(?:([^\s]+?)牌|牌)", lambda m: m.group(1).strip() if m.group(1) else ""),
+            (r"Discover a (.+?)(?:\s*card)?(?:\.|$)", lambda m: m.group(1).strip()),
+        ],
     }
 
     @classmethod
@@ -102,6 +112,15 @@ class EffectParser:
 
         # 清理HTML标签
         clean_text = cls._clean_html(text)
+
+        # 移除连击和发现文本（这些有专门的解析方法）
+        # 移除连击：... 或 Combo: ...
+        clean_text = re.sub(r"连击[:：].+?(?:。|$)", "", clean_text, flags=re.IGNORECASE)
+        clean_text = re.sub(r"Combo[:：]\s*.+?(?:\.|$)", "", clean_text, flags=re.IGNORECASE)
+        # 移除发现... 或 Discover...
+        clean_text = re.sub(r"发现.+?(?:。|$)", "", clean_text, flags=re.IGNORECASE)
+        clean_text = re.sub(r"Discover\s+.+?(?:\.|$)", "", clean_text, flags=re.IGNORECASE)
+
         effects = []
 
         # 尝试匹配每种效果类型
@@ -217,6 +236,92 @@ class EffectParser:
                     continue
 
         return 0
+
+    @classmethod
+    def has_combo(cls, text: str) -> bool:
+        """检查是否有连击效果
+
+        Returns:
+            如果文本包含连击关键词则返回 True
+        """
+        if not text:
+            return False
+        clean_text = cls._clean_html(text)
+        return bool(re.search(r"连击|Combo", clean_text, re.IGNORECASE))
+
+    @classmethod
+    def parse_combo(cls, text: str) -> Optional[str]:
+        """解析连击效果文本
+
+        例如："<b>连击：</b>造成2点伤害" 返回 "造成2点伤害"
+
+        Returns:
+            连击效果文本，如果没有连击则返回 None
+        """
+        if not text:
+            return None
+
+        clean_text = cls._clean_html(text)
+
+        # 尝试匹配连击模式
+        for pattern, factory in cls.PATTERNS.get("combo", []):
+            match = re.search(pattern, clean_text, re.IGNORECASE)
+            if match:
+                try:
+                    return factory(match)
+                except (ValueError, IndexError):
+                    continue
+
+        return None
+
+    @classmethod
+    def has_discover(cls, text: str) -> bool:
+        """检查是否有发现效果
+
+        Returns:
+            如果文本包含发现关键词则返回 True
+        """
+        if not text:
+            return False
+        clean_text = cls._clean_html(text)
+        return bool(re.search(r"发现|Discover", clean_text, re.IGNORECASE))
+
+    @classmethod
+    def parse_discover(cls, text: str) -> Optional[str]:
+        """解析发现效果
+
+        例如："<b>发现</b>一张法术牌" 返回 "法术"
+
+        Returns:
+            发现的卡牌类型限制，如果没有限制则返回 "any"
+        """
+        if not text:
+            return None
+
+        clean_text = cls._clean_html(text)
+
+        # 尝试匹配发现模式
+        for pattern, factory in cls.PATTERNS.get("discover", []):
+            match = re.search(pattern, clean_text, re.IGNORECASE)
+            if match:
+                try:
+                    card_type = factory(match)
+                    # 空字符串表示任意类型
+                    if not card_type:
+                        return "any"
+                    # 标准化卡牌类型
+                    card_type_lower = card_type.lower()
+                    if "法术" in card_type_lower or "spell" in card_type_lower:
+                        return "spell"
+                    elif "随从" in card_type_lower or "minion" in card_type_lower:
+                        return "minion"
+                    elif "武器" in card_type_lower or "weapon" in card_type_lower:
+                        return "weapon"
+                    return "any"
+                except (ValueError, IndexError):
+                    continue
+
+        return None
 
     @classmethod
     def requires_target(cls, text: str) -> bool:

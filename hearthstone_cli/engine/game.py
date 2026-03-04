@@ -1,5 +1,6 @@
 """Game logic for Hearthstone CLI game."""
 
+import re
 from dataclasses import replace
 from typing import FrozenSet, List, Optional
 
@@ -99,6 +100,14 @@ class GameLogic:
             attacks_this_turn=tuple(),
             board=new_board,
             fatigue_count=new_fatigue_count
+            # cards_played_this_turn 保持不变（表示上回合打出的卡牌数）
+        )
+
+        # 重置结束回合玩家的打出卡牌计数
+        old_active = state.active_player
+        players[old_active] = replace(
+            players[old_active],
+            cards_played_this_turn=0
         )
 
         return replace(
@@ -442,6 +451,120 @@ class GameLogic:
         return replace(state, players=tuple(players))
 
     @classmethod
+    def _apply_combo_effect(cls, state: GameState, player_idx: int, card, target) -> GameState:
+        """应用连击效果"""
+        from hearthstone_cli.cards.parser import EffectParser
+
+        # 解析连击效果文本
+        combo_text = EffectParser.parse_combo(card.text)
+        if not combo_text:
+            return state
+
+        # 解析连击效果中的具体效果（简化处理）
+        # 常见的连击效果：造成额外伤害、抽牌、获得 buff 等
+        players = list(state.players)
+        player = players[player_idx]
+        enemy = players[1 - player_idx]
+
+        # 尝试解析伤害效果
+        damage_patterns = [
+            r"造成\s*(\d+)\s*点伤害",
+            r"Deal\s+(\d+)\s+damage",
+        ]
+        for pattern in damage_patterns:
+            match = re.search(pattern, combo_text, re.IGNORECASE)
+            if match:
+                damage = int(match.group(1))
+                # 对敌方英雄造成伤害（简化处理）
+                new_health = max(0, enemy.hero.health - damage)
+                players[1 - player_idx] = replace(
+                    enemy,
+                    hero=replace(enemy.hero, health=new_health)
+                )
+                state = replace(state, players=tuple(players))
+                break
+
+        # 尝试解析抽牌效果
+        draw_patterns = [
+            r"抽\s*(\d+)\s*张牌",
+            r"Draw\s+(\d+)\s+cards?",
+        ]
+        for pattern in draw_patterns:
+            match = re.search(pattern, combo_text, re.IGNORECASE)
+            if match:
+                count = int(match.group(1))
+                # 抽牌逻辑简化处理
+                for _ in range(count):
+                    if player.deck:
+                        card_drawn = player.deck[0]
+                        if len(player.hand) < 10:
+                            player = replace(
+                                player,
+                                hand=player.hand + (card_drawn,),
+                                deck=player.deck[1:]
+                            )
+                        else:
+                            player = replace(player, deck=player.deck[1:])
+                players[player_idx] = player
+                state = replace(state, players=tuple(players))
+                break
+
+        return state
+
+    @classmethod
+    def _apply_discover(cls, state: GameState, player_idx: int, card) -> GameState:
+        """应用发现效果（简化处理）
+
+        实际游戏中发现会暂停游戏让玩家选择，这里简化为随机选择一张。
+        """
+        from hearthstone_cli.cards.parser import EffectParser
+        from hearthstone_cli.cards.database import CardDatabase
+        from hearthstone_cli.engine.state import Card as StateCard
+
+        # 解析发现的卡牌类型限制
+        card_type = EffectParser.parse_discover(card.text) or "any"
+
+        # 获取数据库中的卡牌
+        db = CardDatabase()
+        all_cards = db.get_all_cards()
+
+        # 过滤符合条件的卡牌
+        candidates = []
+        for c in all_cards:
+            type_str = c.card_type.value if hasattr(c.card_type, 'value') else str(c.card_type)
+            if card_type == "any" or card_type in type_str.lower():
+                candidates.append(c)
+
+        if not candidates:
+            return state
+
+        # 随机选择一张（简化处理，实际应该是三选一）
+        import random
+        discovered_card_data = random.choice(candidates[:3] if len(candidates) >= 3 else candidates)
+
+        # 创建状态卡牌
+        discovered_card = StateCard(
+            card_id=discovered_card_data.card_id,
+            name=discovered_card_data.name,
+            cost=discovered_card_data.cost,
+            card_type=discovered_card_data.card_type.value if hasattr(discovered_card_data.card_type, 'value') else str(discovered_card_data.card_type),
+            attack=discovered_card_data.attack,
+            health=discovered_card_data.health,
+            text=discovered_card_data.text
+        )
+
+        # 加入手牌（如果手牌未满）
+        players = list(state.players)
+        player = players[player_idx]
+
+        if len(player.hand) < 10:
+            player = replace(player, hand=player.hand + (discovered_card,))
+            players[player_idx] = player
+            state = replace(state, players=tuple(players))
+
+        return state
+
+    @classmethod
     def _return_to_hand(cls, state: GameState, player_idx: int, minion_idx: int) -> GameState:
         """将随从返回手牌"""
         from hearthstone_cli.engine.state import Card
@@ -718,6 +841,16 @@ class GameLogic:
         elif card_type_str == "WEAPON":
             state = cls._apply_weapon(state, action.player, card)
 
+        # 处理连击效果
+        # 注意：在增加计数之前检查，因为连击要求本回合已打出过其他牌
+        if player.cards_played_this_turn > 0:
+            if card.text and EffectParser.has_combo(card.text):
+                state = cls._apply_combo_effect(state, action.player, card, action.target)
+
+        # 处理发现效果
+        if card.text and EffectParser.has_discover(card.text):
+            state = cls._apply_discover(state, action.player, card)
+
         # 处理过载效果
         overload_amount = EffectParser.parse_overload(card.text)
         if overload_amount > 0:
@@ -731,6 +864,16 @@ class GameLogic:
             player = replace(player, mana=new_mana)
             players[action.player] = player
             state = replace(state, players=tuple(players))
+
+        # 增加本回合打出卡牌计数（用于连击）
+        players = list(state.players)
+        player = players[action.player]
+        player = replace(
+            player,
+            cards_played_this_turn=player.cards_played_this_turn + 1
+        )
+        players[action.player] = player
+        state = replace(state, players=tuple(players))
 
         return state
 
