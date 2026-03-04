@@ -1300,7 +1300,7 @@ class GameEngine {
 
     player.hand.forEach(card => {
       // 排除腐蚀卡牌本身和奥秘
-      if (card !== corruptCard && card.type !== 'spell') {
+      if (card !== corruptCard && !CardType.isSpell(card)) {
         if (card.cost < minCost) {
           minCost = card.cost;
           minCostCard = card;
