@@ -163,6 +163,28 @@ router.get('/discover', (req, res) => {
   });
 });
 
+// 适应选择
+router.post('/adapt', (req, res) => {
+  const { optionIndex } = req.body;
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+  const gameState = currentGame.selectAdaptOption(optionIndex);
+  res.json(gameState);
+});
+
+// 获取当前适应状态
+router.get('/adapt', (req, res) => {
+  if (!currentGame || !currentGame.state.pendingAdapt) {
+    return res.json({ pending: false });
+  }
+  res.json({
+    pending: true,
+    card: currentGame.state.pendingAdapt.card,
+    options: currentGame.state.pendingAdapt.options
+  });
+});
+
 // 保存游戏
 router.post('/save', (req, res) => {
   const { profileId = 'default' } = req.body;

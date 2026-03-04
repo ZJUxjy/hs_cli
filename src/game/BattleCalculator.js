@@ -129,9 +129,10 @@ class BattleCalculator {
    * 随从战斗
    * @param {object} minion1 - 攻击随从
    * @param {object} minion2 - 防御随从
+   * @param {object} game - 游戏引擎实例（可选）
    * @returns {object} 战斗结果
    */
-  battle(minion1, minion2) {
+  battle(minion1, minion2, game) {
     // 剧毒检查
     if (minion1.poisonous) {
       minion2.health = 0;
@@ -157,7 +158,40 @@ class BattleCalculator {
       minion2.divine_shield = false;
       Logger.info(`${minion2.name} 的圣盾被打破`);
     } else {
+      // 记录攻击前的生命值，用于检测超杀
+      const preAttackHealth = minion2.health;
       this.calculateDamage(minion2, minion1.attack);
+
+      // 检测超杀 - 当伤害超过目标生命值时触发（攻击前生命值小于攻击力）
+      if (minion1.overkill && preAttackHealth < minion1.attack && minion1.owner && game) {
+        Logger.info(`${minion1.name} 超杀触发!（溢出 ${minion1.attack - preAttackHealth} 点）`);
+
+        const overkillEffect = minion1.overkillEffect;
+        if (overkillEffect) {
+          const owner = minion1.owner;
+          const opponent = owner === game.state.player ? game.state.ai : game.state.player;
+
+          // 执行超杀效果
+          if (overkillEffect.damage && opponent) {
+            // 对随机敌人造成伤害
+            const targets = [...opponent.field];
+            if (targets.length > 0) {
+              const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+              this.calculateDamage(randomTarget, overkillEffect.damage);
+              Logger.info(`超杀对 ${randomTarget.name} 造成 ${overkillEffect.damage} 点伤害`);
+            } else {
+              // 没有随从则对英雄造成伤害
+              opponent.health -= overkillEffect.damage;
+              Logger.info(`超杀对 ${opponent.name} 英雄造成 ${overkillEffect.damage} 点伤害`);
+            }
+          }
+
+          if (overkillEffect.summon) {
+            // 召唤随从
+            game.summonMinion(owner, overkillEffect.summon);
+          }
+        }
+      }
     }
 
     // 检查死亡（需要在吸血和荣誉击杀之前）

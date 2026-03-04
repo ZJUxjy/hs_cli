@@ -470,11 +470,60 @@ class GameUI {
         return;
       }
 
+      // 检查是否有待处理的适应
+      if (this.gameState.pendingAdapt) {
+        this.showAdaptDialog();
+        return;
+      }
+
       this.selectedCardIndex = null;
       this.render();
       this.showMessage(i18n.t('ui.game.cardPlayed'));
     } catch (err) {
       console.error('Failed to play card:', err);
+      this.showMessage(i18n.t('ui.game.playFailed'));
+    }
+  }
+
+  showAdaptDialog() {
+    const dialog = document.getElementById('adapt-dialog');
+    const adaptOptionsContainer = document.getElementById('adapt-options');
+
+    if (!dialog || !this.gameState.pendingAdapt) return;
+
+    const { options, card } = this.gameState.pendingAdapt;
+
+    // 显示卡牌名称
+    const titleEl = dialog.querySelector('h3');
+    if (titleEl) {
+      titleEl.textContent = `${card.name} - 选择进化`;
+    }
+
+    // 生成选项按钮
+    adaptOptionsContainer.innerHTML = options.map((opt, idx) => `
+      <button class="adapt-option-btn" data-index="${idx}">${opt.text}</button>
+    `).join('');
+
+    // 绑定选项点击事件
+    adaptOptionsContainer.querySelectorAll('.adapt-option-btn').forEach(btn => {
+      btn.onclick = () => {
+        const idx = parseInt(btn.dataset.index);
+        this.makeAdaptChoice(idx);
+      };
+    });
+
+    dialog.classList.remove('hidden');
+  }
+
+  async makeAdaptChoice(optionIndex) {
+    try {
+      this.gameState = await API.selectAdapt(optionIndex);
+      const dialog = document.getElementById('adapt-dialog');
+      if (dialog) dialog.classList.add('hidden');
+      this.render();
+      this.showMessage(i18n.t('ui.game.adaptChosen'));
+    } catch (err) {
+      console.error('Failed to make adapt choice:', err);
       this.showMessage(i18n.t('ui.game.playFailed'));
     }
   }

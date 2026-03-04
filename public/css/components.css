@@ -142,6 +142,34 @@
   box-shadow: 0 0 20px rgba(240, 192, 64, 0.2);
 }
 
+/* 适应选项 */
+.adapt-options {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.adapt-option-btn {
+  padding: var(--space-4) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  background: linear-gradient(180deg, rgba(42, 42, 74, 0.8) 0%, rgba(26, 26, 46, 0.9) 100%);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  min-width: 140px;
+}
+
+.adapt-option-btn:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 20px rgba(240, 192, 64, 0.2);
+}
+
 /* ===== Toast 通知 ===== */
 .toast-container {
   position: fixed;

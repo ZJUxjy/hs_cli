@@ -414,7 +414,7 @@ class AIEngine {
 
     if (target.health !== undefined) {
       // 攻击随从
-      BattleCalculator.battle(attacker, target);
+      BattleCalculator.battle(attacker, target, this.game);
 
       // 清理死亡随从
       state.ai.field = state.ai.field.filter(m => m.health > 0);

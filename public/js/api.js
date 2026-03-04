@@ -166,6 +166,22 @@ const API = {
     return this._handleResponse(res);
   },
 
+  // 适应选择
+  async selectAdapt(optionIndex) {
+    const res = await fetch(`${this.baseUrl}/game/adapt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ optionIndex })
+    });
+    return this._handleResponse(res);
+  },
+
+  // 获取当前适应状态
+  async getAdaptState() {
+    const res = await fetch(`${this.baseUrl}/game/adapt`);
+    return this._handleResponse(res);
+  },
+
   // 存档 API
   async saveGame(profileId = 'default') {
     const res = await fetch(`${this.baseUrl}/game/save`, {
