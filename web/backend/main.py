@@ -20,12 +20,12 @@ app.add_middleware(
 )
 
 # Include routers
-from web.backend.routers import cards, game
-# from web.backend.routers import deck, replay
+from web.backend.routers import cards, game, deck
+# from web.backend.routers import replay
 
 app.include_router(cards.router, prefix=f"{API_PREFIX}/cards", tags=["cards"])
 app.include_router(game.router, prefix=f"{API_PREFIX}/game", tags=["game"])
-# app.include_router(deck.router, prefix=f"{API_PREFIX}/decks", tags=["deck"])
+app.include_router(deck.router, prefix=f"{API_PREFIX}/decks", tags=["deck"])
 # app.include_router(replay.router, prefix=f"{API_PREFIX}/replay", tags=["replay"])
 
 
