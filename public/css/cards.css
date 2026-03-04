@@ -1,0 +1,533 @@
+/* cards.css - 卡牌组件样式 */
+
+/* ===== 基础卡牌样式 ===== */
+.card {
+  position: relative;
+  width: var(--card-width);
+  height: var(--card-height);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-mystic) 100%);
+  border: 3px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(240, 192, 64, 0.15);
+  z-index: 100;
+}
+
+/* ===== 卡牌稀有度样式 ===== */
+.card.rarity-common {
+  border-color: var(--rarity-common);
+}
+
+.card.rarity-rare {
+  border-color: var(--rarity-rare);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(74, 144, 217, 0.2);
+}
+
+.card.rarity-epic {
+  border-color: var(--rarity-epic);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 15px rgba(155, 74, 217, 0.3);
+}
+
+.card.rarity-legendary {
+  border-color: var(--rarity-legendary);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px var(--rarity-legendary-glow);
+  animation: legendaryGlow 3s ease-in-out infinite;
+}
+
+@keyframes legendaryGlow {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px var(--rarity-legendary-glow);
+  }
+  50% {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 30px var(--rarity-legendary-glow), 0 0 45px rgba(240, 192, 64, 0.3);
+  }
+}
+
+/* ===== 卡牌顶部 - 费用 ===== */
+.card-header {
+  position: relative;
+  padding: var(--space-2);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.card-cost {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-title);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.card-cost::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--mana-blue) 0%, #3a7bc8 100%);
+  border-radius: 50%;
+  box-shadow:
+    0 2px 8px rgba(74, 144, 217, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  z-index: -1;
+}
+
+.card-cost::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent);
+  border-radius: 50%;
+  z-index: -2;
+}
+
+/* 高费用警告 */
+.card-cost.high-cost::before {
+  background: linear-gradient(135deg, #d94a4a 0%, #b03030 100%);
+  box-shadow: 0 2px 8px rgba(217, 74, 74, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* ===== 卡牌名称 ===== */
+.card-name {
+  padding: 0 var(--space-3);
+  font-family: var(--font-title);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== 卡牌原画区域 ===== */
+.card-art {
+  flex: 1;
+  margin: var(--space-2) var(--space-3);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-art::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.3) 100%);
+}
+
+.card-art-placeholder {
+  font-size: 2.5rem;
+  opacity: 0.3;
+}
+
+/* ===== 卡牌描述 ===== */
+.card-description {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.4;
+  min-height: 40px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== 卡牌底部 - 攻击力和生命值 ===== */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  margin-top: auto;
+}
+
+.card-attack {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--attack-amber) 0%, #b08030 100%);
+  border-radius: 50%;
+  font-family: var(--font-title);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: #000;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.card-attack::before {
+  content: '⚔';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  opacity: 0.5;
+}
+
+.card-health {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--health-red) 0%, #b03030 100%);
+  border-radius: 50%;
+  font-family: var(--font-title);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.card-health::before {
+  content: '♥';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  opacity: 0.5;
+}
+
+/* 武器耐久度 */
+.card-durability {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #888888 0%, #666666 100%);
+  border-radius: 50%;
+  font-family: var(--font-title);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== 卡牌类型标识 ===== */
+.card-type-badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  padding: 2px 6px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-secondary);
+}
+
+.card-type-badge.minion { color: var(--attack-amber); }
+.card-type-badge.spell { color: var(--mana-blue); }
+.card-type-badge.weapon { color: var(--rarity-common); }
+
+/* ===== 卡牌机制图标 ===== */
+.card-mechanics {
+  position: absolute;
+  top: var(--space-2);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+}
+
+.mechanic-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.mechanic-badge.taunt {
+  background: linear-gradient(135deg, var(--attack-amber), #b08030);
+  color: #000;
+}
+
+.mechanic-badge.charge {
+  background: linear-gradient(135deg, #d94a4a, #b03030);
+  color: white;
+}
+
+.mechanic-badge.divine-shield {
+  background: linear-gradient(135deg, #f0c040, #d0a020);
+  color: #000;
+}
+
+.mechanic-badge.stealth {
+  background: linear-gradient(135deg, #888888, #666666);
+  color: white;
+}
+
+.mechanic-badge.windfury {
+  background: linear-gradient(135deg, var(--mana-blue), #3070c0);
+  color: white;
+}
+
+/* ===== 卡牌背面 ===== */
+.card-back {
+  background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+  border-color: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-back::before {
+  content: '';
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, var(--accent-gold) 0%, transparent 70%);
+  opacity: 0.3;
+}
+
+.card-back::after {
+  content: '◆';
+  position: absolute;
+  font-size: 3rem;
+  color: var(--accent-gold);
+  opacity: 0.5;
+}
+
+/* ===== 手牌中的卡牌 ===== */
+.hand .card {
+  flex-shrink: 0;
+  transform-origin: bottom center;
+}
+
+.hand .card:hover {
+  transform: translateY(-20px) scale(1.08);
+  z-index: 200;
+}
+
+.hand .card.can-play {
+  border-color: #4ad94a;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 15px rgba(74, 217, 74, 0.3);
+  animation: canPlayPulse 2s ease-in-out infinite;
+}
+
+.hand .card.selected {
+  transform: translateY(-30px) scale(1.1);
+  border-color: var(--accent-gold);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 30px var(--accent-gold-glow);
+  z-index: 201;
+}
+
+/* ===== 卡牌列表中的小卡牌 ===== */
+.card-list .card {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 120/168;
+}
+
+/* ===== 卡牌详情模态框 ===== */
+.card-detail-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.card-detail-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.card-detail-content {
+  background: linear-gradient(180deg, var(--bg-mystic) 0%, var(--bg-deep) 100%);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px var(--accent-gold-glow);
+  transform: scale(0.9);
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.card-detail-modal.active .card-detail-content {
+  transform: scale(1);
+}
+
+.card-detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.card-detail-cost {
+  width: 48px;
+  height: 48px;
+  font-size: var(--text-xl);
+}
+
+.card-detail-title h3 {
+  font-family: var(--font-title);
+  font-size: var(--text-xl);
+  color: var(--accent-gold);
+  margin-bottom: var(--space-1);
+}
+
+.card-detail-title .card-type {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.card-detail-description {
+  background: rgba(0, 0, 0, 0.3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.card-detail-stats {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+.card-detail-stats .stat {
+  width: 48px;
+  height: 48px;
+  font-size: var(--text-xl);
+}
+
+.card-detail-info {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* ===== 拖拽时的卡牌 ===== */
+.card.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  cursor: grabbing;
+}
+
+.card.drag-over {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 20px var(--accent-gold-glow);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  :root {
+    --card-width: 80px;
+    --card-height: 112px;
+  }
+
+  .card-cost {
+    width: 28px;
+    height: 28px;
+    font-size: var(--text-base);
+  }
+
+  .card-name {
+    font-size: var(--text-xs);
+  }
+
+  .card-description {
+    font-size: 10px;
+    min-height: 30px;
+  }
+
+  .card-attack,
+  .card-health,
+  .card-durability {
+    width: 24px;
+    height: 24px;
+    font-size: var(--text-sm);
+  }
+
+  .hand .card:hover {
+    transform: translateY(-15px) scale(1.05);
+  }
+
+  .hand .card.selected {
+    transform: translateY(-20px) scale(1.08);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --card-width: 65px;
+    --card-height: 91px;
+  }
+
+  .card-cost {
+    width: 24px;
+    height: 24px;
+    font-size: var(--text-sm);
+  }
+
+  .card-name {
+    font-size: 10px;
+  }
+
+  .card-description {
+    display: none;
+  }
+
+  .card-attack,
+  .card-health,
+  .card-durability {
+    width: 20px;
+    height: 20px;
+    font-size: var(--text-xs);
+  }
+}
