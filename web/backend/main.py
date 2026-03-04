@@ -19,9 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers (will be added later)
-# from web.backend.routers import cards, deck, game, replay
-# app.include_router(cards.router, prefix=f"{API_PREFIX}/cards", tags=["cards"])
+# Include routers
+from web.backend.routers import cards
+# from web.backend.routers import deck, game, replay
+
+app.include_router(cards.router, prefix=f"{API_PREFIX}/cards", tags=["cards"])
 # app.include_router(deck.router, prefix=f"{API_PREFIX}/decks", tags=["deck"])
 # app.include_router(game.router, prefix=f"{API_PREFIX}/game", tags=["game"])
 # app.include_router(replay.router, prefix=f"{API_PREFIX}/replay", tags=["replay"])
