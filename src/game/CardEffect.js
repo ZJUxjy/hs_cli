@@ -640,11 +640,34 @@ class CardEffect {
     const evolveCount = effect.count || 1;
 
     for (let i = 0; i < evolveCount && player.field.length > 0; i++) {
-      const randomMinion = player.field[Math.floor(Math.random() * player.field.length)];
-      randomMinion.attack += 1;
-      randomMinion.health += 1;
-      randomMinion.maxHealth = Math.max(randomMinion.maxHealth + 1, randomMinion.health);
-      Logger.info(`${randomMinion.name} 进化了! (+1/+1)`);
+      const randomIdx = Math.floor(Math.random() * player.field.length);
+      const minion = player.field[randomIdx];
+
+      // 获取更高费用的随机随从
+      const allCards = CardData.getAllCards();
+      const higherCostCards = allCards.filter(c =>
+        c.type === 'MINION' &&
+        c.cost > (minion.cost || 0) &&
+        (c.cardClass === player.playerClass || c.cardClass === 'NEUTRAL')
+      );
+
+      if (higherCostCards.length > 0) {
+        const newCard = higherCostCards[Math.floor(Math.random() * higherCostCards.length)];
+        minion.id = newCard.id;
+        minion.name = newCard.name;
+        minion.attack = newCard.attack;
+        minion.health = newCard.health;
+        minion.maxHealth = newCard.health;
+        minion.cost = newCard.cost;
+        minion.abilities = newCard.abilities || [];
+        Logger.info(`${minion.name} 进化为 ${newCard.name}!`);
+      } else {
+        // 如果没有更高费用的卡牌，则+1/+1
+        minion.attack += 1;
+        minion.health += 1;
+        minion.maxHealth += 1;
+        Logger.info(`${minion.name} 进化了! (+1/+1)`);
+      }
     }
     return true;
   }
