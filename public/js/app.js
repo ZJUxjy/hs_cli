@@ -155,6 +155,13 @@ class App {
       this.showScreen('menu');
     });
 
+    // 开始游戏按钮
+    document.getElementById('btn-start-game').addEventListener('click', () => {
+      if (this.selectedDeckId) {
+        this.selectDeckAndStart(this.selectedDeckId);
+      }
+    });
+
     document.getElementById('btn-back-from-builder').addEventListener('click', () => {
       this.showScreen('menu');
     });
@@ -210,6 +217,9 @@ class App {
 
   async loadDeckList() {
     const deckList = document.getElementById('deck-list');
+    const startBtn = document.getElementById('btn-start-game');
+    this.selectedDeckId = null;
+
     try {
       const decks = await API.getDecks();
 
@@ -220,33 +230,32 @@ class App {
 
       deckList.innerHTML = decks.map(deck => `
         <div class="deck-item" data-id="${deck.id}">
+          <button class="deck-delete-btn" data-id="${deck.id}" title="删除">&times;</button>
           <div class="deck-info-wrapper">
             <div class="deck-name">${deck.name}</div>
-            <div class="deck-info">${this.getHeroName(deck.hero)} - ${deck.cardCount || 0}${i18n.t('ui.deck.cards')}</div>
-          </div>
-          <div class="deck-actions">
-            <button class="deck-edit-btn" data-id="${deck.id}">${i18n.t('ui.deck.edit')}</button>
-            <button class="deck-play-btn" data-id="${deck.id}">${i18n.t('ui.deck.startGame')}</button>
-            <button class="deck-delete-btn" data-id="${deck.id}">${i18n.t('ui.deck.delete')}</button>
+            <div class="deck-info">${this.getHeroName(deck.hero)} - ${deck.cardCount || 0}张</div>
           </div>
         </div>
       `).join('');
 
-      // Add click handlers - 编辑
-      deckList.querySelectorAll('.deck-edit-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const deckId = btn.dataset.id;
-          await this.loadDeckToBuilder(deckId);
-        });
-      });
+      // Add click handlers - 选择卡组
+      deckList.querySelectorAll('.deck-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          if (e.target.classList.contains('deck-delete-btn')) return;
 
-      // 开始游戏
-      deckList.querySelectorAll('.deck-play-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const deckId = btn.dataset.id;
-          this.selectDeckAndStart(deckId);
+          // 取消之前的选择
+          deckList.querySelectorAll('.deck-item').forEach(i => i.classList.remove('selected'));
+
+          // 选中当前卡组
+          item.classList.add('selected');
+          this.selectedDeckId = item.dataset.id;
+
+          // 启用开始游戏按钮
+          if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.style.opacity = '1';
+            startBtn.style.cursor = 'pointer';
+          }
         });
       });
 
@@ -260,6 +269,13 @@ class App {
           }
         });
       });
+
+      // 禁用开始游戏按钮
+      if (startBtn) {
+        startBtn.disabled = true;
+        startBtn.style.opacity = '0.5';
+        startBtn.style.cursor = 'not-allowed';
+      }
     } catch (err) {
       console.error('Failed to load decks:', err);
       deckList.innerHTML = `<p style="text-align: center; color: #d94a4a;">${i18n.t('ui.deck.loadFailed')}</p>`;
