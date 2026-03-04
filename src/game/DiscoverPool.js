@@ -1,6 +1,7 @@
 /**
  * 发现卡牌池管理
  */
+const CardType = require('../utils/cardUtils');
 
 class DiscoverPool {
   constructor(game) {
@@ -20,13 +21,13 @@ class DiscoverPool {
 
     switch (type) {
       case 'spell':
-        pool = CardData.getAllCards().filter(c => c.type === 'spell');
+        pool = CardData.getAllCards().filter(c => CardType.isSpell(c));
         break;
       case 'minion':
-        pool = CardData.getAllCards().filter(c => c.type === 'minion');
+        pool = CardData.getAllCards().filter(c => CardType.isMinion(c));
         break;
       case 'weapon':
-        pool = CardData.getAllCards().filter(c => c.type === 'weapon');
+        pool = CardData.getAllCards().filter(c => CardType.isWeapon(c));
         break;
       case 'class':
         pool = CardData.getCardsByClass(playerClass);
