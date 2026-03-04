@@ -39,7 +39,8 @@ class CardEffect {
     COMBO: 'combo',
     DIVINE_SHIELD: 'divine_shield',
     IMMUNE: 'immune',
-    CHOOSE: 'choose'
+    CHOOSE: 'choose',
+    LIFESTEAL: 'lifesteal'
   };
 
   constructor(gameEngine) {
@@ -149,6 +150,8 @@ class CardEffect {
           return this.executeMana(effect, context);
         case 'choose':
           return this.executeChoose(effect, context);
+        case 'lifesteal':
+          return this.executeLifesteal(effect, context);
         default:
           Logger.warn(`未知效果类型: ${effect.type}`);
           return false;
@@ -853,6 +856,18 @@ class CardEffect {
       player.health = Math.min(player.health + healAmount, player.maxHealth);
       Logger.info(`${player.name} 吸取 ${healAmount} 点生命`);
     }
+  }
+
+  /**
+   * 执行吸血效果
+   */
+  executeLifesteal(effect, context) {
+    // 吸血效果需要标记到攻击/伤害上
+    // 实际处理在 BattleCalculator 中
+    if (context.target) {
+      context.target.lifesteal = true;
+    }
+    return true;
   }
 
   /**

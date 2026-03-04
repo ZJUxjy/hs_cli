@@ -391,13 +391,16 @@ class AIEngine {
   executeAttack(action) {
     const attacker = action.attacker;
     const target = action.target;
+    const state = this.game.getGameState();
+
+    // 设置 attacker 的 owner 用于吸血机制
+    attacker.owner = state.ai;
 
     if (target.health !== undefined) {
       // 攻击随从
       BattleCalculator.battle(attacker, target);
-      
+
       // 清理死亡随从
-      const state = this.game.getGameState();
       state.ai.field = state.ai.field.filter(m => m.health > 0);
       state.player.field = state.player.field.filter(m => m.health > 0);
     } else {

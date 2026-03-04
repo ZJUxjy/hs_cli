@@ -108,5 +108,15 @@
     "description": "对所有敌方随从造成4点伤害",
     "effect": { "type": "aoe_damage", "value": 4 },
     "classes": ["mage"]
+  },
+  {
+    "id": "mage_vampire",
+    "name": "吸血法师",
+    "type": "minion",
+    "cost": 4,
+    "rarity": "rare",
+    "description": "3/5，吸血",
+    "effect": { "type": "summon", "attack": 3, "health": 5, "lifesteal": true },
+    "classes": ["mage"]
   }
 ]

@@ -160,6 +160,15 @@ class BattleCalculator {
       this.calculateDamage(minion2, minion1.attack);
     }
 
+    // 处理吸血 - 攻击者吸取生命
+    if (minion1.lifesteal || (minion1.card && minion1.card.effect && minion1.card.effect.lifesteal)) {
+      const healAmount = Math.min(minion1.attack, minion2.health > 0 ? minion2.attack : minion1.attack);
+      if (minion1.owner) {
+        minion1.owner.health = Math.min(minion1.owner.health + healAmount, minion1.owner.maxHealth);
+        Logger.info(`${minion1.owner.name} 吸血恢复 ${healAmount} 点生命值`);
+      }
+    }
+
     // 检查死亡
     const minion1Dead = minion1.health <= 0;
     const minion2Dead = minion2.health <= 0;
@@ -215,6 +224,17 @@ class BattleCalculator {
 
     const damage = this.calculateDamage(targetPlayer, attacker.attack);
     attacker.hasAttacked = true;
+
+    // 处理吸血
+    if (attacker.lifesteal || (attacker.card && attacker.card.effect && attacker.card.effect.lifesteal)) {
+      const healAmount = Math.min(damage, targetPlayer.health);
+      // 获取攻击者的所属玩家 - 通过参数传递
+      if (attacker.owner) {
+        attacker.owner.health = Math.min(attacker.owner.health + healAmount, attacker.owner.maxHealth);
+        Logger.info(`${attacker.owner.name} 吸血恢复 ${healAmount} 点生命值`);
+      }
+    }
+
     return damage;
   }
 

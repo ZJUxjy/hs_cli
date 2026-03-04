@@ -821,7 +821,7 @@ class GameEngine {
       Logger.info(`${target.name} 被剧毒杀死`);
     } else if (target.armor !== undefined) {
       // 攻击敌方英雄
-      battleCalc.attackHero({ attack: weapon.attack, poisonous: weapon.poisonous }, target);
+      battleCalc.attackHero({ attack: weapon.attack, poisonous: weapon.poisonous, owner: player }, target);
     }
 
     // 减少耐久度
