@@ -373,15 +373,6 @@ body {
   }
 }
 
-/* ===== 高对比度模式 ===== */
-@media (prefers-contrast: high) {
-  :root {
-    --border-subtle: rgba(255, 255, 255, 0.3);
-    --border-standard: rgba(255, 255, 255, 0.5);
-    --text-secondary: rgba(255, 255, 255, 0.9);
-  }
-}
-
 /* ===== 减少动画 ===== */
 @media (prefers-reduced-motion: reduce) {
   *,

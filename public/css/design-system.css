@@ -42,6 +42,7 @@
   --armor-gold: #f0c040;
   --attack-amber: #d9a74a;
   --durability-gray: #888888;
+  --accent-green: #4ad94a;
 
   /* 稀有度色彩 */
   --rarity-common: #8a8a8a;
@@ -167,3 +168,12 @@
 .rarity-rare { --rarity-color: var(--rarity-rare); }
 .rarity-epic { --rarity-color: var(--rarity-epic); }
 .rarity-legendary { --rarity-color: var(--rarity-legendary); }
+
+/* ===== 高对比度模式 ===== */
+@media (prefers-contrast: high) {
+  :root {
+    --border-subtle: rgba(255, 255, 255, 0.3);
+    --border-standard: rgba(255, 255, 255, 0.5);
+    --text-secondary: rgba(255, 255, 255, 0.9);
+  }
+}
