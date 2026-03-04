@@ -847,24 +847,6 @@ class CardEffect {
   }
 
   /**
-   * 处理吸血
-   */
-  handleLifesteal(attacker, target, context) {
-    const player = context.player;
-    if (!player) {
-      Logger.warn('吸血处理失败: 玩家不存在');
-      return;
-    }
-    if (!attacker) {
-      Logger.warn('吸血处理失败: 攻击者不存在');
-      return;
-    }
-    const healAmount = attacker.attack || 0;
-    player.health = Math.min(player.health + healAmount, player.maxHealth);
-    Logger.info(`${player.name} 吸取 ${healAmount} 点生命`);
-  }
-
-  /**
    * 执行吸血效果
    */
   executeLifesteal(effect, context) {

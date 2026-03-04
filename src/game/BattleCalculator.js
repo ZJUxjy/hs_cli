@@ -160,18 +160,7 @@ class BattleCalculator {
       this.calculateDamage(minion2, minion1.attack);
     }
 
-    // 处理吸血 - 攻击者吸取生命
-    if (minion1.lifesteal || (minion1.card && minion1.card.effect && minion1.card.effect.lifesteal)) {
-      const healAmount = Math.min(minion1.attack, minion2.health);
-      if (minion1.owner) {
-        minion1.owner.health = Math.min(minion1.owner.health + healAmount, minion1.owner.maxHealth);
-        Logger.info(`${minion1.owner.name} 吸血恢复 ${healAmount} 点生命值`);
-      } else {
-        Logger.warn('吸血处理失败: 攻击者 owner 不存在');
-      }
-    }
-
-    // 检查死亡
+    // 检查死亡（需要在吸血之前，因为吸血量取决于目标是否死亡）
     const minion1Dead = minion1.health <= 0;
     const minion2Dead = minion2.health <= 0;
 
@@ -180,6 +169,26 @@ class BattleCalculator {
     }
     if (minion2Dead) {
       Logger.info(`${minion2.name} 阵亡`);
+    }
+
+    // 处理吸血 - 攻击者吸取生命
+    // 如果目标死亡，使用攻击力；否则使用实际伤害量（不能超过攻击力）
+    if (minion1.lifesteal || (minion1.card && minion1.card.effect && minion1.card.effect.lifesteal)) {
+      let healAmount;
+      if (minion2Dead) {
+        // 目标死亡，吸取等同于攻击力的生命
+        healAmount = minion1.attack;
+      } else {
+        // 目标未死亡，吸取实际造成的伤害（不超过攻击力）
+        const actualDamage = minion2.maxHealth - minion2.health;
+        healAmount = Math.min(actualDamage, minion1.attack);
+      }
+      if (minion1.owner) {
+        minion1.owner.health = Math.min(minion1.owner.health + healAmount, minion1.owner.maxHealth);
+        Logger.info(`${minion1.owner.name} 吸血恢复 ${healAmount} 点生命值`);
+      } else {
+        Logger.warn('吸血处理失败: 攻击者 owner 不存在');
+      }
     }
 
     return {
