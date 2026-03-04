@@ -54,7 +54,8 @@ class CardEffect {
     CORRUPT: 'corrupt',
     SPELLBURST: 'spellburst',
     TWIN: 'twin',
-    HONORABLE_KILL: 'honorable_kill'
+    HONORABLE_KILL: 'honorable_kill',
+    HERO: 'hero'
   };
 
   constructor(gameEngine) {

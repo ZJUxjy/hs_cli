@@ -239,22 +239,28 @@ class GameScreen {
     const player = state.player;
 
     // 敌方信息
-    this.boxes.enemyHero.setContent(
-      `敌方 (${ai.hero})\n` +
+    let enemyHeroText = `敌方 (${ai.hero})\n` +
       `生命: ${ai.health}/${ai.maxHealth}\n` +
       `护甲: ${ai.armor}\n` +
       `法力: ${ai.mana}/${ai.maxMana}\n` +
-      `随从: ${ai.field.length}/7`
-    );
+      `随从: ${ai.field.length}/7`;
+    // 敌方变身提示
+    if (ai.heroCard) {
+      enemyHeroText += `\n[已变身: ${ai.heroCard.name}]`;
+    }
+    this.boxes.enemyHero.setContent(enemyHeroText);
 
     // 玩家信息
-    this.boxes.playerHero.setContent(
-      `玩家 (${player.hero})\n` +
+    let playerHeroText = `玩家 (${player.hero})\n` +
       `生命: ${player.health}/${player.maxHealth}\n` +
       `护甲: ${player.armor}\n` +
       `法力: ${player.mana}/${player.maxMana}\n` +
-      `随从: ${player.field.length}/7`
-    );
+      `随从: ${player.field.length}/7`;
+    // 变身提示
+    if (player.heroCard) {
+      playerHeroText += `\n[已变身: ${player.heroCard.name}]`;
+    }
+    this.boxes.playerHero.setContent(playerHeroText);
 
     // 敌方手牌
     this.boxes.enemyHand.setContent(`敌方手牌: ${'?'.repeat(ai.hand.length)}`);
@@ -279,7 +285,9 @@ class GameScreen {
       `手牌: ` +
       player.hand.map((c, i) => {
         const sel = i === this.state.selectedHandIndex ? '>' : '';
-        return `${sel}${c.name}(${c.cost})`;
+        // 英雄卡特殊显示
+        const typeLabel = c.type === 'HERO' ? '[英雄]' : '';
+        return `${sel}${typeLabel}${c.name}(${c.cost})`;
       }).join(' | ')
     );
 

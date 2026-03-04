@@ -311,6 +311,14 @@ class GameEngine {
       return this.getGameState();
     }
 
+    // 检查是否是英雄卡
+    if (card.type === 'HERO') {
+      // 处理英雄卡 - 变身
+      this.transformIntoHero(player, card);
+      player.hand.splice(cardIndex, 1);
+      return this.getGameState();
+    }
+
     // 检查是否是抉择卡牌
     if (card.effect?.choose) {
       // 返回抉择信息，暂停打牌
@@ -911,6 +919,54 @@ class GameEngine {
     this.triggerInspire(player);
 
     return true;
+  }
+
+  /**
+   * 变身成英雄卡
+   * @param {object} player - 玩家
+   * @param {object} heroCard - 英雄卡
+   */
+  transformIntoHero(player, heroCard) {
+    const oldHero = player.hero;
+
+    // 记录旧英雄的护甲
+    const oldArmor = player.armor || 0;
+
+    // 变身 - 更换英雄
+    player.hero = heroCard.cardClass;
+    player.heroCard = heroCard;
+
+    // 继承护甲 (可选)
+    player.armor = oldArmor;
+
+    // 设置新英雄的生命值 (通常为30)
+    player.maxHealth = 30;
+    player.health = 30;
+
+    // 更换英雄技能
+    if (heroCard.heroPower) {
+      player.heroPower = {
+        id: heroCard.heroPower.id || `${heroCard.id}_power`,
+        name: heroCard.heroPower.name,
+        cost: heroCard.heroPower.cost || 2,
+        description: heroCard.heroPower.description,
+        effect: heroCard.heroPower.effect
+      };
+    }
+
+    // 触发战吼效果 (如果英雄卡有)
+    if (heroCard.battlecry) {
+      const CardEffect = require('./CardEffect');
+      const cardEffect = new CardEffect(this);
+      cardEffect.executeBattlecry(heroCard, { player, target: player, card: heroCard });
+    }
+
+    Logger.info(`${player.name} 变身为 ${heroCard.name}，获得了新的英雄技能`);
+
+    // 如果有战吼日志
+    if (heroCard.text) {
+      Logger.info(`英雄卡效果: ${heroCard.text}`);
+    }
   }
 
   /**

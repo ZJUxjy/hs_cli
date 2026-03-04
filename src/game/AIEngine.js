@@ -91,7 +91,13 @@ class AIEngine {
       actions.push({ type: 'play_card', card, targetType: 'none', overload });
     });
 
-    // 3. 打出法术
+    // 3. 打出英雄卡 (高价值，优先打出)
+    const heroCards = ai.hand.filter(c => c.type === 'HERO' && c.cost <= ai.mana);
+    heroCards.forEach(card => {
+      actions.push({ type: 'play_card', card, targetType: 'none', priority: 10 });
+    });
+
+    // 4. 打出法术
     const playableSpells = ai.hand
       .filter(c => c.type === 'spell' && c.cost <= ai.mana);
 
@@ -167,14 +173,19 @@ class AIEngine {
       return { type: 'end_turn' };
     }
 
-    // 简单策略：优先打随从，然后法术，最后攻击
+    // 简单策略：优先打英雄卡，然后随从，然后法术，最后攻击
+    const heroPlays = actionable.filter(a => a.type === 'play_card' && a.card.type === 'HERO');
+    if (heroPlays.length > 0) {
+      return heroPlays[0];
+    }
+
     const minionPlays = actionable.filter(a => a.type === 'play_card' && a.card.type === 'minion');
     if (minionPlays.length > 0) {
       // 选择费用最高的
       return minionPlays.sort((a, b) => b.card.cost - a.card.cost)[0];
     }
 
-    const spellPlays = actionable.filter(a => a.type === 'play_card');
+    const spellPlays = actionable.filter(a => a.type === 'play_card' && a.card.type === 'spell');
     if (spellPlays.length > 0) {
       return spellPlays[0];
     }
@@ -361,6 +372,10 @@ class AIEngine {
     if (card.type === 'minion') {
       // 召唤随从
       this.game.summonMinion(ai, card);
+    } else if (card.type === 'HERO') {
+      // 英雄卡变身
+      this.game.transformIntoHero(ai, card);
+      Logger.info(`>>> 敌方变身为 ${card.name}！`);
     } else {
       // 执行法术效果 - 先选择目标
       const targetType = this.cardEffect.getTargetType(card);
