@@ -1037,7 +1037,7 @@ class GameEngine {
     }
 
     // 使用 BattleCalculator 进行战斗
-    const result = battleCalc.resolveCombat(attacker, target);
+    const result = battleCalc.battle(attacker, target);
 
     // 标记攻击者已攻击
     attacker.hasAttacked = true;
