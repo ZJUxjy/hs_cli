@@ -97,3 +97,32 @@ def test_encode_board():
     assert result.shape == (7, 16)
     assert result[0, 0] == pytest.approx(0.3)
     assert np.all(result[1:] == 0)
+
+
+def test_encode_weapon():
+    """Test encoding a weapon card."""
+    from hearthstone.ai.card_embedding import CardEmbedding
+    from hearthstone.models.card import Weapon
+    from hearthstone.models.enums import CardType
+
+    embedding = CardEmbedding(embedding_dim=32)
+    weapon = Weapon(
+        id='WEAP_001',
+        name='Test Weapon',
+        cost=2,
+        card_type=CardType.WEAPON,
+        attack=3,
+        durability=2,
+    )
+
+    vector = embedding.encode(weapon)
+
+    assert isinstance(vector, np.ndarray)
+    assert vector.shape == (32,)
+    assert vector.dtype == np.float32
+    # Cost should be normalized (2/10 = 0.2)
+    assert abs(vector[0] - 0.2) < 0.01
+    # Attack should be normalized (3/10 = 0.3)
+    assert abs(vector[1] - 0.3) < 0.01
+    # Durability should be normalized (2/10 = 0.2) at index 4
+    assert abs(vector[4] - 0.2) < 0.01
