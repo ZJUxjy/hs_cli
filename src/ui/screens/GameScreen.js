@@ -255,7 +255,9 @@ class GameScreen {
       `生命: ${player.health}/${player.maxHealth}\n` +
       `护甲: ${player.armor}\n` +
       `法力: ${player.mana}/${player.maxMana}\n` +
-      `随从: ${player.field.length}/7`;
+      `战场随从: ${player.field.length}/7\n` +
+      `牌库: ${player.deck.length}\n` +
+      `手牌: ${player.hand.length}/10`;
     // 变身提示
     if (player.heroCard) {
       playerHeroText += `\n[已变身: ${player.heroCard.name}]`;
