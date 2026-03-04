@@ -22,27 +22,7 @@ class CardEmbedding:
         DEATHRATTLE, DISCOVER, COMBO, OVERLOAD, SECRET, FREEZE, SILENCE
     """
 
-    ABILITIES = [
-        Ability.CHARGE,
-        Ability.TAUNT,
-        Ability.DIVINE_SHIELD,
-        Ability.WINDFURY,
-        Ability.STEALTH,
-        Ability.FROZEN,
-        Ability.POISONOUS,
-        Ability.LIFESTEAL,
-        Ability.RUSH,
-        Ability.REBORN,
-        Ability.SPELL_DAMAGE,
-        Ability.BATTLECRY,
-        Ability.DEATHRATTLE,
-        Ability.DISCOVER,
-        Ability.COMBO,
-        Ability.OVERLOAD,
-        Ability.SECRET,
-        Ability.FREEZE,
-        Ability.SILENCE,
-    ]
+    ABILITIES = list(Ability)
 
     def __init__(self, embedding_dim: int = 64):
         """Initialize the CardEmbedding.
