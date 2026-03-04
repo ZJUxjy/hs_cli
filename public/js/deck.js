@@ -519,11 +519,22 @@ class DeckBuilderUI {
 
   updateDeckCount() {
     const countEl = document.getElementById('deck-count');
+    const saveBtn = document.getElementById('btn-save-deck');
+
     if (countEl) {
       const total = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
       const maxCards = 30;
       countEl.textContent = `${total}/${maxCards}`;
       countEl.style.color = total >= 30 ? '#4ad94a' : '#f0c040';
+    }
+
+    // 根据卡组是否满30张来启用/禁用保存按钮
+    if (saveBtn) {
+      const total = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
+      const isValid = total === 30;
+      saveBtn.disabled = !isValid;
+      saveBtn.style.opacity = isValid ? '1' : '0.5';
+      saveBtn.style.cursor = isValid ? 'pointer' : 'not-allowed';
     }
   }
 
