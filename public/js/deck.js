@@ -10,14 +10,43 @@ class DeckBuilderUI {
     this.allCards = [];
     this.filteredCards = [];
     this.currentEditingDeckId = null;
+    this.translation = {};  // 卡牌翻译
   }
 
   async init() {
     this.loadFromStorage();
     await this.loadCards();
+    await this.loadTranslation();  // 加载翻译
     this.bindEvents();
     this.renderDeckSlots();
     this.updateDeckCount();
+  }
+
+  // 加载卡牌翻译
+  async loadTranslation() {
+    try {
+      const res = await fetch('/api/cards/translation?locale=zh');
+      this.translation = await res.json();
+    } catch (e) {
+      console.warn('Failed to load translation:', e);
+      this.translation = {};
+    }
+  }
+
+  // 获取卡牌翻译名称
+  getCardName(card) {
+    if (this.translation[card.id]) {
+      return this.translation[card.id].name;
+    }
+    return card.name || 'Unknown';
+  }
+
+  // 获取卡牌翻译描述
+  getCardText(card) {
+    if (this.translation[card.id]) {
+      return this.translation[card.id].text;
+    }
+    return card.text || '';
   }
 
   loadFromStorage() {
@@ -59,7 +88,7 @@ class DeckBuilderUI {
       <div class="card-item ${this.getRarityClass(card.rarity)}"
            data-id="${card.id}"
            data-cost="${card.cost || 0}"
-           data-name="${card.name || ''}"
+           data-name="${this.getCardName(card)}"
            data-type="${card.type || ''}"
            data-card-class="${card.cardClass || 'NEUTRAL'}"
            data-rarity="${card.rarity || ''}"
@@ -68,7 +97,7 @@ class DeckBuilderUI {
         <div class="card-header">
           <span class="card-cost">${card.cost || 0}</span>
         </div>
-        <div class="card-name">${card.name || 'Unknown'}</div>
+        <div class="card-name">${this.getCardName(card)}</div>
         <div class="card-type">${this.getTypeName(card.type)}</div>
         <div class="card-stats">
           ${card.attack !== undefined ? `<span class="card-attack">${card.attack}</span>` : ''}
@@ -110,15 +139,20 @@ class DeckBuilderUI {
 
     // 填充卡牌信息
     modal.querySelector('.card-detail-cost').textContent = card.cost || 0;
-    modal.querySelector('.card-detail-name').textContent = card.name || i18n.t('ui.deck.unknown');
+    modal.querySelector('.card-detail-name').textContent = this.getCardName(card);
     modal.querySelector('.card-detail-type').textContent = this.getTypeName(card.type);
 
-    // 处理卡牌描述
-    let text = card.text || '';
+    // 处理卡牌描述 - 使用翻译
+    let text = this.getCardText(card);
     // 替换卡牌描述中的符号
     text = text.replace(/\$/g, '').replace(/\[x\]/g, '');
     text = text.replace(/@/g, ' <span style="color:#f0c040">[]</span> ');
+    text = text.replace(/b>/g, 'b>').replace(/<\//g, '</');
     modal.querySelector('.card-detail-text').innerHTML = text || i18n.t('ui.deck.noDescription');
+
+    // 使用 active 类显示 modal
+    modal.classList.remove('hidden');
+    modal.classList.add('active');
 
     // 显示攻击/生命
     const statsEl = modal.querySelector('.card-detail-stats');
@@ -165,6 +199,7 @@ class DeckBuilderUI {
   closeCardDetail() {
     const modal = document.getElementById('card-detail-modal');
     if (modal) {
+      modal.classList.remove('active');
       modal.classList.add('hidden');
     }
   }
@@ -283,13 +318,17 @@ class DeckBuilderUI {
   filterCards(query = '', classFilter = '', rarityFilter = '', autoHeroClass = '') {
     let filtered = this.allCards;
 
-    // Filter by search query
+    // Filter by search query - 支持中英文搜索
     if (query) {
       const q = query.toLowerCase();
-      filtered = filtered.filter(card =>
-        (card.name && card.name.toLowerCase().includes(q)) ||
-        (card.text && card.text.toLowerCase().includes(q))
-      );
+      filtered = filtered.filter(card => {
+        const translatedName = this.getCardName(card);
+        const translatedText = this.getCardText(card);
+        return (card.name && card.name.toLowerCase().includes(q)) ||
+               (translatedName && translatedName.toLowerCase().includes(q)) ||
+               (card.text && card.text.toLowerCase().includes(q)) ||
+               (translatedText && translatedText.toLowerCase().includes(q));
+      });
     }
 
     // Filter by class (手动选择或自动根据hero)
@@ -412,7 +451,7 @@ class DeckBuilderUI {
         <div class="deck-slot has-card" data-card-id="${deckCard.cardId}">
           <div class="deck-slot-info">
             <span class="card-cost">${card.cost || 0}</span>
-            <span class="card-name">${card.name}</span>
+            <span class="card-name">${this.getCardName(card)}</span>
           </div>
           <div class="deck-slot-actions">
             <span class="card-count">x${deckCard.count}</span>
