@@ -19,5 +19,6 @@
   { "id": "shaman_siltfin", "name": "沙丘锤", "type": "weapon", "cost": 4, "rarity": "rare", "description": "3/2，过载(1)", "effect": { "type": "weapon", "attack": 3, "durability": 2 }, "classes": ["shaman"] },
   { "id": "shaman_thing_below", "name": "深渊滑行者", "type": "minion", "cost": 4, "rarity": "epic", "description": "4/5，过载(2)，战吼：进化", "effect": { "type": "summon", "attack": 4, "health": 5, "battlecry": { "type": "evolve", "count": 1 } }, "classes": ["shaman"] },
   { "id": "shaman_jade", "name": "青玉之灵", "type": "minion", "cost": 5, "rarity": "rare", "description": "5/5，战吼：召唤一个青玉魔像", "effect": { "type": "summon", "attack": 5, "health": 5 }, "classes": ["shaman"] },
-  { "id": "shaman_thunder", "name": "雷鸣", "type": "spell", "cost": 6, "rarity": "epic", "description": "对所有敌人造成3点伤害，进化所有你的随从", "effect": { "type": "aoe_damage", "value": 3, "evolve": true }, "classes": ["shaman"] }
+  { "id": "shaman_thunder", "name": "雷鸣", "type": "spell", "cost": 6, "rarity": "epic", "description": "对所有敌人造成3点伤害，进化所有你的随从", "effect": { "type": "aoe_damage", "value": 3, "evolve": true }, "classes": ["shaman"] },
+  { "id": "shaman_corrupt_storm", "name": "腐蚀闪电", "type": "spell", "cost": 4, "rarity": "epic", "description": "造成4点伤害。腐蚀：使你的手牌中费用最低的随从变形", "effect": { "type": "damage", "value": 4, "corrupt": true }, "classes": ["shaman"] }
 ]

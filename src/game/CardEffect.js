@@ -45,7 +45,16 @@ class CardEffect {
     INSPIRE: 'inspire',
     // 任务机制
     QUEST: 'quest',
-    REWARD: 'reward'
+    REWARD: 'reward',
+    // 休眠机制
+    DORMANT: 'dormant',
+    // 新增机制
+    ECHO: 'echo',
+    REBORN: 'reborn',
+    CORRUPT: 'corrupt',
+    SPELLBURST: 'spellburst',
+    TWIN: 'twin',
+    HONORABLE_KILL: 'honorable_kill'
   };
 
   constructor(gameEngine) {

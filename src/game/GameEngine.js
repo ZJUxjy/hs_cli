@@ -116,7 +116,10 @@ class GameEngine {
       usedHeroPower: false,
       fatigueDamage: 0,
       weapon: null,
-      locale: 'zh'  // 玩家默认语言
+      locale: 'zh',  // 玩家默认语言
+      echoCards: [],  // 回响卡牌
+      corruptedCards: [],  // 腐蚀卡牌
+      spellburstUsed: []  // 已使用的法术爆发
     };
   }
 
@@ -363,10 +366,23 @@ class GameEngine {
     // 处理 Echo 机制：Echo 卡牌保留在手中
     if (card.effect?.echo) {
       Logger.info(`${card.name} 具有回响，打出后保留在手中`);
-      // Echo 卡牌不從手牌移除
+      // 将卡牌加入 echoCards 列表
+      if (!player.echoCards) player.echoCards = [];
+      player.echoCards.push(card);
+      // 不从手牌移除
     } else {
       // 普通卡牌从手牌移除
       player.hand.splice(cardIndex, 1);
+    }
+
+    // 处理 Corrupt 机制：腐蚀手牌中的卡牌
+    if (card.effect?.corrupt) {
+      this.corruptHand(player, card);
+    }
+
+    // 处理 Spellburst 机制：释放法术时触发
+    if (card.effect?.spellburst) {
+      this.triggerSpellburst(player, card);
     }
 
     return this.getGameState();
@@ -563,6 +579,25 @@ class GameEngine {
     minion.deathrattle = card.effect?.deathrattle || null;
     // 存储激励效果
     minion.inspire = card.effect?.inspire || null;
+    // 存储法术爆发效果
+    minion.spellburst = card.effect?.spellburst || null;
+    minion.spellburstUsed = false;
+    // 存储双生效果
+    minion.twin = card.effect?.twin || false;
+    // 存储荣誉击杀效果
+    minion.honorableKill = card.effect?.honorableKill || null;
+
+    // 休眠处理
+    if (card.effect?.dormant) {
+      minion.dormant = {
+        turns: card.effect.dormant.turns || 2,
+        awakened: false,
+        wakeEffect: card.effect.dormant.effect || null
+      };
+      minion.sleeping = true;
+      minion.canAttack = false;
+      Logger.info(`${minion.name} 进入休眠状态，将在未来 ${minion.dormant.turns} 回合后唤醒`);
+    }
 
     player.field.push(minion);
 
@@ -570,6 +605,11 @@ class GameEngine {
     if (minion.battlecry) {
       const cardEffect = new CardEffect(this);
       cardEffect.executeBattlecry(card, { player, target: player, card });
+      // 双生机制：战吼触发两次
+      if (minion.twin) {
+        Logger.info(`${minion.name} 具有双生，战吼再次触发`);
+        cardEffect.executeBattlecry(card, { player, target: player, card });
+      }
     }
 
     return true;
@@ -625,6 +665,11 @@ class GameEngine {
       if (minion.deathrattle) {
         const cardEffect = new CardEffect(this);
         cardEffect.executeDeathrattle(minion, { player, target: ai, card: minion });
+        // 双生机制：亡语触发两次
+        if (minion.twin) {
+          Logger.info(`${minion.name} 具有双生，亡语再次触发`);
+          cardEffect.executeDeathrattle(minion, { player, target: ai, card: minion });
+        }
       }
     });
 
@@ -633,6 +678,11 @@ class GameEngine {
       if (minion.deathrattle) {
         const cardEffect = new CardEffect(this);
         cardEffect.executeDeathrattle(minion, { player: ai, target: player, card: minion });
+        // 双生机制：亡语触发两次
+        if (minion.twin) {
+          Logger.info(`${minion.name} 具有双生，亡语再次触发`);
+          cardEffect.executeDeathrattle(minion, { player: ai, target: player, card: minion });
+        }
       }
     });
 
@@ -1079,6 +1129,217 @@ class GameEngine {
     this.state.pendingDiscover = null;
 
     return this.getGameState();
+  }
+
+  /**
+   * 检查休眠随从唤醒
+   * @param {object} player - 玩家
+   */
+  checkDormantWakeup(player) {
+    if (!player.field) return;
+
+    player.field.forEach(minion => {
+      if (minion.dormant && !minion.dormant.awakened) {
+        minion.dormant.turns--;
+
+        if (minion.dormant.turns <= 0) {
+          minion.dormant.awakened = true;
+          minion.sleeping = false;
+          minion.canAttack = true;
+          Logger.info(`${minion.name} 醒来了！`);
+
+          if (minion.dormant.wakeEffect) {
+            this.executeWakeEffect(minion, minion.dormant.wakeEffect);
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * 执行唤醒效果
+   * @param {object} minion - 随从
+   * @param {object} wakeEffect - 唤醒效果
+   */
+  executeWakeEffect(minion, wakeEffect) {
+    const player = this.getCurrentPlayer();
+    const opponent = this.getOpponent();
+
+    switch (wakeEffect.type) {
+      case 'aoe_damage':
+        // 对所有敌人造成伤害
+        const battleCalc = require('./BattleCalculator');
+        battleCalc.aoeDamage(opponent.field, wakeEffect.value);
+        Logger.info(`${minion.name} 唤醒时对所有敌人造成了 ${wakeEffect.value} 点伤害`);
+        break;
+      case 'damage':
+        // 对随机目标造成伤害
+        const target = opponent.field.length > 0
+          ? opponent.field[Math.floor(Math.random() * opponent.field.length)]
+          : opponent;
+        if (target.health !== undefined) {
+          const bc = require('./BattleCalculator');
+          bc.calculateDamage(target, wakeEffect.value);
+        } else {
+          target.health -= wakeEffect.value;
+        }
+        Logger.info(`${minion.name} 唤醒时造成了 ${wakeEffect.value} 点伤害`);
+        break;
+      case 'buff':
+        // 增强自身
+        if (wakeEffect.attack) minion.attack += wakeEffect.attack;
+        if (wakeEffect.health) {
+          minion.health += wakeEffect.health;
+          minion.maxHealth = Math.max(minion.maxHealth, minion.health);
+        }
+        Logger.info(`${minion.name} 唤醒时获得了 ${wakeEffect.attack || 0}/${wakeEffect.health || 0} 的增益`);
+        break;
+      default:
+        Logger.warn(`未知的唤醒效果类型: ${wakeEffect.type}`);
+    }
+  }
+
+  /**
+   * 处理回响卡牌 - 回合结束时复制到手中
+   * @param {object} player - 玩家
+   */
+  processEchoCards(player) {
+    if (!player.echoCards || player.echoCards.length === 0) return;
+
+    Logger.info(`${player.name} 的回响卡牌将复制到手中`);
+    player.echoCards.forEach(card => {
+      if (player.hand.length < 10) {
+        // 复制卡牌到手中
+        const echoCard = { ...card, uid: this.generateUid() };
+        player.hand.push(echoCard);
+        Logger.info(`${card.name} (回响) 被加入 ${player.name} 的手牌`);
+      }
+    });
+    // 清空回响卡牌列表
+    player.echoCards = [];
+  }
+
+  /**
+   * 腐蚀手牌 - Corrupt 机制
+   * @param {object} player - 玩家
+   * @param {object} corruptCard - 腐蚀卡牌
+   */
+  corruptHand(player, corruptCard) {
+    if (!player.hand || player.hand.length === 0) return;
+
+    // 找到手牌中费用最低的卡牌
+    let minCostCard = null;
+    let minCost = Infinity;
+
+    player.hand.forEach(card => {
+      // 排除腐蚀卡牌本身和奥秘
+      if (card !== corruptCard && card.type !== 'spell') {
+        if (card.cost < minCost) {
+          minCost = card.cost;
+          minCostCard = card;
+        }
+      }
+    });
+
+    if (minCostCard) {
+      // 将卡牌变形为腐蚀产物
+      minCostCard.id = 'corrupted';
+      minCostCard.name = '被腐蚀的随从';
+      minCostCard.attack = minCost + 1;
+      minCostCard.health = minCost + 1;
+      minCostCard.description = `被腐蚀的 ${minCost + 1}/${minCost + 1} 随从`;
+      minCostCard.effect = {
+        type: 'summon',
+        attack: minCost + 1,
+        health: minCost + 1
+      };
+      minCostCard.corrupted = true;
+      Logger.info(`${minCostCard.name} 被腐蚀，变成了 ${minCostCard.attack}/${minCostCard.health}`);
+    }
+  }
+
+  /**
+   * 触发法术爆发 - Spellburst 机制
+   * @param {object} player - 玩家
+   * @param {object} spell - 法术卡牌
+   */
+  triggerSpellburst(player, spell) {
+    if (!spell.effect?.spellburst) return;
+
+    const spellburstEffect = spell.effect.spellburst;
+    const opponent = this.getOpponent();
+
+    // 触发战吼效果
+    opponent.field.forEach(minion => {
+      if (minion.spellburst && !minion.spellburstUsed) {
+        const cardEffect = new CardEffect(this);
+        cardEffect.execute(minion.spellburst, {
+          player,
+          target: minion,
+          card: minion
+        });
+        minion.spellburstUsed = true;
+        Logger.info(`${minion.name} 的法术爆发效果被触发`);
+      }
+    });
+
+    // 触发自身效果
+    player.field.forEach(minion => {
+      if (minion.spellburst && !minion.spellburstUsed) {
+        const cardEffect = new CardEffect(this);
+        cardEffect.execute(minion.spellburst, {
+          player,
+          target: minion,
+          card: minion
+        });
+        minion.spellburstUsed = true;
+        Logger.info(`${minion.name} 的法术爆发效果被触发`);
+      }
+    });
+  }
+
+  /**
+   * 处理双生机制 - Twin
+   * @param {object} player - 玩家
+   * @param {object} minion - 随从
+   */
+  handleTwin(player, minion) {
+    if (!minion.twin) return;
+
+    // 双生随从触发两次效果
+    Logger.info(`${minion.name} 具有双生，效果将触发两次`);
+
+    // 复制一份随从信息用于第二次触发
+    const minionCopy = { ...minion };
+  }
+
+  /**
+   * 触发荣誉击杀 - Honorable Kill
+   * @param {object} attacker - 攻击方随从
+   * @param {object} target - 目标随从
+   * @param {object} player - 攻击者所属玩家
+   */
+  triggerHonorableKill(attacker, target, player) {
+    if (!attacker.honorableKill) return;
+
+    const effect = attacker.honorableKill;
+    const cardEffect = new CardEffect(this);
+
+    // 荣誉击杀触发效果
+    if (effect.type === 'buff') {
+      // 增强所有友方随从
+      player.field.forEach(m => {
+        if (effect.attack) m.attack += effect.attack;
+        if (effect.health) {
+          m.health += effect.health;
+          m.maxHealth = Math.max(m.maxHealth, m.health);
+        }
+      });
+      Logger.info(`${attacker.name} 荣誉击杀，友方随从获得 +${effect.attack || 0}/+${effect.health || 0}`);
+    } else if (effect.type === 'draw_card') {
+      this.drawCard(player, effect.value || 1);
+      Logger.info(`${attacker.name} 荣誉击杀，${player.name} 抽 ${effect.value || 1} 张牌`);
+    }
   }
 }
 
