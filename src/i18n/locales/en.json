@@ -25,7 +25,12 @@
       "hand": "Hand",
       "deck": "Deck",
       "graveyard": "Graveyard",
-      "battlefield": "Battlefield"
+      "battlefield": "Battlefield",
+      "saved": "Game Saved",
+      "saveFailed": "Save Failed",
+      "loaded": "Game Loaded",
+      "loadFailed": "Load Failed",
+      "noSaves": "No Saves"
     },
     "button": {
       "confirm": "Confirm",

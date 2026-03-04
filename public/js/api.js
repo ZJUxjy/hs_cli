@@ -148,6 +148,46 @@ const API = {
       body: JSON.stringify({ locale })
     });
     return this._handleResponse(res);
+  },
+
+  // 抉择选择
+  async chooseOption(option) {
+    const res = await fetch(`${this.baseUrl}/game/choose`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ option })
+    });
+    return this._handleResponse(res);
+  },
+
+  // 获取当前抉择状态
+  async getChoiceState() {
+    const res = await fetch(`${this.baseUrl}/game/choice`);
+    return this._handleResponse(res);
+  },
+
+  // 存档 API
+  async saveGame(profileId = 'default') {
+    const res = await fetch(`${this.baseUrl}/game/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profileId })
+    });
+    return this._handleResponse(res);
+  },
+
+  async getSaves(profileId = 'default') {
+    const res = await fetch(`${this.baseUrl}/game/saves?profileId=${profileId}`);
+    return this._handleResponse(res);
+  },
+
+  async loadGame(saveId, profileId = 'default') {
+    const res = await fetch(`${this.baseUrl}/game/load`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ saveId, profileId })
+    });
+    return this._handleResponse(res);
   }
 };
 

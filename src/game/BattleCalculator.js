@@ -28,6 +28,12 @@ class BattleCalculator {
 
     let actualDamage = damage;
 
+    // 法术伤害加成（如果是法术）
+    if (effect.isSpell && effect.spellPower) {
+      actualDamage += effect.spellPower;
+      Logger.info(`法术伤害 +${effect.spellPower}（当前伤害: ${actualDamage}）`);
+    }
+
     // 如果目标是玩家，有护甲
     if (target.armor !== undefined) {
       // 护甲先承担伤害

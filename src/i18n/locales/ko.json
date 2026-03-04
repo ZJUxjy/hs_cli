@@ -25,7 +25,12 @@
       "hand": "손패",
       "deck": "덱",
       "graveyard": "무덤",
-      "battlefield": "전장"
+      "battlefield": "전장",
+      "saved": "게임이 저장되었습니다",
+      "saveFailed": "저장에 실패했습니다",
+      "loaded": "게임을 불러왔습니다",
+      "loadFailed": "불러오기에 실패했습니다",
+      "noSaves": "저장 데이터가 없습니다"
     },
     "button": {
       "confirm": "확인",

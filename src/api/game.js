@@ -77,4 +77,68 @@ router.get('/locale', (req, res) => {
   res.json({ locale: i18n.getLocale(), supportedLocales: i18n.getSupportedLocales() });
 });
 
+// 抉择选择
+router.post('/choose', (req, res) => {
+  const { option } = req.body;
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+  const gameState = currentGame.chooseOption(option);
+  res.json(gameState);
+});
+
+// 获取当前抉择状态
+router.get('/choice', (req, res) => {
+  if (!currentGame || !currentGame.state.pendingChoice) {
+    return res.json({ pending: false });
+  }
+  res.json({
+    pending: true,
+    card: currentGame.state.pendingChoice.card,
+    choice1: currentGame.state.pendingChoice.choice1,
+    choice2: currentGame.state.pendingChoice.choice2
+  });
+});
+
+// 保存游戏
+router.post('/save', (req, res) => {
+  const { profileId = 'default' } = req.body;
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+  try {
+    const saveId = currentGame.saveCurrentGame(profileId);
+    res.json({ success: true, saveId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 获取存档列表
+router.get('/saves', (req, res) => {
+  const { profileId = 'default' } = req.query;
+  try {
+    const ProfileData = require('../data/ProfileData');
+    const profile = ProfileData.loadProfile(profileId);
+    const saves = profile.gameSaves || [];
+    res.json({ saves });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 加载游戏
+router.post('/load', (req, res) => {
+  const { saveId, profileId = 'default' } = req.body;
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+  try {
+    currentGame.loadFromSave(profileId, saveId);
+    res.json(currentGame.getGameState());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

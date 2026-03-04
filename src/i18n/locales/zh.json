@@ -25,7 +25,12 @@
       "hand": "手牌",
       "deck": "牌库",
       "graveyard": "墓地",
-      "battlefield": "战场"
+      "battlefield": "战场",
+      "saved": "游戏已保存",
+      "saveFailed": "保存失败",
+      "loaded": "游戏已加载",
+      "loadFailed": "加载失败",
+      "noSaves": "没有存档"
     },
     "button": {
       "confirm": "确认",

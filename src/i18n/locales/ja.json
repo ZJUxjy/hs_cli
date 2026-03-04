@@ -25,7 +25,12 @@
       "hand": "手札",
       "deck": "デッキ",
       "graveyard": "墓場",
-      "battlefield": "戦場"
+      "battlefield": "戦場",
+      "saved": "ゲームを保存しました",
+      "saveFailed": "保存に失敗しました",
+      "loaded": "ゲームを読み込みました",
+      "loadFailed": "読み込みに失敗しました",
+      "noSaves": "セーブデータがありません"
     },
     "button": {
       "confirm": "確認",

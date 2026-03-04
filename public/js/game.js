@@ -92,6 +92,70 @@ class GameUI {
       e.preventDefault();
       this.clearSelection();
     });
+
+    // 绑定存档按钮事件
+    this.bindSaveEvents();
+  }
+
+  // 绑定存档按钮事件
+  bindSaveEvents() {
+    const saveBtn = document.getElementById('btn-save-game');
+    const loadBtn = document.getElementById('btn-load-game');
+
+    if (saveBtn) {
+      saveBtn.onclick = () => this.saveGame();
+    }
+
+    if (loadBtn) {
+      loadBtn.onclick = () => this.showLoadDialog();
+    }
+  }
+
+  async saveGame() {
+    try {
+      const result = await API.saveGame();
+      if (result.success) {
+        this.showMessage(i18n.t('ui.game.saved'));
+      }
+    } catch (err) {
+      console.error('Failed to save game:', err);
+      this.showMessage(i18n.t('ui.game.saveFailed'));
+    }
+  }
+
+  async showLoadDialog() {
+    try {
+      const result = await API.getSaves();
+      if (result.saves && result.saves.length > 0) {
+        // 显示存档列表让玩家选择
+        const saveNames = result.saves.map((s, idx) =>
+          `${idx}: ${s.savedAt} - ${s.state.player.hero} vs ${s.state.ai.hero}`
+        ).join('\n');
+
+        const choice = prompt(`选择存档:\n${saveNames}\n\n输入存档编号:`);
+        if (choice !== null) {
+          const idx = parseInt(choice);
+          if (!isNaN(idx) && idx >= 0 && idx < result.saves.length) {
+            await this.loadGame(result.saves[idx].id);
+          }
+        }
+      } else {
+        this.showMessage(i18n.t('ui.game.noSaves'));
+      }
+    } catch (err) {
+      console.error('Failed to load saves:', err);
+    }
+  }
+
+  async loadGame(saveId) {
+    try {
+      this.gameState = await API.loadGame(saveId);
+      this.render();
+      this.showMessage(i18n.t('ui.game.loaded'));
+    } catch (err) {
+      console.error('Failed to load game:', err);
+      this.showMessage(i18n.t('ui.game.loadFailed'));
+    }
   }
 
   render() {
@@ -287,11 +351,55 @@ class GameUI {
   async playCard(index) {
     try {
       this.gameState = await API.playCard(index);
+
+      // 检查是否有待处理的抉择
+      if (this.gameState.pendingChoice) {
+        this.showChoiceDialog();
+        return;
+      }
+
       this.selectedCardIndex = null;
       this.render();
       this.showMessage(i18n.t('ui.game.cardPlayed'));
     } catch (err) {
       console.error('Failed to play card:', err);
+      this.showMessage(i18n.t('ui.game.playFailed'));
+    }
+  }
+
+  showChoiceDialog() {
+    const dialog = document.getElementById('choice-dialog');
+    const choice1Btn = document.getElementById('btn-choice-1');
+    const choice2Btn = document.getElementById('btn-choice-2');
+
+    if (!dialog || !this.gameState.pendingChoice) return;
+
+    const { choice1, choice2, card } = this.gameState.pendingChoice;
+
+    // 显示卡牌名称
+    const titleEl = dialog.querySelector('h3');
+    if (titleEl) {
+      titleEl.textContent = `${card.name} - 选择效果`;
+    }
+
+    // 设置选项文本
+    choice1Btn.textContent = choice1.text || choice1.type || '选项1';
+    choice2Btn.textContent = choice2.text || choice2.type || '选项2';
+
+    choice1Btn.onclick = () => this.makeChoice(1);
+    choice2Btn.onclick = () => this.makeChoice(2);
+
+    dialog.classList.remove('hidden');
+  }
+
+  async makeChoice(option) {
+    try {
+      this.gameState = await API.chooseOption(option);
+      const dialog = document.getElementById('choice-dialog');
+      if (dialog) dialog.classList.add('hidden');
+      this.render();
+    } catch (err) {
+      console.error('Failed to make choice:', err);
       this.showMessage(i18n.t('ui.game.playFailed'));
     }
   }

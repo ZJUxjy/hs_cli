@@ -152,6 +152,8 @@
 
       <!-- 游戏控制 -->
       <div id="game-controls" class="game-controls">
+        <button id="btn-save-game" class="control-btn">保存</button>
+        <button id="btn-load-game" class="control-btn">加载</button>
         <button id="btn-end-turn">结束回合</button>
         <button id="btn-use-hero-power" class="hidden">使用英雄技能</button>
         <button id="btn-concede">认输</button>
@@ -233,6 +235,17 @@
         <div class="card-detail-info">
           <span class="card-detail-rarity">稀有度</span>
           <span class="card-detail-set">卡牌包</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 抉择弹窗 -->
+    <div id="choice-dialog" class="dialog hidden">
+      <div class="dialog-content">
+        <h3>选择效果</h3>
+        <div class="choice-options">
+          <button id="btn-choice-1" class="choice-btn">选项1</button>
+          <button id="btn-choice-2" class="choice-btn">选项2</button>
         </div>
       </div>
     </div>
