@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { GamePage } from './pages/GamePage'
 
 function HomePage() {
   return (
@@ -29,14 +30,6 @@ function HomePage() {
           Collection
         </Link>
       </div>
-    </div>
-  )
-}
-
-function GamePage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center text-white">
-      <h1 className="text-3xl">Game Board (Coming Soon)</h1>
     </div>
   )
 }
