@@ -42,7 +42,10 @@ class CardEffect {
     CHOOSE: 'choose',
     LIFESTEAL: 'lifesteal',
     DISCOVER: 'discover',
-    INSPIRE: 'inspire'
+    INSPIRE: 'inspire',
+    // 任务机制
+    QUEST: 'quest',
+    REWARD: 'reward'
   };
 
   constructor(gameEngine) {

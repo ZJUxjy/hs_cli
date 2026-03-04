@@ -6,6 +6,7 @@ const CardData = require('../data/CardData');
 const ConfigData = require('../data/ConfigData');
 const TurnManager = require('./TurnManager');
 const CardEffect = require('./CardEffect');
+const QuestManager = require('./QuestManager');
 const Logger = require('../utils/logger');
 const i18n = require('../i18n');
 
@@ -14,6 +15,7 @@ class GameEngine {
     this.state = null;
     this.turnManager = null;
     this.cardEffect = null;
+    this.questManager = null;
   }
 
   /**
@@ -33,6 +35,9 @@ class GameEngine {
    */
   startNewGame(playerClass, opponentClass, difficulty = 'normal') {
     this.init();
+
+    // 初始化任务管理器
+    this.questManager = new QuestManager(this);
 
     const player = this.createPlayer('player', playerClass);
     const aiOpponentClass = opponentClass || this.getOppositeClass(playerClass);
@@ -159,6 +164,30 @@ class GameEngine {
   }
 
   /**
+   * 将卡牌加入玩家手牌
+   * @param {object} player - 玩家
+   * @param {object} card - 卡牌
+   */
+  addCardToHand(player, card) {
+    if (!player || !card) {
+      Logger.error('添加卡牌到手中失败: 缺少必要参数');
+      return false;
+    }
+
+    const gameConfig = ConfigData.getGameConfig();
+    const maxHand = gameConfig?.maxHandSize || 10;
+
+    if (player.hand.length >= maxHand) {
+      Logger.info(`${player.name} 的手牌已满，无法添加卡牌`);
+      return false;
+    }
+
+    player.hand.push(card);
+    Logger.info(`${card.name} 被加入 ${player.name} 的手牌`);
+    return true;
+  }
+
+  /**
    * 获取敌方职业
    */
   getOppositeClass(cls) {
@@ -272,6 +301,13 @@ class GameEngine {
       return this.getGameState();
     }
 
+    // 检查是否是任务卡 - 任务卡直接触发任务，不执行普通效果
+    if (card.effect?.type === 'quest') {
+      this.questManager.initQuest(card, player);
+      player.hand.splice(cardIndex, 1);
+      return this.getGameState();
+    }
+
     // 检查是否是抉择卡牌
     if (card.effect?.choose) {
       // 返回抉择信息，暂停打牌
@@ -298,6 +334,15 @@ class GameEngine {
       player,
       target: this.state.ai
     });
+
+    // 更新任务进度
+    if (this.questManager) {
+      if (card.type === 'minion') {
+        this.questManager.updateProgress(player, 'play_minion', { card });
+      } else if (card.type === 'spell') {
+        this.questManager.updateProgress(player, 'play_spell', { card });
+      }
+    }
 
     // 处理连击 - 手牌中有其他卡牌时触发
     if (card.effect?.combo) {

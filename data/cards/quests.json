@@ -1,0 +1,45 @@
+[
+  {
+    "id": "mage_firelands_portal",
+    "name": "火焰之地传送门",
+    "type": "spell",
+    "cost": 7,
+    "rarity": "legendary",
+    "description": "任务：施放7个法术。奖励：召唤拉格纳罗斯",
+    "effect": {
+      "type": "quest",
+      "questCondition": "play_spell",
+      "questProgress": 7,
+      "reward": {
+        "type": "summon",
+        "card_id": "CS2_101",
+        "attack": 8,
+        "health": 8,
+        "name": "拉格纳罗斯"
+      }
+    },
+    "classes": ["mage"],
+    "collectible": true
+  },
+  {
+    "id": "hunter_embrace_the",
+    "name": "湿地火山",
+    "type": "spell",
+    "cost": 1,
+    "rarity": "legendary",
+    "description": "任务：使用7张随从卡。奖励：召唤沼泽之王爵德",
+    "effect": {
+      "type": "quest",
+      "questCondition": "play_minion",
+      "questProgress": 7,
+      "reward": {
+        "type": "summon",
+        "attack": 7,
+        "health": 6,
+        "name": "沼泽之王爵德"
+      }
+    },
+    "classes": ["hunter"],
+    "collectible": true
+  }
+]
