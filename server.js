@@ -5,7 +5,7 @@ const net = require('net');
 
 const app = express();
 const DEFAULT_PORT = 3000;
-const MAX_PORT = 3010; // 最多尝试到3010
+const MAX_PORT = 3300; // 最多尝试到3010
 
 // Middleware
 app.use(express.json());

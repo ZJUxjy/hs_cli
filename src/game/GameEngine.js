@@ -81,23 +81,21 @@ class GameEngine {
     const allCards = CardData.getCardsByClassWithEffect(heroClass);
 
     const classCards = allCards.filter(c =>
-      c.collectible && (c.type === 'MINION' || c.type === 'SPELL')
+      c.collectible && (c.type === 'MINION' || c.type === 'SPELL' || c.type === 'WEAPON' || c.type === 'HERO')
     );
 
     // 如果筛选后卡牌太少，回退到所有卡
     const cardsToUse = classCards.length >= 10 ? classCards : allCards;
 
     // 构建初始套牌 (复制卡牌，避免引用问题)
-    // 使用多套卡牌填充到30张
-    let deck = [];
-    const cardsCopy = cardsToUse.map(c => ({ ...c, uid: this.generateUid() }));
-    while (deck.length < 30) {
-      deck = deck.concat(cardsCopy);
-    }
-    deck = deck.slice(0, 30);
-    
+    // 先复制所有卡牌，然后随机打乱，取前30张
+    let deck = cardsToUse.map(c => ({ ...c, uid: this.generateUid() }));
+
     // 随机打乱
     this.shuffle(deck);
+
+    // 取前30张
+    deck = deck.slice(0, 30);
 
     return {
       id: type,
