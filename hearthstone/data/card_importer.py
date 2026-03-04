@@ -2,8 +2,14 @@
 from typing import Any, Dict, List, Optional
 
 import requests
+from requests.exceptions import RequestException
 
 from hearthstone.models.enums import Ability, CardType, HeroClass
+
+
+class CardImportError(Exception):
+    """Exception raised when card import fails."""
+    pass
 
 
 class CardImporter:
@@ -71,11 +77,16 @@ class CardImporter:
             List of card dictionaries.
 
         Raises:
-            requests.RequestException: If the API request fails.
+            CardImportError: If the API request fails or returns invalid JSON.
         """
-        response = requests.get(self.api_url, timeout=30)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.get(self.api_url, timeout=30)
+            response.raise_for_status()
+            return response.json()
+        except RequestException as e:
+            raise CardImportError(f"Failed to fetch cards from {self.api_url}: {e}") from e
+        except (ValueError, KeyError) as e:
+            raise CardImportError(f"Invalid JSON response from {self.api_url}: {e}") from e
 
     def filter_collectible(self, cards: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Filter cards to only include collectible ones.
