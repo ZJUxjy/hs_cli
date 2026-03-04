@@ -9,6 +9,7 @@ const CardEffect = require('./CardEffect');
 const QuestManager = require('./QuestManager');
 const Logger = require('../utils/logger');
 const i18n = require('../i18n');
+const CardType = require('../utils/cardUtils');
 
 class GameEngine {
   constructor() {
@@ -346,9 +347,9 @@ class GameEngine {
 
     // 更新任务进度
     if (this.questManager) {
-      if (card.type === 'minion') {
+      if (CardType.isMinion(card)) {
         this.questManager.updateProgress(player, 'play_minion', { card });
-      } else if (card.type === 'spell') {
+      } else if (CardType.isSpell(card)) {
         this.questManager.updateProgress(player, 'play_spell', { card });
       }
     }
