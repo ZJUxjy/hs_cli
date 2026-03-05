@@ -577,15 +577,27 @@ class BattleCalculator {
         const target = targets[0];
         const result = this.simulateAttack(attacker, target);
 
-        // 累加伤害
-        totalDamage += result.damage;
+        // 累加对英雄造成的伤害（只有目标是英雄时才累加）
+        if (target.armor !== undefined) {
+          totalDamage += result.damage;
+        }
 
         // 更新攻击者状态（用于下一次循环）
         Object.assign(attacker, result.attackerState);
 
-        // 如果目标死亡，移除
+        // 如果目标死亡，从对应数组中移除
         if (result.targetState.dead) {
+          // 从 targets 中移除
           targets.shift();
+          // 同时从 tauntMinions 中移除（如果是嘲讽）
+          if (target.taunt) {
+            const idx = tauntMinions.findIndex(m => m === target);
+            if (idx >= 0) tauntMinions.splice(idx, 1);
+          }
+          // 如果所有嘲讽都死了，切换目标为英雄
+          if (targets.length === 0 && tauntMinions.length === 0) {
+            targets = [myHeroClone];
+          }
         } else {
           // 更新目标状态（圣盾可能被打破）
           targets[0] = result.targetState;
