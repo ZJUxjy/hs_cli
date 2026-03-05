@@ -542,8 +542,61 @@ class BattleCalculator {
    * @returns {number} 最大伤害值
    */
   calculateMaxDamage(opponentField, myHero, myField) {
-    // TODO: 实现
-    return 0;
+    // 1. 筛选可攻击随从（未冻结、未沉睡、canAttack=true）
+    const attackers = opponentField.filter(m =>
+      m.canAttack && !m.frozen && !m.sleeping && !m.hasAttacked
+    );
+
+    if (attackers.length === 0) {
+      return 0;
+    }
+
+    // 2. 克隆所有对象，避免修改原状态
+    const attackersClone = attackers.map(m => this.cloneMinion(m));
+    const myHeroClone = this.cloneHero(myHero);
+    const myFieldClone = myField ? myField.map(m => this.cloneMinion(m)) : [];
+
+    // 3. 检查嘲讽
+    const tauntMinions = myFieldClone.filter(m => m.taunt);
+    let targets = tauntMinions.length > 0 ? tauntMinions : [myHeroClone];
+
+    // 4. 按攻击力降序排列，高攻优先
+    attackersClone.sort((a, b) => (b.attack || 0) - (a.attack || 0));
+
+    let totalDamage = 0;
+
+    // 5. 遍历每个攻击者
+    for (const attacker of attackersClone) {
+      // 风怒随从可以攻击2次，普通1次
+      const attacks = attacker.windfury ? 2 : 1;
+
+      for (let i = 0; i < attacks; i++) {
+        // 没有可用目标则停止
+        if (targets.length === 0) break;
+
+        const target = targets[0];
+        const result = this.simulateAttack(attacker, target);
+
+        // 累加伤害
+        totalDamage += result.damage;
+
+        // 更新攻击者状态（用于下一次循环）
+        Object.assign(attacker, result.attackerState);
+
+        // 如果目标死亡，移除
+        if (result.targetState.dead) {
+          targets.shift();
+        } else {
+          // 更新目标状态（圣盾可能被打破）
+          targets[0] = result.targetState;
+        }
+
+        // 如果攻击者死亡，停止此随从的所有攻击
+        if (attacker.dead) break;
+      }
+    }
+
+    return totalDamage;
   }
 }
 
