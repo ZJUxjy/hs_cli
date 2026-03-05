@@ -226,4 +226,63 @@ router.post('/load', (req, res) => {
   }
 });
 
+// 使用泰坦技能
+router.post('/titanAbility', (req, res) => {
+  const { minionIndex, abilityIndex } = req.body;
+
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+
+  const state = currentGame.getGameState();
+  const player = state.player;
+
+  if (minionIndex < 0 || minionIndex >= player.field.length) {
+    return res.status(400).json({ error: 'Invalid minion index' });
+  }
+
+  const minion = player.field[minionIndex];
+
+  if (!minion.titan) {
+    return res.status(400).json({ error: 'Minion is not a Titan' });
+  }
+
+  const success = currentGame.useTitanAbility(player, minion, abilityIndex);
+
+  if (success) {
+    res.json(currentGame.getGameState());
+  } else {
+    res.status(400).json({ error: 'Failed to use Titan ability' });
+  }
+});
+
+// 获取泰坦技能状态
+router.get('/titanAbility', (req, res) => {
+  const { minionIndex } = req.query;
+
+  if (!currentGame) {
+    return res.status(400).json({ error: 'No active game' });
+  }
+
+  const state = currentGame.getGameState();
+  const player = state.player;
+
+  if (minionIndex === undefined || minionIndex < 0 || minionIndex >= player.field.length) {
+    return res.status(400).json({ error: 'Invalid minion index' });
+  }
+
+  const minion = player.field[minionIndex];
+
+  if (!minion.titan) {
+    return res.json({ isTitan: false });
+  }
+
+  res.json({
+    isTitan: true,
+    abilities: minion.titanAbilities,
+    usedAbilities: minion.titanAbilitiesUsed,
+    canAttack: minion.canAttack
+  });
+});
+
 module.exports = router;

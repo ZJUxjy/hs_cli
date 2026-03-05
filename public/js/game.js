@@ -72,7 +72,14 @@ class GameUI {
         const minionEl = e.target.closest('.minion');
         if (minionEl) {
           const index = parseInt(minionEl.dataset.index);
-          this.selectMinion(index);
+          const isTitan = minionEl.dataset.isTitan === 'true';
+
+          if (isTitan && this.isPlayerTurn) {
+            // 泰坦随从显示技能弹窗
+            this.showTitanAbilityDialog(index);
+          } else {
+            this.selectMinion(index);
+          }
         }
       };
     }
@@ -344,9 +351,12 @@ class GameUI {
 
     field.innerHTML = minions.map((minion, i) => {
       const canAttack = minion.canAttack !== false && this.isPlayerTurn && !minion.sleeping && !minion.frozen && !minion.hasAttacked;
+      const isTitan = minion.titan;
+      const remainingAbilities = isTitan ? minion.titanAbilities.length - (minion.titanAbilitiesUsed?.length || 0) : 0;
+
       return `
-        <div class="minion ${canAttack ? 'can-attack' : ''} ${this.selectedMinionIndex === i ? 'selected' : ''}"
-             data-index="${i}" data-can-attack="${canAttack}">
+        <div class="minion ${canAttack ? 'can-attack' : ''} ${this.selectedMinionIndex === i ? 'selected' : ''} ${isTitan ? 'titan' : ''}"
+             data-index="${i}" data-can-attack="${canAttack}" data-is-titan="${isTitan}">
           ${minion.taunt ? '<span class="minion-taunt"></span>' : ''}
           ${minion.charge ? '<span class="mechanic-icon charge-icon">C</span>' : ''}
           ${minion.rush ? '<span class="mechanic-icon rush-icon">R</span>' : ''}
@@ -356,6 +366,8 @@ class GameUI {
           ${minion.stealth ? '<span class="mechanic-icon stealth-icon">S</span>' : ''}
           ${minion.poisonous ? '<span class="mechanic-icon poisonous-icon">P</span>' : ''}
           ${minion.reborn ? '<span class="mechanic-icon reborn-icon">B</span>' : ''}
+          ${minion.isAppendage ? '<span class="mechanic-icon appendage-icon">A</span>' : ''}
+          ${isTitan ? `<span class="mechanic-icon titan-icon">T(${remainingAbilities})</span>` : ''}
           <div class="minion-name">${minion.name}</div>
           <div class="minion-stats">
             <span class="minion-attack">${minion.attack}</span>
@@ -531,6 +543,64 @@ class GameUI {
     } catch (err) {
       console.error('Failed to make adapt choice:', err);
       this.showMessage(i18n.t('ui.game.playFailed'));
+    }
+  }
+
+  /**
+   * 显示泰坦技能选择弹窗
+   */
+  showTitanAbilityDialog(minionIndex) {
+    const dialog = document.getElementById('titan-ability-dialog');
+    const abilitiesContainer = document.getElementById('titan-abilities');
+    const titanNameEl = document.getElementById('titan-name');
+
+    if (!dialog || !this.gameState) return;
+
+    const player = this.gameState.player;
+    const minion = player.field[minionIndex];
+
+    if (!minion || !minion.titan) return;
+
+    // 设置泰坦名称
+    if (titanNameEl) {
+      titanNameEl.textContent = `${minion.name} - 选择技能`;
+    }
+
+    // 生成技能按钮
+    abilitiesContainer.innerHTML = minion.titanAbilities.map((ability, idx) => {
+      const isUsed = (minion.titanAbilitiesUsed || []).includes(idx);
+      return `
+        <button class="titan-ability-btn" data-index="${idx}" ${isUsed ? 'disabled' : ''}>
+          <span class="ability-name">${isUsed ? '✓ ' : ''}${ability.name}</span>
+          <span class="ability-text">${ability.text}</span>
+        </button>
+      `;
+    }).join('');
+
+    // 绑定点击事件
+    abilitiesContainer.querySelectorAll('.titan-ability-btn:not(:disabled)').forEach(btn => {
+      btn.onclick = () => {
+        const idx = parseInt(btn.dataset.index);
+        this.useTitanAbility(minionIndex, idx);
+      };
+    });
+
+    dialog.classList.remove('hidden');
+  }
+
+  /**
+   * 使用泰坦技能
+   */
+  async useTitanAbility(minionIndex, abilityIndex) {
+    try {
+      this.gameState = await API.useTitanAbility(minionIndex, abilityIndex);
+      const dialog = document.getElementById('titan-ability-dialog');
+      if (dialog) dialog.classList.add('hidden');
+      this.render();
+      this.showMessage('泰坦技能已使用');
+    } catch (err) {
+      console.error('Failed to use Titan ability:', err);
+      this.showMessage('技能使用失败');
     }
   }
 

@@ -1,0 +1,40 @@
+[
+  {
+    "id": "neutral_colossal_crab",
+    "name": "可拉克",
+    "type": "minion",
+    "cost": 7,
+    "rarity": "legendary",
+    "description": "7/6，巨型+1。可拉克的壳获得嘲讽",
+    "effect": {
+      "type": "summon",
+      "attack": 7,
+      "health": 6,
+      "colossal": 1,
+      "appendages": [
+        { "name": "可拉克的壳", "attack": 5, "health": 8, "taunt": true }
+      ]
+    },
+    "classes": ["neutral"]
+  },
+  {
+    "id": "neutral_titan_eonar",
+    "name": "生命的缚誓者艾欧娜尔",
+    "type": "minion",
+    "cost": 8,
+    "rarity": "legendary",
+    "description": "8/8，泰坦。拥有3个技能",
+    "effect": {
+      "type": "summon",
+      "attack": 8,
+      "health": 8,
+      "titan": true,
+      "titanAbilities": [
+        { "id": "heal_all", "name": "生命绽放", "text": "为所有友方角色恢复3点生命", "effect": { "type": "heal", "value": 3, "target": "all_friendly" } },
+        { "id": "summon_seed", "name": "播种生命", "text": "召唤一个2/2的植物", "effect": { "type": "summon", "name": "生命种子", "attack": 2, "health": 2 } },
+        { "id": "buff_field", "name": "自然之力", "text": "使你的所有随从获得+2/+2", "effect": { "type": "buff", "attack": 2, "health": 2, "target": "all_friendly_minions" } }
+      ]
+    },
+    "classes": ["neutral"]
+  }
+]

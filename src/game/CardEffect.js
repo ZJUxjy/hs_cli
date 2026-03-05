@@ -59,7 +59,10 @@ class CardEffect {
     HERO: 'hero',
     RECRUIT: 'recruit',
     OVERKILL: 'overkill',
-    BLOODLUST: 'bloodlust'
+    BLOODLUST: 'bloodlust',
+    // 巨型和泰坦机制
+    COLOSSAL: 'colossal',
+    TITAN: 'titan'
   };
 
   constructor(gameEngine) {

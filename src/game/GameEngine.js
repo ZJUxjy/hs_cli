@@ -647,6 +647,19 @@ class GameEngine {
 
     player.field.push(minion);
 
+    // 处理巨型机制
+    if (card.effect?.colossal && card.effect?.appendages) {
+      this.summonColossalAppendages(player, minion, card.effect.appendages);
+    }
+
+    // 处理泰坦机制
+    if (card.effect?.titan) {
+      minion.titan = true;
+      minion.titanAbilities = card.effect.titanAbilities || [];
+      minion.titanAbilitiesUsed = [];
+      minion.canAttack = false; // 泰坦初始不能攻击
+    }
+
     // 触发战吼
     if (minion.battlecry) {
       const cardEffect = new CardEffect(this);
@@ -659,6 +672,172 @@ class GameEngine {
     }
 
     return true;
+  }
+
+  /**
+   * 召唤巨型随从的附属物
+   * @param {object} player - 玩家
+   * @param {object} parentMinion - 主体随从
+   * @param {array} appendages - 附属物配置数组
+   */
+  summonColossalAppendages(player, parentMinion, appendages) {
+    const gameConfig = ConfigData.getGameConfig();
+    const maxField = gameConfig?.maxFieldSize || 7;
+
+    for (const appendageConfig of appendages) {
+      // 检查战场是否已满
+      if (player.field.length >= maxField) {
+        Logger.info('战场已满，无法召唤更多附属物');
+        break;
+      }
+
+      const appendage = {
+        uid: this.generateUid(),
+        id: `${parentMinion.id}_appendage_${appendageConfig.name}`,
+        name: appendageConfig.name,
+        attack: appendageConfig.attack || 0,
+        health: appendageConfig.health || 0,
+        maxHealth: appendageConfig.health || 0,
+        canAttack: false,
+        hasAttacked: false,
+        frozen: false,
+        sleeping: true,
+        taunt: appendageConfig.taunt || false,
+        isAppendage: true,
+        parentMinionUid: parentMinion.uid,
+        effects: []
+      };
+
+      player.field.push(appendage);
+      Logger.info(`${parentMinion.name} 召唤了附属物 ${appendage.name}`);
+    }
+  }
+
+  /**
+   * 使用泰坦技能
+   * @param {object} player - 玩家
+   * @param {object} minion - 泰坦随从
+   * @param {number} abilityIndex - 技能索引 (0-2)
+   * @returns {boolean} 是否成功
+   */
+  useTitanAbility(player, minion, abilityIndex) {
+    if (!minion.titan || !minion.titanAbilities) {
+      Logger.warn('该随从不是泰坦');
+      return false;
+    }
+
+    if (abilityIndex < 0 || abilityIndex >= minion.titanAbilities.length) {
+      Logger.warn('无效的技能索引');
+      return false;
+    }
+
+    if (minion.titanAbilitiesUsed.includes(abilityIndex)) {
+      Logger.warn('该技能已经使用过');
+      return false;
+    }
+
+    const ability = minion.titanAbilities[abilityIndex];
+
+    // 执行技能效果
+    const cardEffect = new CardEffect(this);
+    const context = {
+      player,
+      target: this.getOpponent(),
+      card: { effect: ability.effect }
+    };
+
+    // 根据效果类型执行
+    switch (ability.effect.type) {
+      case 'heal':
+        this.executeTitanHeal(ability.effect, player);
+        break;
+      case 'summon':
+        this.summonMinion(player, {
+          id: `titan_summon_${Date.now()}`,
+          name: ability.effect.name || '泰坦召唤物',
+          effect: ability.effect
+        });
+        break;
+      case 'buff':
+        this.executeTitanBuff(ability.effect, player);
+        break;
+      case 'damage':
+        this.executeTitanDamage(ability.effect, player);
+        break;
+      default:
+        Logger.warn(`未知的泰坦技能类型: ${ability.effect.type}`);
+        return false;
+    }
+
+    // 标记技能已使用
+    minion.titanAbilitiesUsed.push(abilityIndex);
+    Logger.info(`${minion.name} 使用了技能: ${ability.name}`);
+
+    // 检查是否所有技能都已使用
+    if (minion.titanAbilitiesUsed.length >= minion.titanAbilities.length) {
+      minion.canAttack = true;
+      Logger.info(`${minion.name} 所有技能已使用，现在可以攻击了`);
+    }
+
+    return true;
+  }
+
+  /**
+   * 泰坦技能：治疗
+   */
+  executeTitanHeal(effect, player) {
+    const value = effect.value || 0;
+    const target = effect.target || 'hero';
+
+    if (target === 'all_friendly' || target === 'hero') {
+      // 治疗英雄
+      player.health = Math.min(player.health + value, player.maxHealth);
+      Logger.info(`${player.name} 恢复 ${value} 点生命`);
+    }
+
+    if (target === 'all_friendly' || target === 'all_friendly_minions') {
+      // 治疗所有随从
+      player.field.forEach(minion => {
+        minion.health = Math.min(minion.health + value, minion.maxHealth);
+      });
+      Logger.info(`所有友方随从恢复 ${value} 点生命`);
+    }
+  }
+
+  /**
+   * 泰坦技能：增益
+   */
+  executeTitanBuff(effect, player) {
+    const attack = effect.attack || 0;
+    const health = effect.health || 0;
+
+    player.field.forEach(minion => {
+      minion.attack += attack;
+      minion.health += health;
+      minion.maxHealth += health;
+    });
+
+    Logger.info(`所有友方随从获得 +${attack}/+${health}`);
+  }
+
+  /**
+   * 泰坦技能：伤害
+   */
+  executeTitanDamage(effect, player) {
+    const value = effect.value || 0;
+    const opponent = this.getOpponent();
+
+    if (effect.target === 'all_enemy') {
+      // 对所有敌人造成伤害
+      opponent.field.forEach(minion => {
+        minion.health -= value;
+      });
+      opponent.health -= value;
+      Logger.info(`对所有敌人造成 ${value} 点伤害`);
+    } else if (effect.target === 'enemy_hero') {
+      opponent.health -= value;
+      Logger.info(`对敌方英雄造成 ${value} 点伤害`);
+    }
   }
 
   /**

@@ -204,6 +204,22 @@ const API = {
       body: JSON.stringify({ saveId, profileId })
     });
     return this._handleResponse(res);
+  },
+
+  // 使用泰坦技能
+  async useTitanAbility(minionIndex, abilityIndex) {
+    const res = await fetch(`${this.baseUrl}/game/titanAbility`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ minionIndex, abilityIndex })
+    });
+    return this._handleResponse(res);
+  },
+
+  // 获取泰坦技能状态
+  async getTitanAbilityStatus(minionIndex) {
+    const res = await fetch(`${this.baseUrl}/game/titanAbility?minionIndex=${minionIndex}`);
+    return this._handleResponse(res);
   }
 };
 
