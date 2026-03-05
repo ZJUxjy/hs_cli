@@ -1,51 +1,395 @@
 [
   {
-    "id": "d7c93d1a-f416-476a-b267-71a23b107090",
-    "name": "Test Deck",
-    "hero": "mage",
-    "mode": "standard",
-    "cards": [],
-    "createdAt": "2026-03-03T14:55:39.219Z",
-    "updatedAt": "2026-03-03T16:31:57.126Z"
-  },
-  {
-    "id": "19c017c1-f24b-4ab5-97d0-9ed72a21e80d",
-    "name": "我的第一套卡组",
+    "id": "a5e45c07-99de-47b4-bdef-38cd108e17e0",
+    "name": "test",
     "hero": "mage",
     "mode": "standard",
     "cards": [
       {
-        "id": "CS2_022",
+        "id": "EX1_509",
         "count": 1
       },
       {
-        "id": "CS2_028",
+        "id": "DAL_058",
+        "count": 1
+      },
+      {
+        "id": "RLK_833",
+        "count": 1
+      },
+      {
+        "id": "VAC_446",
+        "count": 1
+      },
+      {
+        "id": "CFM_790",
+        "count": 1
+      },
+      {
+        "id": "AT_100",
+        "count": 1
+      },
+      {
+        "id": "VAN_EX1_284",
+        "count": 1
+      },
+      {
+        "id": "AT_070",
+        "count": 1
+      },
+      {
+        "id": "SCH_230",
+        "count": 1
+      },
+      {
+        "id": "TSC_064",
+        "count": 1
+      },
+      {
+        "id": "LOOT_154",
+        "count": 1
+      },
+      {
+        "id": "CORE_EX1_004",
+        "count": 1
+      },
+      {
+        "id": "SCH_428",
+        "count": 1
+      },
+      {
+        "id": "GVG_016",
+        "count": 1
+      },
+      {
+        "id": "YOD_028",
+        "count": 1
+      },
+      {
+        "id": "VAN_EX1_082",
+        "count": 1
+      },
+      {
+        "id": "TRL_526",
+        "count": 1
+      },
+      {
+        "id": "KAR_037",
+        "count": 1
+      },
+      {
+        "id": "EX1_612",
+        "count": 1
+      },
+      {
+        "id": "CORE_BOT_083",
+        "count": 1
+      },
+      {
+        "id": "TSC_034",
+        "count": 1
+      },
+      {
+        "id": "NEW1_017",
+        "count": 1
+      },
+      {
+        "id": "CS2_221",
+        "count": 1
+      },
+      {
+        "id": "UNG_810",
+        "count": 1
+      },
+      {
+        "id": "DINO_435",
+        "count": 1
+      },
+      {
+        "id": "EX1_558",
+        "count": 1
+      },
+      {
+        "id": "TRL_312",
+        "count": 1
+      },
+      {
+        "id": "DMF_081",
+        "count": 1
+      },
+      {
+        "id": "EX1_014",
+        "count": 1
+      },
+      {
+        "id": "VAN_NEW1_022",
         "count": 1
       }
     ],
-    "createdAt": "2026-03-03T14:58:38.739Z",
-    "updatedAt": "2026-03-03T15:38:10.540Z"
+    "createdAt": "2026-03-04T14:42:39.531Z",
+    "updatedAt": "2026-03-04T14:42:39.642Z",
+    "cardCount": 29
   },
   {
-    "id": "cc0c1e11-575b-487d-bd85-1fedd6c1911a",
-    "name": "标准法爷",
-    "hero": "mage",
+    "id": "d67f6bda-20e6-4832-9bfb-083f5bef8b7c",
+    "name": "default",
+    "hero": "rogue",
     "mode": "standard",
     "cards": [
       {
-        "id": "CS2_022",
-        "count": 4
+        "id": "CORE_ICC_099",
+        "count": 1
       },
       {
-        "id": "CS2_028",
-        "count": 2
+        "id": "YOG_516",
+        "count": 1
       },
       {
-        "id": "CS2_031",
-        "count": 2
+        "id": "CORE_AT_003",
+        "count": 1
+      },
+      {
+        "id": "CS2_127",
+        "count": 1
+      },
+      {
+        "id": "SCH_400",
+        "count": 1
+      },
+      {
+        "id": "GVG_075",
+        "count": 1
+      },
+      {
+        "id": "TSC_020",
+        "count": 1
+      },
+      {
+        "id": "CORE_MAW_031",
+        "count": 1
+      },
+      {
+        "id": "TOY_518",
+        "count": 1
+      },
+      {
+        "id": "VAN_EX1_046",
+        "count": 1
+      },
+      {
+        "id": "EX1_396",
+        "count": 1
+      },
+      {
+        "id": "DRG_073",
+        "count": 1
+      },
+      {
+        "id": "EX1_015",
+        "count": 1
+      },
+      {
+        "id": "NEW1_025",
+        "count": 1
+      },
+      {
+        "id": "EDR_873",
+        "count": 1
+      },
+      {
+        "id": "ETC_425",
+        "count": 1
+      },
+      {
+        "id": "CORE_TOY_101",
+        "count": 1
+      },
+      {
+        "id": "KAR_114",
+        "count": 1
+      },
+      {
+        "id": "ULD_727",
+        "count": 1
+      },
+      {
+        "id": "TLC_987",
+        "count": 1
+      },
+      {
+        "id": "CORE_REV_957",
+        "count": 1
+      },
+      {
+        "id": "BT_002",
+        "count": 1
+      },
+      {
+        "id": "TSC_928",
+        "count": 1
+      },
+      {
+        "id": "BAR_064",
+        "count": 1
+      },
+      {
+        "id": "REV_514",
+        "count": 1
+      },
+      {
+        "id": "DINO_429",
+        "count": 1
+      },
+      {
+        "id": "GDB_129",
+        "count": 1
+      },
+      {
+        "id": "WW_418",
+        "count": 1
+      },
+      {
+        "id": "CORE_LOE_077",
+        "count": 1
+      },
+      {
+        "id": "ICC_851",
+        "count": 1
       }
     ],
-    "createdAt": "2026-03-03T14:58:52.498Z",
-    "updatedAt": "2026-03-03T14:58:52.500Z"
+    "createdAt": "2026-03-04T15:47:53.250Z",
+    "updatedAt": "2026-03-04T15:47:53.438Z",
+    "cardCount": 29
+  },
+  {
+    "id": "5c048116-ac44-47a8-a6ab-936c007708ec",
+    "name": "贼",
+    "hero": "rogue",
+    "mode": "standard",
+    "cards": [
+      {
+        "id": "VAN_EX1_594",
+        "count": 1
+      },
+      {
+        "id": "END_034",
+        "count": 1
+      },
+      {
+        "id": "EX1_189",
+        "count": 1
+      },
+      {
+        "id": "CORE_TRL_315",
+        "count": 1
+      },
+      {
+        "id": "CORE_REV_900",
+        "count": 1
+      },
+      {
+        "id": "GIL_620",
+        "count": 1
+      },
+      {
+        "id": "TOY_371",
+        "count": 1
+      },
+      {
+        "id": "GIL_548",
+        "count": 1
+      },
+      {
+        "id": "GIL_692",
+        "count": 1
+      },
+      {
+        "id": "EX1_608",
+        "count": 1
+      },
+      {
+        "id": "TRL_507",
+        "count": 1
+      },
+      {
+        "id": "TRL_531",
+        "count": 1
+      },
+      {
+        "id": "OG_082",
+        "count": 1
+      },
+      {
+        "id": "EDR_000",
+        "count": 1
+      },
+      {
+        "id": "VAN_CS2_186",
+        "count": 1
+      },
+      {
+        "id": "LOOT_150",
+        "count": 1
+      },
+      {
+        "id": "EX1_390",
+        "count": 1
+      },
+      {
+        "id": "CS2_125",
+        "count": 1
+      },
+      {
+        "id": "RLK_543",
+        "count": 1
+      },
+      {
+        "id": "AV_130",
+        "count": 1
+      },
+      {
+        "id": "GVG_067",
+        "count": 1
+      },
+      {
+        "id": "ONY_006",
+        "count": 1
+      },
+      {
+        "id": "YOP_035",
+        "count": 1
+      },
+      {
+        "id": "BOT_083",
+        "count": 1
+      },
+      {
+        "id": "VAN_EX1_563",
+        "count": 1
+      },
+      {
+        "id": "TID_711",
+        "count": 1
+      },
+      {
+        "id": "VAN_CS2_024",
+        "count": 1
+      },
+      {
+        "id": "CORE_REV_839",
+        "count": 1
+      },
+      {
+        "id": "DMF_068",
+        "count": 1
+      },
+      {
+        "id": "VAN_EX1_595",
+        "count": 1
+      }
+    ],
+    "createdAt": "2026-03-04T16:04:44.404Z",
+    "updatedAt": "2026-03-04T16:04:44.518Z",
+    "cardCount": 29
   }
 ]

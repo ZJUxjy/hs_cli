@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/main-menu.css">
   <link rel="stylesheet" href="/css/deck-builder.css">
+  <link rel="stylesheet" href="/css/class-select.css">
+  <link rel="stylesheet" href="/css/deck-select.css">
   <link rel="stylesheet" href="/css/game-board.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -98,11 +100,36 @@
 
     <!-- 卡组选择界面 -->
     <div id="deck-select-screen" class="screen hidden">
-      <h2>我的卡组</h2>
-      <div id="deck-list" class="deck-list"></div>
-      <div class="deck-select-actions">
-        <button id="btn-back-from-deck-select" class="back-btn">返回</button>
-        <button id="btn-start-game" class="primary-btn" disabled>开始游戏</button>
+      <!-- 背景装饰 -->
+      <div class="deck-select-bg">
+        <div class="deck-select-rings"></div>
+        <div class="deck-select-particles"></div>
+      </div>
+
+      <!-- 头部 -->
+      <div class="deck-select-header">
+        <button id="btn-back-from-deck-select" class="deck-select-back">
+          <span class="back-arrow">‹</span>
+          <span>返回</span>
+        </button>
+        <div class="deck-select-title-wrapper">
+          <h2 class="deck-select-title">我的卡组</h2>
+          <div class="deck-select-subtitle">SELECT YOUR DECK</div>
+        </div>
+        <div class="deck-select-spacer"></div>
+      </div>
+
+      <!-- 卡组列表 -->
+      <div class="deck-select-content">
+        <div id="deck-list" class="deck-list"></div>
+      </div>
+
+      <!-- 底部按钮 -->
+      <div class="deck-select-footer">
+        <button id="btn-start-game" class="start-game-btn" disabled>
+          <span class="btn-icon">⚔</span>
+          <span class="btn-text">开始游戏</span>
+        </button>
       </div>
     </div>
 
@@ -162,6 +189,8 @@
           </div>
           <div class="deck-actions">
             <button id="btn-auto-fill">自动填充</button>
+            <button id="btn-import-deckcode">导入代码</button>
+            <button id="btn-export-deckcode">导出代码</button>
             <button id="btn-save-deck" disabled>保存卡组</button>
             <button id="btn-clear-deck">清空</button>
           </div>
@@ -241,54 +270,160 @@
 
     <!-- 职业选择界面 -->
     <div id="class-select-screen" class="screen hidden">
-      <h2>选择你的职业</h2>
-      <div id="class-list" class="class-list">
-        <div class="class-option" data-class="mage">
-          <div class="class-icon mage-icon"></div>
-          <span>法师</span>
+      <!-- 背景装饰 -->
+      <div class="class-select-bg">
+        <div class="class-select-rings"></div>
+        <div class="class-select-particles"></div>
+      </div>
+
+      <!-- 顶部标题区 -->
+      <div class="class-select-header">
+        <button id="btn-back-from-class" class="class-select-back">
+          <span class="back-arrow">‹</span>
+          <span>返回</span>
+        </button>
+        <div class="class-select-title-wrapper">
+          <h2 class="class-select-title">选择对手职业</h2>
+          <div class="class-select-subtitle">SELECT OPPONENT CLASS</div>
         </div>
-        <div class="class-option" data-class="warrior">
-          <div class="class-icon warrior-icon"></div>
-          <span>战士</span>
-        </div>
-        <div class="class-option" data-class="hunter">
-          <div class="class-icon hunter-icon"></div>
-          <span>猎人</span>
-        </div>
-        <div class="class-option" data-class="druid">
-          <div class="class-icon druid-icon"></div>
-          <span>德鲁伊</span>
-        </div>
-        <div class="class-option" data-class="rogue">
-          <div class="class-icon rogue-icon"></div>
-          <span>盗贼</span>
-        </div>
-        <div class="class-option" data-class="priest">
-          <div class="class-icon priest-icon"></div>
-          <span>牧师</span>
-        </div>
-        <div class="class-option" data-class="paladin">
-          <div class="class-icon paladin-icon"></div>
-          <span>圣骑士</span>
-        </div>
-        <div class="class-option" data-class="shaman">
-          <div class="class-icon shaman-icon"></div>
-          <span>萨满</span>
-        </div>
-        <div class="class-option" data-class="warlock">
-          <div class="class-icon warlock-icon"></div>
-          <span>术士</span>
-        </div>
-        <div class="class-option" data-class="demonhunter">
-          <div class="class-icon demonhunter-icon"></div>
-          <span>恶魔猎手</span>
-        </div>
-        <div class="class-option" data-class="deathknight">
-          <div class="class-icon deathknight-icon"></div>
-          <span>死亡骑士</span>
+        <div class="class-select-spacer"></div>
+      </div>
+
+      <!-- 职业列表 -->
+      <div class="class-select-content">
+        <div id="class-list" class="class-list">
+          <div class="class-option" data-class="mage">
+            <div class="class-card">
+              <div class="class-glow mage-glow"></div>
+              <div class="class-icon mage-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2L2 22h20L12 2zm0 4l7 14H5l7-14z"/></svg>
+              </div>
+              <span class="class-name">法师</span>
+              <span class="class-name-en">MAGE</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="warrior">
+            <div class="class-card">
+              <div class="class-glow warrior-glow"></div>
+              <div class="class-icon warrior-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2l-9 4v6c0 5 4 9 9 12 5-3 9-7 9-12V6l-9-4z"/></svg>
+              </div>
+              <span class="class-name">战士</span>
+              <span class="class-name-en">WARRIOR</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="hunter">
+            <div class="class-card">
+              <div class="class-glow hunter-glow"></div>
+              <div class="class-icon hunter-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2C6 2 2 6 2 12s4 10 10 10 10-4 10-10S18 2 12 2zm0 18c-4 0-8-4-8-8s4-8 8-8 8 4 8 8-4 8-8 8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <span class="class-name">猎人</span>
+              <span class="class-name-en">HUNTER</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="druid">
+            <div class="class-card">
+              <div class="class-glow druid-glow"></div>
+              <div class="class-icon druid-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2L4 6v4c0 5 3 9 8 12 5-3 8-7 8-12V6l-8-4z"/></svg>
+              </div>
+              <span class="class-name">德鲁伊</span>
+              <span class="class-name-en">DRUID</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="rogue">
+            <div class="class-card">
+              <div class="class-glow rogue-glow"></div>
+              <div class="class-icon rogue-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2L2 12l10 10 10-10L12 2zm0 4l6 6-6 6-6-6 6-6z"/></svg>
+              </div>
+              <span class="class-name">盗贼</span>
+              <span class="class-name-en">ROGUE</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="priest">
+            <div class="class-card">
+              <div class="class-glow priest-glow"></div>
+              <div class="class-icon priest-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2v20M6 8l6-4 6 4M6 16l6 4 6-4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+              </div>
+              <span class="class-name">牧师</span>
+              <span class="class-name-en">PRIEST</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="paladin">
+            <div class="class-card">
+              <div class="class-glow paladin-glow"></div>
+              <div class="class-icon paladin-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2L4 6v6c0 5 3 9 8 12 5-3 8-7 8-12V6l-8-4z"/><path d="M12 6l-4 2v4c0 3 2 6 4 8 2-2 4-5 4-8V8l-4-2z"/></svg>
+              </div>
+              <span class="class-name">圣骑士</span>
+              <span class="class-name-en">PALADIN</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="shaman">
+            <div class="class-card">
+              <div class="class-glow shaman-glow"></div>
+              <div class="class-icon shaman-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2L4 22h16L12 2zm0 6l4 10H8l4-10z"/></svg>
+              </div>
+              <span class="class-name">萨满</span>
+              <span class="class-name-en">SHAMAN</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="warlock">
+            <div class="class-card">
+              <div class="class-glow warlock-glow"></div>
+              <div class="class-icon warlock-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+              </div>
+              <span class="class-name">术士</span>
+              <span class="class-name-en">WARLOCK</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="demonhunter">
+            <div class="class-card">
+              <div class="class-glow demonhunter-glow"></div>
+              <div class="class-icon demonhunter-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2L4 12l8 10 8-10L12 2zm0 4l4 6-4 6-4-6 4-6z"/><path d="M2 12h20"/></svg>
+              </div>
+              <span class="class-name">恶魔猎手</span>
+              <span class="class-name-en">DEMON HUNTER</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
+          <div class="class-option" data-class="deathknight">
+            <div class="class-card">
+              <div class="class-glow deathknight-glow"></div>
+              <div class="class-icon deathknight-icon">
+                <svg viewBox="0 0 24 24" class="class-symbol"><path d="M12 2L4 8v8l8 6 8-6V8l-8-6z"/><path d="M12 6l-4 4v4l4 3 4-3v-4l-4-4z"/></svg>
+              </div>
+              <span class="class-name">死亡骑士</span>
+              <span class="class-name-en">DEATH KNIGHT</span>
+              <div class="class-particles"></div>
+            </div>
+          </div>
         </div>
       </div>
-      <button id="btn-back-from-class" class="back-btn">返回</button>
+
+      <!-- 底部装饰 -->
+      <div class="class-select-footer">
+        <div class="footer-runes">
+          <span class="footer-rune">◆</span>
+          <span class="footer-rune">⚔</span>
+          <span class="footer-rune">◆</span>
+        </div>
+      </div>
     </div>
 
     <!-- 卡牌详情弹窗 -->
@@ -334,8 +469,104 @@
         </div>
       </div>
     </div>
+
+    <!-- 确认删除弹窗 -->
+    <div id="confirm-dialog" class="confirm-dialog hidden">
+      <div class="confirm-dialog-overlay"></div>
+      <div class="confirm-dialog-content">
+        <div class="confirm-dialog-icon">
+          <svg viewBox="0 0 24 24" width="48" height="48">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3 class="confirm-dialog-title">确认删除</h3>
+        <p class="confirm-dialog-message">确定要删除卡组 <span id="confirm-deck-name" class="confirm-deck-name"></span> 吗？<br>此操作无法撤销。</p>
+        <div class="confirm-dialog-buttons">
+          <button id="btn-confirm-cancel" class="confirm-btn cancel">取消</button>
+          <button id="btn-confirm-delete" class="confirm-btn delete">删除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 通用消息弹窗 -->
+    <div id="message-dialog" class="message-dialog hidden">
+      <div class="message-dialog-overlay"></div>
+      <div class="message-dialog-content">
+        <div class="message-dialog-icon" id="message-icon">
+          <svg viewBox="0 0 24 24" width="48" height="48">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3 class="message-dialog-title" id="message-title">提示</h3>
+        <p class="message-dialog-text" id="message-text"></p>
+        <button class="message-dialog-btn" id="btn-message-ok">确定</button>
+      </div>
+    </div>
+
+    <!-- 通用确认弹窗 -->
+    <div id="generic-confirm-dialog" class="confirm-dialog hidden">
+      <div class="confirm-dialog-overlay"></div>
+      <div class="confirm-dialog-content">
+        <div class="confirm-dialog-icon" id="generic-confirm-icon">
+          <svg viewBox="0 0 24 24" width="48" height="48">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3 class="confirm-dialog-title" id="generic-confirm-title">确认</h3>
+        <p class="confirm-dialog-message" id="generic-confirm-message"></p>
+        <div class="confirm-dialog-buttons">
+          <button class="confirm-btn cancel" id="btn-generic-confirm-cancel">取消</button>
+          <button class="confirm-btn confirm" id="btn-generic-confirm-ok">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 卡组代码导入弹窗 -->
+    <div id="deckcode-dialog" class="confirm-dialog hidden">
+      <div class="confirm-dialog-overlay"></div>
+      <div class="confirm-dialog-content">
+        <div class="confirm-dialog-icon">
+          <svg viewBox="0 0 24 24" width="48" height="48">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3 class="confirm-dialog-title">导入卡组代码</h3>
+        <p class="confirm-dialog-message">粘贴炉石传说卡组代码：</p>
+        <textarea id="deckcode-input" class="deckcode-input" placeholder="AAEBAf0G..." rows="3"></textarea>
+        <div class="confirm-dialog-buttons">
+          <button class="confirm-btn cancel" id="btn-deckcode-cancel">取消</button>
+          <button class="confirm-btn confirm" id="btn-deckcode-import">导入</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 卡组代码导出弹窗 -->
+    <div id="export-dialog" class="confirm-dialog hidden">
+      <div class="confirm-dialog-overlay"></div>
+      <div class="confirm-dialog-content">
+        <div class="confirm-dialog-icon">
+          <svg viewBox="0 0 24 24" width="48" height="48">
+            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3 class="confirm-dialog-title">卡组代码</h3>
+        <p class="confirm-dialog-message">复制以下代码到炉石传说或其他工具：</p>
+        <textarea id="export-code-output" class="deckcode-input" readonly rows="3"></textarea>
+        <div class="confirm-dialog-buttons">
+          <button class="confirm-btn cancel" id="btn-export-close">关闭</button>
+          <button class="confirm-btn confirm" id="btn-export-copy">复制</button>
+        </div>
+      </div>
+    </div>
+  </div>
+          <button class="confirm-btn cancel" id="btn-generic-confirm-cancel">取消</button>
+          <button class="confirm-btn confirm" id="btn-generic-confirm-ok">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="/js/api.js"></script>
+  <script src="/js/deckcode.js"></script>
   <script src="/js/deck.js"></script>
   <script src="/js/game.js"></script>
   <script src="/js/app.js"></script>

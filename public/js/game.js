@@ -24,7 +24,13 @@ class GameUI {
       this.showMessage(i18n.t('ui.game.gameStart'));
     } catch (err) {
       console.error('Failed to start game:', err);
-      alert(i18n.t('ui.deck.loadFailed'));
+      if (window.app) {
+        window.app.showMessageDialog({
+          title: i18n.t('ui.deck.loadFailedTitle', { defaultValue: '加载失败' }),
+          message: i18n.t('ui.deck.loadFailed', { defaultValue: '加载失败' }),
+          type: 'error'
+        });
+      }
     }
   }
 
@@ -594,8 +600,15 @@ class GameUI {
       if (this.gameState.ai.health <= 0) {
         this.showMessage(i18n.t('ui.game.victory'));
         setTimeout(() => {
-          if (confirm(i18n.t('ui.game.playAgain'))) {
-            window.app.showScreen('menu');
+          if (window.app) {
+            window.app.showGenericConfirm({
+              title: i18n.t('ui.game.playAgainTitle', { defaultValue: '游戏结束' }),
+              message: i18n.t('ui.game.playAgain', { defaultValue: '再玩一局？' }),
+              type: 'question',
+              onConfirm: () => {
+                window.app.showScreen('menu');
+              }
+            });
           }
         }, 1000);
       }
@@ -654,16 +667,23 @@ class GameUI {
   }
 
   async concede() {
-    if (!confirm(i18n.t('ui.game.confirmConcede'))) return;
-
-    try {
-      await API.concede();
-      this.showMessage(i18n.t('ui.game.youConceded'));
-      setTimeout(() => {
-        window.app.showScreen('menu');
-      }, 1500);
-    } catch (err) {
-      console.error('Failed to concede:', err);
+    if (window.app) {
+      window.app.showGenericConfirm({
+        title: i18n.t('ui.game.confirmConcedeTitle', { defaultValue: '确认认输' }),
+        message: i18n.t('ui.game.confirmConcede', { defaultValue: '确定要认输吗？' }),
+        type: 'warning',
+        onConfirm: async () => {
+          try {
+            await API.concede();
+            this.showMessage(i18n.t('ui.game.youConceded'));
+            setTimeout(() => {
+              window.app.showScreen('menu');
+            }, 1500);
+          } catch (err) {
+            console.error('Failed to concede:', err);
+          }
+        }
+      });
     }
   }
 

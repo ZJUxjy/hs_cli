@@ -1,0 +1,1164 @@
+/* deck-select.css - 卡组选择界面样式 */
+
+/* ===== 主容器 ===== */
+#deck-select-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-void);
+  overflow: hidden;
+}
+
+/* ===== 背景装饰 ===== */
+.deck-select-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 旋转光环 */
+.deck-select-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120vmax;
+  height: 120vmax;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(circle at 20% 30%, rgba(74, 144, 217, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(240, 192, 64, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(217, 74, 74, 0.03) 0%, transparent 50%);
+  animation: deckRingsRotate 100s linear infinite;
+}
+
+@keyframes deckRingsRotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* 粒子效果 */
+.deck-select-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.deck-select-particles::before,
+.deck-select-particles::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--accent-gold);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 10px var(--accent-gold), 0 0 20px var(--accent-gold);
+}
+
+.deck-select-particles::before {
+  left: 10%;
+  animation: deckParticleFloat 12s ease-in-out infinite;
+}
+
+.deck-select-particles::after {
+  left: 90%;
+  animation: deckParticleFloat 15s ease-in-out infinite 3s;
+}
+
+@keyframes deckParticleFloat {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(100vh) scale(0);
+  }
+  10%, 90% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(1);
+  }
+}
+
+/* ===== 头部 ===== */
+.deck-select-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-8);
+  flex-shrink: 0;
+}
+
+.deck-select-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  font-family: var(--font-title);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  backdrop-filter: blur(10px);
+}
+
+.deck-select-back:hover {
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+  background: rgba(0, 0, 0, 0.6);
+  transform: translateX(-3px);
+}
+
+.back-arrow {
+  font-size: var(--text-xl);
+  line-height: 1;
+}
+
+.deck-select-title-wrapper {
+  text-align: center;
+  flex: 1;
+}
+
+.deck-select-spacer {
+  width: 100px;
+}
+
+.deck-select-title {
+  font-family: var(--font-title);
+  font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
+  font-weight: var(--font-bold);
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-shadow:
+    0 0 20px var(--accent-gold-glow),
+    0 0 40px rgba(240, 192, 64, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.8);
+  animation: deckTitleGlow 3s ease-in-out infinite;
+  margin-bottom: var(--space-2);
+}
+
+@keyframes deckTitleGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 20px var(--accent-gold-glow),
+      0 0 40px rgba(240, 192, 64, 0.2),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    text-shadow:
+      0 0 30px var(--accent-gold-glow),
+      0 0 60px rgba(240, 192, 64, 0.3),
+      0 0 90px rgba(240, 192, 64, 0.1),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.deck-select-subtitle {
+  font-family: var(--font-fantasy);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  letter-spacing: 0.3em;
+  opacity: 0.7;
+}
+
+/* ===== 内容区域 ===== */
+.deck-select-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-8);
+  overflow-y: auto;
+  position: relative;
+  z-index: 5;
+}
+
+/* ===== 卡组列表 - 水平网格 ===== */
+.deck-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+  max-width: 1400px;
+  width: 100%;
+  padding: var(--space-4);
+}
+
+/* ===== 卡组卡片 ===== */
+.deck-card {
+  position: relative;
+  background: linear-gradient(180deg,
+    rgba(26, 26, 46, 0.95) 0%,
+    rgba(18, 18, 31, 0.98) 100%
+  );
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-5);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  overflow: hidden;
+  animation: deckCardEnter 0.5s var(--ease-out) backwards;
+}
+
+@keyframes deckCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.deck-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* 光晕效果 */
+.deck-card-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--hero-color, var(--accent-gold)) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out);
+  pointer-events: none;
+  filter: blur(30px);
+}
+
+.deck-card:hover .deck-card-glow {
+  opacity: 0.15;
+}
+
+.deck-card.selected .deck-card-glow {
+  opacity: 0.25;
+}
+
+/* 边框流光 */
+.deck-card-border {
+  position: absolute;
+  inset: -2px;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    var(--hero-color, var(--accent-gold)),
+    transparent 30%
+  );
+  border-radius: var(--radius-2xl);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.deck-card:hover .deck-card-border,
+.deck-card.selected .deck-card-border {
+  opacity: 0.6;
+  animation: deckCardBorderRotate 3s linear infinite;
+}
+
+.deck-card.selected .deck-card-border {
+  opacity: 1;
+  animation: deckCardBorderRotate 2s linear infinite;
+}
+
+@keyframes deckCardBorderRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 删除按钮 */
+.deck-card-delete {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(217, 74, 74, 0.2);
+  border: 1px solid rgba(217, 74, 74, 0.4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all var(--duration-fast) var(--ease-out);
+  z-index: 10;
+}
+
+.deck-card-delete svg {
+  width: 14px;
+  height: 14px;
+  color: var(--health-red);
+}
+
+.deck-card:hover .deck-card-delete {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.deck-card-delete:hover {
+  background: rgba(217, 74, 74, 0.4);
+  transform: scale(1.1) !important;
+}
+
+/* 卡片内容 */
+.deck-card-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  position: relative;
+  z-index: 1;
+}
+
+/* 职业图标 */
+.deck-card-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.deck-card-icon svg {
+  width: 35px;
+  height: 35px;
+  fill: rgba(255, 255, 255, 0.95);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.deck-card:hover .deck-card-icon {
+  transform: scale(1.05) rotate(-3deg);
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(255, 255, 255, 0.1),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+/* 卡组信息 */
+.deck-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.deck-card-name {
+  font-family: var(--font-title);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.deck-card:hover .deck-card-name {
+  color: var(--accent-gold);
+}
+
+.deck-card-hero {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  opacity: 0.8;
+}
+
+/* 卡组统计 */
+.deck-card-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.card-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  padding: var(--space-1) var(--space-2);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.count-number {
+  font-family: var(--font-title);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.count-number.low {
+  color: var(--health-red);
+}
+
+.count-total {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.card-count.complete .count-number {
+  color: var(--heal-green);
+}
+
+.cards-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.cards-icon svg {
+  opacity: 0.6;
+}
+
+/* 状态标签 */
+.deck-card-ready,
+.deck-card-incomplete {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-md);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.deck-card-ready {
+  background: rgba(74, 217, 74, 0.15);
+  color: var(--heal-green);
+  border: 1px solid rgba(74, 217, 74, 0.3);
+}
+
+.deck-card-incomplete {
+  background: rgba(217, 74, 74, 0.15);
+  color: var(--health-red);
+  border: 1px solid rgba(217, 74, 74, 0.3);
+}
+
+/* 光泽效果 */
+.deck-card-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left var(--duration-slow) var(--ease-out);
+  pointer-events: none;
+}
+
+.deck-card:hover .deck-card-shine {
+  left: 150%;
+}
+
+/* 选中状态 */
+.deck-card.selected {
+  border-color: var(--accent-gold);
+  background: linear-gradient(180deg,
+    rgba(240, 192, 64, 0.1) 0%,
+    rgba(26, 26, 46, 0.98) 100%
+  );
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(240, 192, 64, 0.2),
+    inset 0 0 20px rgba(240, 192, 64, 0.05);
+}
+
+.deck-card.selected .deck-card-name {
+  color: var(--accent-gold);
+}
+
+.deck-card.selected .deck-card-icon {
+  transform: scale(1.05);
+  border-color: var(--accent-gold);
+}
+
+/* ===== 底部按钮 ===== */
+.deck-select-footer {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) var(--space-8);
+  flex-shrink: 0;
+}
+
+.start-game-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-10);
+  font-family: var(--font-title);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--bg-void);
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #d4a020 100%);
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  box-shadow:
+    0 4px 15px rgba(240, 192, 64, 0.3),
+    0 0 0 rgba(240, 192, 64, 0);
+  position: relative;
+  overflow: hidden;
+}
+
+.start-game-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+.start-game-btn:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 8px 30px rgba(240, 192, 64, 0.4),
+    0 0 40px rgba(240, 192, 64, 0.2);
+}
+
+.start-game-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.start-game-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #666 0%, #444 100%);
+  box-shadow: none;
+}
+
+.btn-icon {
+  font-size: var(--text-2xl);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+.btn-text {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 空状态 ===== */
+.deck-list:empty::before {
+  content: '暂无卡组';
+  display: block;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  padding: var(--space-12);
+  grid-column: 1 / -1;
+}
+
+/* ===== 进入动画 ===== */
+#deck-select-screen:not(.hidden) .deck-select-title-wrapper {
+  animation: deckTitleEnter 0.6s var(--ease-out) backwards;
+}
+
+@keyframes deckTitleEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#deck-select-screen:not(.hidden) .start-game-btn {
+  animation: deckBtnEnter 0.6s var(--ease-out) 0.3s backwards;
+}
+
+@keyframes deckBtnEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 1024px) {
+  .deck-list {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .deck-select-header {
+    padding: var(--space-4);
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .deck-select-spacer {
+    display: none;
+  }
+
+  .deck-select-back {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+  }
+
+  .deck-list {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .deck-card-delete {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .start-game-btn {
+    padding: var(--space-4) var(--space-8);
+    font-size: var(--text-lg);
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .deck-card {
+    padding: var(--space-4);
+  }
+
+  .deck-card-icon {
+    width: 55px;
+    height: 55px;
+  }
+
+  .deck-card-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .deck-card-name {
+    font-size: var(--text-lg);
+  }
+
+  .deck-card-hero {
+    font-size: var(--text-xs);
+  }
+
+  .deck-card-ready,
+  .deck-card-incomplete {
+    position: static;
+    display: inline-block;
+    margin-top: var(--space-2);
+  }
+}
+
+/* ===== 减少动画 ===== */
+@media (prefers-reduced-motion: reduce) {
+  .deck-select-rings,
+  .deck-select-particles::before,
+  .deck-select-particles::after,
+  .deck-card-border,
+  .deck-card-glow,
+  .deck-card-shine,
+  .deck-select-title {
+    animation: none !important;
+  }
+
+  .deck-card:hover .deck-card-border,
+  .deck-card.selected .deck-card-border {
+    animation: none;
+  }
+
+  #deck-select-screen:not(.hidden) .deck-card,
+  #deck-select-screen:not(.hidden) .deck-select-title-wrapper,
+  #deck-select-screen:not(.hidden) .start-game-btn {
+    animation: none;
+  }
+}
+
+/* ===== 确认删除弹窗 ===== */
+.confirm-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-dialog.hidden {
+  display: none !important;
+}
+
+.confirm-dialog-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  animation: confirmOverlayIn 0.3s var(--ease-out);
+}
+
+@keyframes confirmOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.confirm-dialog-content {
+  position: relative;
+  width: 90%;
+  max-width: 420px;
+  background: linear-gradient(180deg,
+    rgba(26, 26, 46, 0.98) 0%,
+    rgba(18, 18, 31, 0.99) 100%
+  );
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  animation: confirmContentIn 0.4s var(--ease-out);
+  overflow: hidden;
+}
+
+.confirm-dialog-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--health-red),
+    transparent
+  );
+}
+
+@keyframes confirmContentIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.confirm-dialog-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(217, 74, 74, 0.15);
+  border: 2px solid rgba(217, 74, 74, 0.3);
+  border-radius: 50%;
+  color: var(--health-red);
+  animation: confirmIconIn 0.5s var(--ease-out) 0.1s backwards;
+}
+
+@keyframes confirmIconIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.confirm-dialog-icon svg {
+  filter: drop-shadow(0 0 10px rgba(217, 74, 74, 0.5));
+}
+
+.confirm-dialog-title {
+  font-family: var(--font-title);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.confirm-dialog-message {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-6);
+}
+
+.confirm-deck-name {
+  color: var(--accent-gold);
+  font-weight: var(--font-bold);
+}
+
+.confirm-dialog-buttons {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+}
+
+.confirm-btn {
+  padding: var(--space-3) var(--space-8);
+  font-family: var(--font-title);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  min-width: 100px;
+}
+
+.confirm-btn.cancel {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.confirm-btn.cancel:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.confirm-btn.delete {
+  background: linear-gradient(135deg, rgba(217, 74, 74, 0.9) 0%, rgba(180, 50, 50, 0.9) 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 15px rgba(217, 74, 74, 0.3);
+}
+
+.confirm-btn.delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(217, 74, 74, 0.5);
+  background: linear-gradient(135deg, rgba(217, 74, 74, 1) 0%, rgba(180, 50, 50, 1) 100%);
+}
+
+.confirm-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 弹窗关闭动画 */
+.confirm-dialog.closing .confirm-dialog-overlay {
+  animation: confirmOverlayOut 0.2s var(--ease-out) forwards;
+}
+
+.confirm-dialog.closing .confirm-dialog-content {
+  animation: confirmContentOut 0.2s var(--ease-out) forwards;
+}
+
+@keyframes confirmOverlayOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes confirmContentOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 通用确认按钮样式 */
+.confirm-btn.confirm {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #d4a020 100%);
+  border: none;
+  color: var(--bg-void);
+  box-shadow: 0 4px 15px rgba(240, 192, 64, 0.3);
+}
+
+.confirm-btn.confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(240, 192, 64, 0.5);
+}
+
+/* ===== 通用消息弹窗 ===== */
+.message-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-dialog.hidden {
+  display: none !important;
+}
+
+.message-dialog-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  animation: messageOverlayIn 0.3s var(--ease-out);
+}
+
+@keyframes messageOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.message-dialog-content {
+  position: relative;
+  width: 90%;
+  max-width: 380px;
+  background: linear-gradient(180deg,
+    rgba(26, 26, 46, 0.98) 0%,
+    rgba(18, 18, 31, 0.99) 100%
+  );
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  animation: messageContentIn 0.4s var(--ease-out);
+  overflow: hidden;
+}
+
+.message-dialog-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--accent-gold),
+    transparent
+  );
+}
+
+.message-dialog-content.success::before {
+  background: linear-gradient(90deg, transparent, var(--heal-green), transparent);
+}
+
+.message-dialog-content.error::before {
+  background: linear-gradient(90deg, transparent, var(--health-red), transparent);
+}
+
+@keyframes messageContentIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.message-dialog-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(240, 192, 64, 0.15);
+  border: 2px solid rgba(240, 192, 64, 0.3);
+  border-radius: 50%;
+  color: var(--accent-gold);
+  animation: messageIconIn 0.5s var(--ease-out) 0.1s backwards;
+}
+
+.message-dialog-content.success .message-dialog-icon {
+  background: rgba(74, 217, 74, 0.15);
+  border-color: rgba(74, 217, 74, 0.3);
+  color: var(--heal-green);
+}
+
+.message-dialog-content.error .message-dialog-icon {
+  background: rgba(217, 74, 74, 0.15);
+  border-color: rgba(217, 74, 74, 0.3);
+  color: var(--health-red);
+}
+
+@keyframes messageIconIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.message-dialog-icon svg {
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+.message-dialog-title {
+  font-family: var(--font-title);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.message-dialog-text {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-6);
+}
+
+.message-dialog-btn {
+  padding: var(--space-3) var(--space-10);
+  font-family: var(--font-title);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--bg-void);
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #d4a020 100%);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  box-shadow: 0 4px 15px rgba(240, 192, 64, 0.3);
+}
+
+.message-dialog-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(240, 192, 64, 0.5);
+}
+
+.message-dialog-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 关闭动画 */
+.message-dialog.closing .message-dialog-overlay {
+  animation: messageOverlayOut 0.2s var(--ease-out) forwards;
+}
+
+.message-dialog.closing .message-dialog-content {
+  animation: messageContentOut 0.2s var(--ease-out) forwards;
+}
+
+@keyframes messageOverlayOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes messageContentOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* ===== 卡组代码输入 ===== */
+.deckcode-input {
+  width: 100%;
+  padding: var(--space-3);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  resize: none;
+  margin-bottom: var(--space-4);
+  text-align: center;
+  word-break: break-all;
+}
+
+.deckcode-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(240, 192, 64, 0.2);
+}
+
+.deckcode-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .confirm-dialog-content,
+  .message-dialog-content {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .confirm-dialog-title,
+  .message-dialog-title {
+    font-size: var(--text-xl);
+  }
+
+  .confirm-dialog-message,
+  .message-dialog-text {
+    font-size: var(--text-sm);
+  }
+
+  .confirm-dialog-buttons {
+    flex-direction: column-reverse;
+  }
+
+  .confirm-btn,
+  .message-dialog-btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,671 @@
+/* class-select.css - 职业选择界面样式 */
+
+/* ===== 主容器 ===== */
+#class-select-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-void);
+  overflow: hidden;
+}
+
+/* ===== 背景装饰 ===== */
+.class-select-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 旋转光环 */
+.class-select-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120vmax;
+  height: 120vmax;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(74, 144, 217, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(217, 74, 74, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(240, 192, 64, 0.05) 0%, transparent 30%);
+  animation: classRingsRotate 80s linear infinite;
+}
+
+@keyframes classRingsRotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* 粒子效果 */
+.class-select-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.class-select-particles::before,
+.class-select-particles::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--accent-gold);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 15px var(--accent-gold), 0 0 30px var(--accent-gold);
+}
+
+.class-select-particles::before {
+  left: 15%;
+  animation: classParticleFloat 10s ease-in-out infinite;
+}
+
+.class-select-particles::after {
+  left: 85%;
+  animation: classParticleFloat 12s ease-in-out infinite 3s;
+}
+
+@keyframes classParticleFloat {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(100vh) scale(0);
+  }
+  10%, 90% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(1);
+  }
+}
+
+/* ===== 头部区域 ===== */
+.class-select-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-8);
+  flex-shrink: 0;
+}
+
+/* 返回按钮 */
+.class-select-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  font-family: var(--font-title);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  backdrop-filter: blur(10px);
+}
+
+.class-select-back:hover {
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+  background: rgba(0, 0, 0, 0.6);
+  transform: translateX(-3px);
+}
+
+.back-arrow {
+  font-size: var(--text-xl);
+  line-height: 1;
+}
+
+/* 标题区域 */
+.class-select-title-wrapper {
+  text-align: center;
+  flex: 1;
+}
+
+.class-select-spacer {
+  width: 100px;
+}
+
+.class-select-title {
+  font-family: var(--font-title);
+  font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
+  font-weight: var(--font-bold);
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-shadow:
+    0 0 20px var(--accent-gold-glow),
+    0 0 40px rgba(240, 192, 64, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.8);
+  animation: classTitleGlow 3s ease-in-out infinite;
+  margin-bottom: var(--space-2);
+}
+
+@keyframes classTitleGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 20px var(--accent-gold-glow),
+      0 0 40px rgba(240, 192, 64, 0.2),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    text-shadow:
+      0 0 30px var(--accent-gold-glow),
+      0 0 60px rgba(240, 192, 64, 0.3),
+      0 0 90px rgba(240, 192, 64, 0.1),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.class-select-subtitle {
+  font-family: var(--font-fantasy);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  letter-spacing: 0.3em;
+  opacity: 0.7;
+}
+
+/* ===== 内容区域 ===== */
+.class-select-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-8);
+  overflow-y: auto;
+  position: relative;
+  z-index: 5;
+}
+
+/* ===== 职业列表 ===== */
+.class-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
+  max-width: 1200px;
+  width: 100%;
+  padding: var(--space-4);
+}
+
+/* ===== 职业卡片 ===== */
+.class-option {
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.class-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  background: linear-gradient(180deg,
+    rgba(26, 26, 46, 0.9) 0%,
+    rgba(18, 18, 31, 0.95) 100%
+  );
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  transition: all var(--duration-normal) var(--ease-out);
+  transform-style: preserve-3d;
+  overflow: hidden;
+}
+
+.class-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* 边框流光效果 */
+.class-card::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    var(--accent-gold),
+    transparent 30%
+  );
+  border-radius: var(--radius-2xl);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.class-option:hover .class-card::after {
+  opacity: 0.5;
+  animation: classCardBorderRotate 3s linear infinite;
+}
+
+@keyframes classCardBorderRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.class-option:hover .class-card {
+  transform: translateY(-8px) scale(1.03);
+  border-color: var(--accent-gold);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(240, 192, 64, 0.2);
+}
+
+/* 选中状态 */
+.class-option.selected .class-card {
+  border-color: var(--accent-gold);
+  background: linear-gradient(180deg,
+    rgba(240, 192, 64, 0.15) 0%,
+    rgba(26, 26, 46, 0.95) 100%
+  );
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(240, 192, 64, 0.3),
+    inset 0 0 20px rgba(240, 192, 64, 0.1);
+}
+
+.class-option.selected .class-card::after {
+  opacity: 1;
+  animation: classCardBorderRotate 2s linear infinite;
+}
+
+/* 光晕效果 */
+.class-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-2xl);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out);
+  pointer-events: none;
+  filter: blur(20px);
+}
+
+.class-option:hover .class-glow {
+  opacity: 0.3;
+}
+
+.class-option.selected .class-glow {
+  opacity: 0.5;
+}
+
+/* 各职业光晕颜色 */
+.mage-glow { background: radial-gradient(circle, #4a90d9 0%, transparent 70%); }
+.warrior-glow { background: radial-gradient(circle, #d9a74a 0%, transparent 70%); }
+.hunter-glow { background: radial-gradient(circle, #4ad94a 0%, transparent 70%); }
+.druid-glow { background: radial-gradient(circle, #d94a4a 0%, transparent 70%); }
+.rogue-glow { background: radial-gradient(circle, #d94ad9 0%, transparent 70%); }
+.priest-glow { background: radial-gradient(circle, #ffffff 0%, transparent 70%); }
+.paladin-glow { background: radial-gradient(circle, #f0c040 0%, transparent 70%); }
+.shaman-glow { background: radial-gradient(circle, #4a4ad9 0%, transparent 70%); }
+.warlock-glow { background: radial-gradient(circle, #6a2a8a 0%, transparent 70%); }
+.demonhunter-glow { background: radial-gradient(circle, #ff6b6b 0%, transparent 70%); }
+.deathknight-glow { background: radial-gradient(circle, #4ad9d9 0%, transparent 70%); }
+
+/* ===== 职业图标 ===== */
+.class-icon {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  transition: all var(--duration-normal) var(--ease-out);
+  z-index: 1;
+}
+
+.class-option:hover .class-icon {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(255, 255, 255, 0.1),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.class-option.selected .class-icon {
+  transform: scale(1.15);
+  border-color: var(--accent-gold);
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(240, 192, 64, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+/* 职业图标颜色 */
+.mage-icon { background: linear-gradient(135deg, #4a90d9 0%, #2070c0 50%, #0d4a8a 100%); }
+.warrior-icon { background: linear-gradient(135deg, #d9a74a 0%, #b08030 50%, #7a5a20 100%); }
+.hunter-icon { background: linear-gradient(135deg, #4ad94a 0%, #30b030 50%, #1a7a1a 100%); }
+.druid-icon { background: linear-gradient(135deg, #d94a4a 0%, #b03030 50%, #7a1a1a 100%); }
+.rogue-icon { background: linear-gradient(135deg, #d94ad9 0%, #b030b0 50%, #7a1a7a 100%); }
+.priest-icon { background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 50%, #a0a0a0 100%); color: #333; }
+.paladin-icon { background: linear-gradient(135deg, #f0c040 0%, #d0a020 50%, #a07010 100%); }
+.shaman-icon { background: linear-gradient(135deg, #4a4ad9 0%, #3030b0 50%, #1a1a7a 100%); }
+.warlock-icon { background: linear-gradient(135deg, #6a2a8a 0%, #4a1a6a 50%, #2a0a4a 100%); }
+.demonhunter-icon { background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 50%, #8a1a1a 100%); }
+.deathknight-icon { background: linear-gradient(135deg, #4ad9d9 0%, #2a8a8a 50%, #1a4a4a 100%); }
+
+/* 图标符号 */
+.class-symbol {
+  width: 45%;
+  height: 45%;
+  fill: currentColor;
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.priest-icon .class-symbol {
+  color: #333;
+}
+
+.class-option:hover .class-symbol {
+  transform: scale(1.1);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+}
+
+/* ===== 职业名称 ===== */
+.class-name {
+  font-family: var(--font-title);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  text-align: center;
+  transition: all var(--duration-normal) var(--ease-out);
+  z-index: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.class-option:hover .class-name {
+  color: var(--accent-gold);
+  transform: scale(1.05);
+}
+
+.class-name-en {
+  font-family: var(--font-fantasy);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  text-align: center;
+  transition: all var(--duration-normal) var(--ease-out);
+  z-index: 1;
+}
+
+.class-option:hover .class-name-en {
+  color: var(--text-secondary);
+}
+
+/* ===== 卡片粒子效果 ===== */
+.class-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.class-option:hover .class-particles {
+  opacity: 1;
+}
+
+.class-particles::before,
+.class-particles::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--accent-gold);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-gold);
+}
+
+.class-particles::before {
+  top: 10%;
+  left: 20%;
+  animation: cardParticle1 3s ease-in-out infinite;
+}
+
+.class-particles::after {
+  bottom: 15%;
+  right: 25%;
+  animation: cardParticle2 3s ease-in-out infinite 1.5s;
+}
+
+@keyframes cardParticle1 {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(0) scale(0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-30px) scale(1);
+  }
+}
+
+@keyframes cardParticle2 {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(0) scale(0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-20px) scale(1);
+  }
+}
+
+/* ===== 底部装饰 ===== */
+.class-select-footer {
+  position: relative;
+  z-index: 10;
+  padding: var(--space-6);
+  flex-shrink: 0;
+}
+
+.footer-runes {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-12);
+  opacity: 0.3;
+}
+
+.footer-rune {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--accent-gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-fantasy);
+  font-size: var(--text-base);
+  color: var(--accent-gold);
+  animation: footerRunePulse 4s ease-in-out infinite;
+}
+
+.footer-rune:nth-child(2) {
+  animation-delay: 1.3s;
+}
+
+.footer-rune:nth-child(3) {
+  animation-delay: 2.6s;
+}
+
+@keyframes footerRunePulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(240, 192, 64, 0);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(240, 192, 64, 0.3);
+  }
+}
+
+/* ===== 进入动画 ===== */
+#class-select-screen:not(.hidden) .class-option {
+  animation: classCardEnter 0.5s var(--ease-out) backwards;
+}
+
+#class-select-screen:not(.hidden) .class-option:nth-child(1) { animation-delay: 0.05s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(2) { animation-delay: 0.1s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(3) { animation-delay: 0.15s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(4) { animation-delay: 0.2s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(5) { animation-delay: 0.25s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(6) { animation-delay: 0.3s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(7) { animation-delay: 0.35s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(8) { animation-delay: 0.4s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(9) { animation-delay: 0.45s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(10) { animation-delay: 0.5s; }
+#class-select-screen:not(.hidden) .class-option:nth-child(11) { animation-delay: 0.55s; }
+
+@keyframes classCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#class-select-screen:not(.hidden) .class-select-title-wrapper {
+  animation: classTitleEnter 0.6s var(--ease-out) backwards;
+}
+
+@keyframes classTitleEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== 响应式调整 ===== */
+@media (max-width: 1024px) {
+  .class-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+@media (max-width: 768px) {
+  .class-select-header {
+    padding: var(--space-4);
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .class-select-spacer {
+    display: none;
+  }
+
+  .class-select-back {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+  }
+
+  .class-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+
+  .class-card {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .class-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .class-name {
+    font-size: var(--text-base);
+  }
+
+  .class-name-en {
+    font-size: var(--text-xs);
+  }
+
+  .footer-runes {
+    gap: var(--space-8);
+  }
+}
+
+@media (max-width: 480px) {
+  .class-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .class-card {
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .class-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .class-name {
+    font-size: var(--text-sm);
+  }
+
+  .class-name-en {
+    display: none;
+  }
+}
+
+/* ===== 减少动画偏好 ===== */
+@media (prefers-reduced-motion: reduce) {
+  .class-select-rings,
+  .class-select-particles::before,
+  .class-select-particles::after,
+  .class-card::after,
+  .class-glow,
+  .class-particles,
+  .footer-rune,
+  .class-select-title {
+    animation: none !important;
+  }
+
+  .class-option:hover .class-card::after {
+    animation: none;
+  }
+
+  #class-select-screen:not(.hidden) .class-option,
+  #class-select-screen:not(.hidden) .class-select-title-wrapper {
+    animation: none;
+  }
+}

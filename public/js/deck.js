@@ -67,9 +67,11 @@ class DeckBuilderUI {
   async loadCards() {
     try {
       this.allCards = await API.getCards();
-      // Filter to only show relevant cards (with cost and proper types)
+      // Filter to only show collectible cards (MINION, SPELL, WEAPON)
+      // Exclude: The Coin (GAME_005), non-collectible cards
       this.filteredCards = this.allCards.filter(card =>
-        card.type === 'MINION' || card.type === 'SPELL' || card.type === 'WEAPON'
+        card.collectible &&
+        (card.type === 'MINION' || card.type === 'SPELL' || card.type === 'WEAPON')
       );
       this.renderCardList(this.filteredCards);
     } catch (err) {
@@ -328,6 +330,18 @@ class DeckBuilderUI {
       autoFillBtn.addEventListener('click', () => this.autoFillDeck());
     }
 
+    // Import deck code button
+    const importBtn = document.getElementById('btn-import-deckcode');
+    if (importBtn) {
+      importBtn.addEventListener('click', () => this.showImportDialog());
+    }
+
+    // Export deck code button
+    const exportBtn = document.getElementById('btn-export-deckcode');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => this.showExportDialog());
+    }
+
     // Deck slots drop zone
     const deckSlots = document.getElementById('deck-slots');
     if (deckSlots) {
@@ -399,7 +413,11 @@ class DeckBuilderUI {
     // Check deck size (max 30)
     const totalCards = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
     if (totalCards >= 30) {
-      alert(i18n.t('ui.deck.deckFull'));
+      window.app.showMessageDialog({
+        title: i18n.t('ui.deck.deckFullTitle', { defaultValue: '卡组已满' }),
+        message: i18n.t('ui.deck.deckFull', { defaultValue: '卡组最多30张卡牌' }),
+        type: 'warning'
+      });
       return;
     }
 
@@ -411,7 +429,11 @@ class DeckBuilderUI {
     const heroClass = this.currentDeck.hero.toUpperCase();
     const cardClass = (card.cardClass || 'NEUTRAL').toUpperCase();
     if (cardClass !== heroClass && cardClass !== 'NEUTRAL') {
-      alert(i18n.t('ui.deck.classCardOnly', { class: this.getClassName(cardClass), hero: this.getClassName(heroClass) }));
+      window.app.showMessageDialog({
+        title: i18n.t('ui.deck.classMismatchTitle', { defaultValue: '职业不符' }),
+        message: i18n.t('ui.deck.classCardOnly', { class: this.getClassName(cardClass), hero: this.getClassName(heroClass), defaultValue: `${this.getClassName(cardClass)}卡牌只能用于${this.getClassName(heroClass)}卡组` }),
+        type: 'warning'
+      });
       return;
     }
 
@@ -421,7 +443,12 @@ class DeckBuilderUI {
 
     if (existing) {
       if (existing.count >= maxCopies) {
-        alert(maxCopies === 1 ? i18n.t('ui.deck.maxCopiesLegendary') : i18n.t('ui.deck.maxCopiesNormal'));
+        const isLegendary = maxCopies === 1;
+        window.app.showMessageDialog({
+          title: i18n.t('ui.deck.maxCopiesTitle', { defaultValue: '已达上限' }),
+          message: i18n.t('ui.deck.maxCopiesMsg', { defaultValue: isLegendary ? '传说/史诗卡牌最多1张' : '普通卡牌最多2张' }),
+          type: 'warning'
+        });
         return;
       }
       existing.count++;
@@ -539,16 +566,21 @@ class DeckBuilderUI {
   }
 
   clearDeck() {
-    if (confirm(i18n.t('ui.deck.confirmClear'))) {
-      this.currentDeck.cards = [];
-      this.currentDeck.name = '';
-      this.currentDeck.id = null;
-      this.saveToStorage();
-      this.renderDeckSlots();
-      this.updateDeckCount();
+    window.app.showGenericConfirm({
+      title: i18n.t('ui.deck.confirmClearTitle', { defaultValue: '确认清空' }),
+      message: i18n.t('ui.deck.confirmClear', { defaultValue: '确定要清空当前卡组吗？' }),
+      type: 'warning',
+      onConfirm: () => {
+        this.currentDeck.cards = [];
+        this.currentDeck.name = '';
+        this.currentDeck.id = null;
+        this.saveToStorage();
+        this.renderDeckSlots();
+        this.updateDeckCount();
 
-      document.getElementById('deck-name').value = '';
-    }
+        document.getElementById('deck-name').value = '';
+      }
+    });
   }
 
   autoFillDeck() {
@@ -570,7 +602,11 @@ class DeckBuilderUI {
     });
 
     if (availableCards.length === 0) {
-      alert('没有可用的卡牌');
+      window.app.showMessageDialog({
+        title: '无法填充',
+        message: '没有可用的卡牌',
+        type: 'warning'
+      });
       return;
     }
 
@@ -614,15 +650,20 @@ class DeckBuilderUI {
   }
 
   async saveDeck() {
-    const name = this.currentDeck.name.trim();
+    // 如果没有输入名称，使用默认名称
+    let name = this.currentDeck.name.trim();
     if (!name) {
-      alert(i18n.t('ui.deck.enterDeckName'));
-      return;
+      const heroName = this.getHeroName(this.currentDeck.hero);
+      name = `${heroName}卡组`;
     }
 
     const total = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
     if (total < 30) {
-      alert(i18n.t('ui.deck.need30Cards', { count: total }));
+      window.app.showMessageDialog({
+        title: i18n.t('ui.deck.need30CardsTitle', { defaultValue: '卡组不足' }),
+        message: i18n.t('ui.deck.need30Cards', { count: total, defaultValue: `卡组需要30张卡牌（当前${total}张）` }),
+        type: 'warning'
+      });
       return;
     }
 
@@ -655,14 +696,189 @@ class DeckBuilderUI {
         }
       }
 
-      alert(i18n.t('ui.deck.saveSuccess'));
+      window.app.showMessageDialog({
+        title: i18n.t('ui.deck.saveSuccessTitle', { defaultValue: '保存成功' }),
+        message: i18n.t('ui.deck.saveSuccess', { defaultValue: '卡组已保存' }),
+        type: 'success'
+      });
 
-      // Clear current deck after saving
-      this.clearDeck();
+      // 清空当前卡组
+      this.currentDeck.cards = [];
+      this.currentDeck.name = '';
+      this.currentDeck.id = null;
+      this.saveToStorage();
+      this.renderDeckSlots();
+      this.updateDeckCount();
+      const deckNameInput = document.getElementById('deck-name');
+      if (deckNameInput) deckNameInput.value = '';
     } catch (err) {
       console.error('Failed to save deck:', err);
-      alert(i18n.t('ui.deck.saveFailed'));
+      window.app.showMessageDialog({
+        title: i18n.t('ui.deck.saveFailedTitle', { defaultValue: '保存失败' }),
+        message: i18n.t('ui.deck.saveFailed', { defaultValue: '保存卡组失败，请重试' }),
+        type: 'error'
+      });
     }
+  }
+
+  // 显示导入卡组代码弹窗
+  showImportDialog() {
+    const dialog = document.getElementById('deckcode-dialog');
+    const input = document.getElementById('deckcode-input');
+    const importBtn = document.getElementById('btn-deckcode-import');
+    const cancelBtn = document.getElementById('btn-deckcode-cancel');
+
+    input.value = '';
+    dialog.classList.remove('hidden');
+
+    const closeDialog = () => {
+      dialog.classList.add('closing');
+      setTimeout(() => {
+        dialog.classList.add('hidden');
+        dialog.classList.remove('closing');
+      }, 200);
+    };
+
+    importBtn.onclick = () => {
+      const code = input.value.trim();
+      if (code) {
+        this.importDeckCode(code);
+      }
+      closeDialog();
+    };
+
+    cancelBtn.onclick = closeDialog;
+
+    dialog.querySelector('.confirm-dialog-overlay').onclick = closeDialog;
+  }
+
+  // 导入卡组代码
+  async importDeckCode(code) {
+    const deckCode = new DeckCode();
+    const decoded = deckCode.decode(code);
+
+    if (!decoded) {
+      window.app.showMessageDialog({
+        title: '导入失败',
+        message: '无效的卡组代码',
+        type: 'error'
+      });
+      return;
+    }
+
+    // 验证职业
+    if (!this.allCards.length) {
+      await this.loadCards();
+    }
+
+    // 设置职业
+    this.currentDeck.hero = decoded.hero;
+    const heroSelect = document.getElementById('deck-hero');
+    if (heroSelect) heroSelect.value = decoded.hero;
+
+    // 清空当前卡组
+    this.currentDeck.cards = [];
+
+    // 添加卡牌
+    let failedCards = 0;
+    for (const cardData of decoded.cards) {
+      const card = this.allCards.find(c => c.dbfId === cardData.dbfId);
+      if (card && card.collectible) {
+        this.currentDeck.cards.push({
+          cardId: card.id,
+          count: Math.min(cardData.count, card.rarity === 'LEGENDARY' ? 1 : 2)
+        });
+      } else {
+        failedCards++;
+      }
+    }
+
+    // 设置默认名称
+    const heroName = this.getHeroName(decoded.hero);
+    this.currentDeck.name = `${heroName}卡组`;
+    const nameInput = document.getElementById('deck-name');
+    if (nameInput) nameInput.value = this.currentDeck.name;
+
+    this.saveToStorage();
+    this.renderDeckSlots();
+    this.updateDeckCount();
+    this.autoFilterByHero();
+
+    const message = failedCards > 0
+      ? `卡组导入成功，有 ${failedCards} 张卡牌无法识别`
+      : '卡组导入成功';
+
+    window.app.showMessageDialog({
+      title: '导入成功',
+      message: message,
+      type: 'success'
+    });
+  }
+
+  // 显示导出卡组代码弹窗
+  showExportDialog() {
+    const total = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
+    if (total === 0) {
+      window.app.showMessageDialog({
+        title: '无法导出',
+        message: '卡组为空，无法生成代码',
+        type: 'warning'
+      });
+      return;
+    }
+
+    const deckCode = new DeckCode();
+
+    // 构建卡组数据
+    const deckData = {
+      format: 'wild',
+      hero: this.currentDeck.hero,
+      cards: this.currentDeck.cards.map(dc => {
+        const card = this.allCards.find(c => c.id === dc.cardId);
+        return {
+          dbfId: card ? card.dbfId : 0,
+          count: dc.count
+        };
+      }).filter(c => c.dbfId > 0)
+    };
+
+    const code = deckCode.encode(deckData);
+
+    const dialog = document.getElementById('export-dialog');
+    const output = document.getElementById('export-code-output');
+    const copyBtn = document.getElementById('btn-export-copy');
+    const closeBtn = document.getElementById('btn-export-close');
+
+    output.value = code;
+    dialog.classList.remove('hidden');
+
+    const closeDialog = () => {
+      dialog.classList.add('closing');
+      setTimeout(() => {
+        dialog.classList.add('hidden');
+        dialog.classList.remove('closing');
+      }, 200);
+    };
+
+    copyBtn.onclick = () => {
+      output.select();
+      document.execCommand('copy');
+      window.app.showMessageDialog({
+        title: '已复制',
+        message: '卡组代码已复制到剪贴板',
+        type: 'success'
+      });
+      closeDialog();
+    };
+
+    closeBtn.onclick = closeDialog;
+
+    dialog.querySelector('.confirm-dialog-overlay').onclick = closeDialog;
+
+    // 自动选中文本
+    setTimeout(() => {
+      output.select();
+    }, 100);
   }
 }
 
