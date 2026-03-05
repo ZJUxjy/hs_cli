@@ -481,6 +481,60 @@ class BattleCalculator {
   }
 
   /**
+   * 模拟一次攻击，返回攻击后的新状态（不修改原对象）
+   * @param {Object} attacker - 攻击随从（克隆）
+   * @param {Object} target - 目标（克隆）
+   * @returns {Object} { attackerState, targetState, damage }
+   */
+  simulateAttack(attacker, target) {
+    const damage = this.calculateAttackDamage(attacker, target);
+    const attackerState = this.cloneMinion(attacker);
+    const targetState = target.armor !== undefined
+      ? this.cloneHero(target)
+      : this.cloneMinion(target);
+
+    // 处理被攻击者
+    if (targetState.divine_shield) {
+      targetState.divine_shield = false;
+    } else if (target.armor !== undefined) {
+      // 目标是英雄
+      if (targetState.armor > 0) {
+        const armorDamage = Math.min(targetState.armor, damage);
+        targetState.armor -= armorDamage;
+        targetState.health -= (damage - armorDamage);
+      } else {
+        targetState.health -= damage;
+      }
+    } else {
+      // 目标是随从
+      targetState.health -= damage;
+
+      // 剧毒：直接杀死
+      if (attackerState.poisonous) {
+        targetState.health = 0;
+      }
+    }
+
+    // 处理攻击者
+    if (targetState.divine_shield === false && target.health !== undefined) {
+      // 攻击随从后受伤
+      if (targetState.health > 0 && !targetState.divine_shield) {
+        attackerState.health -= target.attack || 0;
+      }
+    }
+
+    // 检查死亡
+    attackerState.dead = attackerState.health <= 0;
+    targetState.dead = targetState.health <= 0;
+
+    return {
+      attackerState,
+      targetState,
+      damage
+    };
+  }
+
+  /**
    * 计算敌方下回合对我方英雄造成的最大伤害
    * @param {Array} opponentField - 敌方随从数组
    * @param {Object} myHero - 我方英雄对象
