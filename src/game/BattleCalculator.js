@@ -461,6 +461,26 @@ class BattleCalculator {
   }
 
   /**
+   * 计算单次攻击造成的伤害
+   * @param {Object} attacker - 攻击随从
+   * @param {Object} target - 目标（随从或英雄）
+   * @returns {number} 伤害值
+   */
+  calculateAttackDamage(attacker, target) {
+    // 剧毒对英雄无效
+    if (attacker.poisonous && target.armor !== undefined) {
+      return 0;
+    }
+
+    // 圣盾：被攻击者有圣盾则伤害为0
+    if (target.divine_shield) {
+      return 0;
+    }
+
+    return attacker.attack || 0;
+  }
+
+  /**
    * 计算敌方下回合对我方英雄造成的最大伤害
    * @param {Array} opponentField - 敌方随从数组
    * @param {Object} myHero - 我方英雄对象
