@@ -416,18 +416,61 @@ class BattleCalculator {
       Logger.info(`${attacker.name} 荣誉击杀，${owner.name} 抽 ${effect.value || 1} 张牌`);
     }
   }
-}
 
-/**
- * 计算敌方下回合对我方英雄造成的最大伤害
- * @param {Array} opponentField - 敌方随从数组
- * @param {Object} myHero - 我方英雄对象
- * @param {Array} myField - 我方随从数组
- * @returns {number} 最大伤害值
- */
-calculateMaxDamage(opponentField, myHero, myField) {
-  // TODO: 实现
-  return 0;
+  /**
+   * 克隆随从对象（用于模拟攻击）
+   * @param {Object} minion - 随从对象
+   * @returns {Object} 克隆的随从对象
+   */
+  cloneMinion(minion) {
+    return {
+      id: minion.id,
+      name: minion.name,
+      attack: minion.attack || 0,
+      health: minion.health || 0,
+      maxHealth: minion.maxHealth || minion.health || 0,
+      divine_shield: minion.divine_shield || false,
+      poisonous: minion.poisonous || false,
+      windfury: minion.windfury || false,
+      frozen: minion.frozen || false,
+      sleeping: minion.sleeping || false,
+      hasAttacked: minion.hasAttacked || false,
+      attacksRemaining: minion.attacksRemaining || 1,
+      canAttack: minion.canAttack !== false,
+      taunt: minion.taunt || false,
+      rush: minion.rush || false,
+      owner: minion.owner
+    };
+  }
+
+  /**
+   * 克隆英雄对象（用于模拟攻击）
+   * @param {Object} hero - 英雄对象
+   * @returns {Object} 克隆的英雄对象
+   */
+  cloneHero(hero) {
+    return {
+      id: hero.id,
+      hero: hero.hero,
+      health: hero.health || 30,
+      maxHealth: hero.maxHealth || 30,
+      armor: hero.armor || 0,
+      immune: hero.immune || false,
+      divine_shield: hero.divine_shield || false
+    };
+  }
+
+  /**
+   * 计算敌方下回合对我方英雄造成的最大伤害
+   * @param {Array} opponentField - 敌方随从数组
+   * @param {Object} myHero - 我方英雄对象
+   * @param {Array} myField - 我方随从数组
+   * @returns {number} 最大伤害值
+   */
+  calculateMaxDamage(opponentField, myHero, myField) {
+    // TODO: 实现
+    return 0;
+  }
 }
 
 module.exports = new BattleCalculator();
