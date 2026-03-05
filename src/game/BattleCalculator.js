@@ -418,4 +418,16 @@ class BattleCalculator {
   }
 }
 
+/**
+ * 计算敌方下回合对我方英雄造成的最大伤害
+ * @param {Array} opponentField - 敌方随从数组
+ * @param {Object} myHero - 我方英雄对象
+ * @param {Array} myField - 我方随从数组
+ * @returns {number} 最大伤害值
+ */
+calculateMaxDamage(opponentField, myHero, myField) {
+  // TODO: 实现
+  return 0;
+}
+
 module.exports = new BattleCalculator();
