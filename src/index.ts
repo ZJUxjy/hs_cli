@@ -46,3 +46,6 @@ import './cards/mechanics/karazhan';
 
 // League of Explorers cards
 import './cards/mechanics/league';
+
+// Gangs (Mean Streets of Gadgetzan) cards
+import './cards/mechanics/gangs';
