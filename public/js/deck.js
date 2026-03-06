@@ -603,8 +603,8 @@ class DeckBuilderUI {
 
     if (availableCards.length === 0) {
       window.app.showMessageDialog({
-        title: '无法填充',
-        message: '没有可用的卡牌',
+        title: i18n.t('ui.deck.noCardsTitle', { defaultValue: '无法填充' }),
+        message: i18n.t('ui.deck.noCardsAvailable', { defaultValue: '没有可用的卡牌' }),
         type: 'warning'
       });
       return;
@@ -759,8 +759,8 @@ class DeckBuilderUI {
 
     if (!decoded) {
       window.app.showMessageDialog({
-        title: '导入失败',
-        message: '无效的卡组代码',
+        title: i18n.t('ui.deck.importFailedTitle', { defaultValue: '导入失败' }),
+        message: i18n.t('ui.deck.invalidDeckCode', { defaultValue: '无效的卡组代码' }),
         type: 'error'
       });
       return;
@@ -805,11 +805,11 @@ class DeckBuilderUI {
     this.autoFilterByHero();
 
     const message = failedCards > 0
-      ? `卡组导入成功，有 ${failedCards} 张卡牌无法识别`
-      : '卡组导入成功';
+      ? i18n.t('ui.deck.importSuccessWithFailed', { count: failedCards, defaultValue: `卡组导入成功，有 ${failedCards} 张卡牌无法识别` })
+      : i18n.t('ui.deck.importSuccess', { defaultValue: '卡组导入成功' });
 
     window.app.showMessageDialog({
-      title: '导入成功',
+      title: i18n.t('ui.deck.importSuccessTitle', { defaultValue: '导入成功' }),
       message: message,
       type: 'success'
     });
@@ -820,8 +820,8 @@ class DeckBuilderUI {
     const total = this.currentDeck.cards.reduce((sum, c) => sum + c.count, 0);
     if (total === 0) {
       window.app.showMessageDialog({
-        title: '无法导出',
-        message: '卡组为空，无法生成代码',
+        title: i18n.t('ui.deck.cannotExportTitle', { defaultValue: '无法导出' }),
+        message: i18n.t('ui.deck.emptyDeckExport', { defaultValue: '卡组为空，无法生成代码' }),
         type: 'warning'
       });
       return;
@@ -864,8 +864,8 @@ class DeckBuilderUI {
       output.select();
       document.execCommand('copy');
       window.app.showMessageDialog({
-        title: '已复制',
-        message: '卡组代码已复制到剪贴板',
+        title: i18n.t('ui.deck.copiedTitle', { defaultValue: '已复制' }),
+        message: i18n.t('ui.deck.copiedMessage', { defaultValue: '卡组代码已复制到剪贴板' }),
         type: 'success'
       });
       closeDialog();

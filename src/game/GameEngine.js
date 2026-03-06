@@ -362,7 +362,12 @@ class GameEngine {
       this.applyOverload(player, card.effect.overload);
     }
 
-    // 执行卡牌效果
+    // 处理随从卡牌 - 召唤随从到战场
+    if (CardType.isMinion(card)) {
+      this.summonMinion(player, card);
+    }
+
+    // 执行卡牌效果（战吼、法术等）
     this.executeCardEffect(card, card.effect, {
       player,
       target: this.state.ai
@@ -594,9 +599,9 @@ class GameEngine {
       uid: this.generateUid(),
       id: card.id,
       name: card.name,
-      attack: card.effect?.attack || 0,
-      health: card.effect?.health || 0,
-      maxHealth: card.effect?.health || 0,
+      attack: card.attack || 0,
+      health: card.health || 0,
+      maxHealth: card.health || 0,
       canAttack: hasCharge || hasRush || false, // 有冲锋或突袭可以直接攻击随从
       hasAttacked: false,
       frozen: false,
@@ -1234,8 +1239,7 @@ class GameEngine {
    * @param {object} target - 目标随从
    */
   attackMinion(player, attacker, target) {
-    const BattleCalculator = require('./BattleCalculator');
-    const battleCalc = new BattleCalculator();
+    const battleCalc = require('./BattleCalculator');
 
     if (!attacker || !target) {
       Logger.warn('攻击目标无效');
@@ -1272,8 +1276,7 @@ class GameEngine {
   attackHero(player, attacker) {
     const opponent = player.id === 'player' ? this.state.ai : this.state.player;
 
-    const BattleCalculator = require('./BattleCalculator');
-    const battleCalc = new BattleCalculator();
+    const battleCalc = require('./BattleCalculator');
 
     // 使用 BattleCalculator 攻击英雄
     battleCalc.attackHero(attacker, opponent);

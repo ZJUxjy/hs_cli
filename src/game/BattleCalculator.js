@@ -133,16 +133,18 @@ class BattleCalculator {
    * @returns {object} 战斗结果
    */
   battle(minion1, minion2, game) {
-    // 剧毒检查
+    // 剧毒检查 - 注意：剧毒只影响目标，攻击者仍会受到反击伤害
+    let minion2KilledByPoisonous = false;
     if (minion1.poisonous) {
       minion2.health = 0;
+      minion2KilledByPoisonous = true;
       Logger.info(`${minion2.name} 被剧毒杀死`);
-      return { minion1Dead: false, minion2Dead: true, damage1: 0, damage2: 0 };
     }
+
+    // 被攻击者剧毒检查
     if (minion2.poisonous) {
       minion1.health = 0;
       Logger.info(`${minion1.name} 被剧毒杀死`);
-      return { minion1Dead: true, minion2Dead: false, damage1: 0, damage2: 0 };
     }
 
     // 圣盾处理 - 攻击者
@@ -157,7 +159,7 @@ class BattleCalculator {
     if (minion2.divine_shield) {
       minion2.divine_shield = false;
       Logger.info(`${minion2.name} 的圣盾被打破`);
-    } else {
+    } else if (!minion2KilledByPoisonous) {
       // 记录攻击前的生命值，用于检测超杀
       const preAttackHealth = minion2.health;
       this.calculateDamage(minion2, minion1.attack);
@@ -439,6 +441,9 @@ class BattleCalculator {
       canAttack: minion.canAttack !== false,
       taunt: minion.taunt || false,
       rush: minion.rush || false,
+      lifesteal: minion.lifesteal || false,
+      overkill: minion.overkill || false,
+      honorableKill: minion.honorableKill || null,
       owner: minion.owner,
       isHero: false
     };
@@ -518,8 +523,8 @@ class BattleCalculator {
     }
 
     // 处理攻击者（攻击随从而非英雄）
-    // 使用 armor 属性来判断是否是英雄：英雄有 armor，随从没有
-    if (target.armor === undefined) {
+    // 使用 isHero 标志位判断是否是英雄
+    if (!target.isHero) {
       // 目标是随从，攻击者会受到反击伤害
       if (target.attack && attackerState.health > 0) {
         attackerState.health -= target.attack;
@@ -573,6 +578,11 @@ class BattleCalculator {
       // 风怒随从可以攻击2次，普通1次
       let attacksRemaining = attacker.windfury ? 2 : 1;
 
+      // 每个攻击者开始前，如果没有目标但也没有嘲讽了，可以攻击英雄
+      if (targets.length === 0 && myFieldClone.every(m => !m.taunt)) {
+        targets = [myHeroClone];
+      }
+
       while (attacksRemaining > 0) {
         // 没有可用目标则停止
         if (targets.length === 0) break;
@@ -595,9 +605,10 @@ class BattleCalculator {
         if (result.targetState.dead) {
           // 从 targets 中移除
           targets.shift();
-          // 更新嘲讽列表
-          if (target.taunt) {
-            tauntMinions = tauntMinions.filter(m => m !== target);
+          // 也从 myFieldClone 中移除，避免后续攻击者再次找到它
+          const deadMinionIndex = myFieldClone.findIndex(m => m === target);
+          if (deadMinionIndex >= 0) {
+            myFieldClone.splice(deadMinionIndex, 1);
           }
         } else {
           // 更新目标状态（圣盾可能被打破）
@@ -607,15 +618,16 @@ class BattleCalculator {
         // 如果攻击者死亡，停止此随从的所有攻击
         if (attacker.dead) break;
 
-        // 如果攻击者还活着且还有攻击次数，检查下一个目标
+        // 如果攻击者还活着且还有攻击次数，重新评估目标
         if (attacksRemaining > 0) {
           // 重新评估目标：优先攻击嘲讽
-          tauntMinions = targets.filter(m => m.taunt);
+          tauntMinions = targets.filter(m => m && m.taunt);
           if (tauntMinions.length > 0) {
             // 还有嘲讽，攻击第一个嘲讽
-            targets = [targets.find(m => m.taunt), ...targets.filter(m => !m.taunt)];
-          } else if (targets.length === 0 || (targets.length > 0 && targets[0].armor === undefined)) {
-            // 没有嘲讽或第一个目标是普通随从，可以攻击英雄
+            const normalTargets = targets.filter(m => m && !m.taunt);
+            targets = [...tauntMinions, ...normalTargets];
+          } else if (targets.length === 0 || targets.every(m => m && !m.isHero)) {
+            // 没有嘲讽或只有普通随从，可以攻击英雄
             targets = [myHeroClone];
           }
         }

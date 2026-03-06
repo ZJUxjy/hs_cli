@@ -109,11 +109,66 @@ class App {
     } else if (current === 'deckSelect') {
       this.loadDeckList();
     }
-    // 更新菜单按钮文本等
+    // 更新所有静态文本
+    this.updateStaticText();
+  }
+
+  // 更新所有静态文本
+  updateStaticText() {
+    // 更新主菜单按钮
+    const newGameBtn = document.querySelector('#btn-new-game span');
+    if (newGameBtn) newGameBtn.textContent = i18n.t('ui.menu.start', { defaultValue: '新游戏' });
+
+    const deckBuilderBtn = document.querySelector('#btn-deck-builder span');
+    if (deckBuilderBtn) deckBuilderBtn.textContent = i18n.t('ui.menu.deckBuilder', { defaultValue: '卡组构建' });
+
+    const deckListBtn = document.querySelector('#btn-deck-list span');
+    if (deckListBtn) deckListBtn.textContent = i18n.t('ui.deck.myDecks', { defaultValue: '我的卡组' });
+
+    // 更新初始菜单按钮
+    const startInitialBtn = document.querySelector('#btn-start-initial span');
+    if (startInitialBtn) startInitialBtn.textContent = i18n.t('ui.menu.start', { defaultValue: '开始游戏' });
+
+    const deckInitialBtn = document.querySelector('#btn-deck-initial span');
+    if (deckInitialBtn) deckInitialBtn.textContent = i18n.t('ui.menu.deckBuilder', { defaultValue: '卡组构建' });
+
+    // 更新语言标签
+    const langLabels = document.querySelectorAll('label[for^="language-select"]');
+    langLabels.forEach(label => label.textContent = i18n.t('ui.settings.language', { defaultValue: '语言' }));
+
+    // 更新卡组选择界面
+    const backBtn = document.querySelector('#btn-back-to-menu span');
+    if (backBtn) backBtn.textContent = i18n.t('ui.button.back', { defaultValue: '返回' });
+
+    const startGameBtn = document.querySelector('#btn-start-game .btn-text');
+    if (startGameBtn) startGameBtn.textContent = i18n.t('ui.menu.start', { defaultValue: '开始游戏' });
+
+    // 更新卡组构建界面
+    const backFromBuilderBtn = document.getElementById('btn-back-from-builder');
+    if (backFromBuilderBtn) backFromBuilderBtn.textContent = i18n.t('ui.button.back', { defaultValue: '返回' });
+
+    const deckNameInput = document.getElementById('deck-name');
+    if (deckNameInput) deckNameInput.placeholder = i18n.t('ui.deck.deckName', { defaultValue: '卡组名称' });
+
+    const cardSearchInput = document.getElementById('card-search');
+    if (cardSearchInput) cardSearchInput.placeholder = i18n.t('ui.deck.searchCards', { defaultValue: '搜索卡牌...' });
+
+    // 更新游戏界面
+    const endTurnBtn = document.getElementById('btn-end-turn');
+    if (endTurnBtn && this.gameUI) {
+      endTurnBtn.textContent = this.gameUI.isPlayerTurn ? i18n.t('ui.game.endTurn', { defaultValue: '结束回合' }) : i18n.t('ui.game.enemyTurn', { defaultValue: '对手回合' });
+    }
+
+    // 更新所有标题
+    const deckSelectTitle = document.querySelector('.deck-select-title');
+    if (deckSelectTitle) deckSelectTitle.textContent = i18n.t('ui.deck.myDecks', { defaultValue: '我的卡组' });
+
+    const builderTitle = document.querySelector('#deck-builder-screen h2');
+    if (builderTitle) builderTitle.textContent = i18n.t('ui.menu.deckBuilder', { defaultValue: '卡组构建' });
   }
 
   // 初始化完成后切换到正式的菜单界面
-  initComplete() {
+  async initComplete() {
     if (this.screens.menuInitial) {
       this.screens.menuInitial.classList.add('hidden');
     }
@@ -128,7 +183,9 @@ class App {
     }
     // 初始化 i18n
     const savedLocale = localStorage.getItem('locale') || 'zh';
-    i18n.init(savedLocale);
+    await i18n.init(savedLocale);
+    // 更新静态文本
+    this.updateStaticText();
   }
 
   init() {
@@ -301,13 +358,13 @@ class App {
                     <rect x="4" y="4" width="16" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
                     <path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="2"/>
                   </svg>
-                  卡牌
+                  ${i18n.t('card.cards', { defaultValue: '卡牌' })}
                 </span>
               </div>
             </div>
           </div>
           <div class="deck-card-shine"></div>
-          ${isComplete ? '<div class="deck-card-ready">就绪</div>' : '<div class="deck-card-incomplete">未完成</div>'}
+          ${isComplete ? `<div class="deck-card-ready">${i18n.t('ui.deck.ready', { defaultValue: '就绪' })}</div>` : `<div class="deck-card-incomplete">${i18n.t('ui.deck.incomplete', { defaultValue: '未完成' })}</div>`}
         </div>
       `}).join('');
 

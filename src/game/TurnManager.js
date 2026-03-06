@@ -100,7 +100,8 @@ class TurnManager {
     const currentPlayer = this.game.getCurrentPlayer();
     currentPlayer.field.forEach(m => {
       m.hasAttacked = false;
-      m.sleeping = true;
+      // 回合结束时不再设置 sleeping = true，由 startTurn 统一管理
+      // m.sleeping 保持原值，只有新召唤的随从才为 true
     });
 
     // 回合结束时触发嗜血效果

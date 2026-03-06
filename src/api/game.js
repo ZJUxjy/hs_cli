@@ -56,10 +56,8 @@ router.post('/attack', (req, res) => {
 
   try {
     if (targetType === 'hero') {
-      // Attack enemy hero
       currentGame.attackHero(player, attacker);
     } else if (targetType === 'minion') {
-      // Attack enemy minion
       const opponent = state.ai;
       if (targetIndex < 0 || targetIndex >= opponent.field.length) {
         return res.status(400).json({ error: 'Invalid target index' });

@@ -53,14 +53,30 @@ class GameUI {
       heroPowerBtn.onclick = () => this.useHeroPower();
     }
 
-    // Player hand click
+    // Player hand click - 单击显示详情，拖动出牌
     const playerHand = document.getElementById('player-hand');
     if (playerHand) {
+      // 单击显示卡牌详情
       playerHand.onclick = (e) => {
         const cardEl = e.target.closest('.card');
         if (cardEl) {
           const index = parseInt(cardEl.dataset.index);
-          this.selectCard(index);
+          // 如果点击的是已选中的卡牌，则出牌
+          if (this.selectedCardIndex === index) {
+            this.playCard(index);
+          } else {
+            // 否则显示详情
+            this.showCardDetail(index);
+          }
+        }
+      };
+
+      // 双击直接出牌
+      playerHand.ondblclick = (e) => {
+        const cardEl = e.target.closest('.card');
+        if (cardEl) {
+          const index = parseInt(cardEl.dataset.index);
+          this.playCard(index);
         }
       };
     }
@@ -298,14 +314,19 @@ class GameUI {
     const manaEl = document.getElementById('player-mana');
     if (manaEl) {
       const player = this.gameState.player;
-      manaEl.textContent = `${i18n.t('ui.game.mana')}: ${player.mana}/${player.maxMana}`;
+      manaEl.textContent = `${player.mana}/${player.maxMana}`;
     }
 
     const spellPowerEl = document.getElementById('player-spell-power');
     if (spellPowerEl) {
       const player = this.gameState.player;
       const spellPower = player.spellPower || 0;
-      spellPowerEl.textContent = `${i18n.t('ui.game.spellPower')}: +${spellPower}`;
+      if (spellPower > 0) {
+        spellPowerEl.textContent = `${i18n.t('ui.game.spellPower')}: +${spellPower}`;
+        spellPowerEl.style.display = 'inline-block';
+      } else {
+        spellPowerEl.style.display = 'none';
+      }
     }
   }
 
@@ -314,12 +335,24 @@ class GameUI {
     const heroEl = document.getElementById('enemy-hero');
 
     if (heroEl) {
-      const healthEl = heroEl.querySelector('.health');
-      const armorEl = heroEl.querySelector('.armor');
+      const healthEl = heroEl.querySelector('.health-display');
+      const armorEl = heroEl.querySelector('.armor-display');
       const handCountEl = heroEl.querySelector('.hand-count');
 
-      if (healthEl) healthEl.textContent = enemy.health;
-      if (armorEl) armorEl.textContent = `+${enemy.armor}`;
+      if (healthEl) {
+        // 检查血量是否减少，添加动画效果
+        const oldHealth = parseInt(healthEl.textContent) || 30;
+        const newHealth = enemy.health;
+        healthEl.textContent = newHealth;
+
+        if (newHealth < oldHealth) {
+          healthEl.classList.remove('damage-taken');
+          void healthEl.offsetWidth; // 强制重绘
+          healthEl.classList.add('damage-taken');
+          setTimeout(() => healthEl.classList.remove('damage-taken'), 800);
+        }
+      }
+      if (armorEl) armorEl.textContent = enemy.armor > 0 ? `+${enemy.armor}` : '0';
       if (handCountEl) handCountEl.textContent = `${i18n.t('ui.game.hand')}: ${enemy.handCount || enemy.hand?.length || 0}`;
     }
   }
@@ -332,14 +365,34 @@ class GameUI {
 
     field.innerHTML = enemies.map((minion, i) => `
       <div class="minion enemy" data-index="${i}">
-        ${minion.taunt ? '<div class="mechanics"><span class="mechanic-icon taunt-icon">T</span></div>' : ''}
-        <div class="minion-name">${minion.name}</div>
-        <div class="minion-stats">
+        <div class="minion-header">
+          ${minion.taunt ? '<span class="mechanic-icon taunt-icon" title="嘲讽">T</span>' : ''}
+          ${minion.divineShield ? '<span class="mechanic-icon divine-shield-icon" title="圣盾">D</span>' : ''}
+          ${minion.stealth ? '<span class="mechanic-icon stealth-icon" title="潜行">S</span>' : ''}
+        </div>
+        <div class="minion-body">
+          <div class="minion-art">${this.getMinionIcon(minion)}</div>
+          <div class="minion-name" title="${minion.name}">${minion.name}</div>
+        </div>
+        <div class="minion-footer">
           <span class="minion-attack">${minion.attack}</span>
           <span class="minion-health">${minion.health}</span>
         </div>
       </div>
     `).join('');
+  }
+
+  getMinionIcon(minion) {
+    // 根据种族或类型返回不同的图标
+    if (minion.race === 'beast') return '🐺';
+    if (minion.race === 'dragon') return '🐉';
+    if (minion.race === 'elemental') return '🔥';
+    if (minion.race === 'mechanical') return '⚙️';
+    if (minion.race === 'murloc') return '🐟';
+    if (minion.race === 'pirate') return '⚓';
+    if (minion.race === 'demon') return '👿';
+    if (minion.race === 'totem') return '🔸';
+    return '👤';
   }
 
   renderPlayerField() {
@@ -357,19 +410,23 @@ class GameUI {
       return `
         <div class="minion ${canAttack ? 'can-attack' : ''} ${this.selectedMinionIndex === i ? 'selected' : ''} ${isTitan ? 'titan' : ''}"
              data-index="${i}" data-can-attack="${canAttack}" data-is-titan="${isTitan}">
-          ${minion.taunt ? '<span class="minion-taunt"></span>' : ''}
-          ${minion.charge ? '<span class="mechanic-icon charge-icon">C</span>' : ''}
-          ${minion.rush ? '<span class="mechanic-icon rush-icon">R</span>' : ''}
-          ${minion.divineShield ? '<span class="mechanic-icon divine-shield-icon">D</span>' : ''}
-          ${minion.lifesteal ? '<span class="mechanic-icon lifesteal-icon">L</span>' : ''}
-          ${minion.windfury ? '<span class="mechanic-icon windfury-icon">W</span>' : ''}
-          ${minion.stealth ? '<span class="mechanic-icon stealth-icon">S</span>' : ''}
-          ${minion.poisonous ? '<span class="mechanic-icon poisonous-icon">P</span>' : ''}
-          ${minion.reborn ? '<span class="mechanic-icon reborn-icon">B</span>' : ''}
-          ${minion.isAppendage ? '<span class="mechanic-icon appendage-icon">A</span>' : ''}
-          ${isTitan ? `<span class="mechanic-icon titan-icon">T(${remainingAbilities})</span>` : ''}
-          <div class="minion-name">${minion.name}</div>
-          <div class="minion-stats">
+          <div class="minion-header">
+            ${minion.taunt ? '<span class="mechanic-icon taunt-icon" title="嘲讽">T</span>' : ''}
+            ${minion.charge ? '<span class="mechanic-icon charge-icon" title="冲锋">C</span>' : ''}
+            ${minion.rush ? '<span class="mechanic-icon rush-icon" title="突袭">R</span>' : ''}
+            ${minion.windfury ? '<span class="mechanic-icon windfury-icon" title="风怒">W</span>' : ''}
+            ${minion.divineShield ? '<span class="mechanic-icon divine-shield-icon" title="圣盾">D</span>' : ''}
+            ${minion.stealth ? '<span class="mechanic-icon stealth-icon" title="潜行">S</span>' : ''}
+            ${minion.poisonous ? '<span class="mechanic-icon poisonous-icon" title="剧毒">P</span>' : ''}
+            ${minion.lifesteal ? '<span class="mechanic-icon lifesteal-icon" title="吸血">L</span>' : ''}
+            ${minion.reborn ? '<span class="mechanic-icon reborn-icon" title="复生">B</span>' : ''}
+            ${isTitan ? `<span class="mechanic-icon titan-icon" title="泰坦">★${remainingAbilities}</span>` : ''}
+          </div>
+          <div class="minion-body">
+            <div class="minion-art">${this.getMinionIcon(minion)}</div>
+            <div class="minion-name" title="${minion.name}">${minion.name}</div>
+          </div>
+          <div class="minion-footer">
             <span class="minion-attack">${minion.attack}</span>
             <span class="minion-health">${minion.health}</span>
           </div>
@@ -386,11 +443,22 @@ class GameUI {
     const heroEl = document.getElementById('player-hero');
 
     if (heroEl) {
-      const healthEl = heroEl.querySelector('.health');
-      const armorEl = heroEl.querySelector('.armor');
+      const healthEl = heroEl.querySelector('.health-display');
+      const armorEl = heroEl.querySelector('.armor-display');
 
-      if (healthEl) healthEl.textContent = player.health;
-      if (armorEl) armorEl.textContent = `+${player.armor}`;
+      if (healthEl) {
+        const oldHealth = parseInt(healthEl.textContent) || 30;
+        const newHealth = player.health;
+        healthEl.textContent = newHealth;
+
+        if (newHealth < oldHealth) {
+          healthEl.classList.remove('damage-taken');
+          void healthEl.offsetWidth;
+          healthEl.classList.add('damage-taken');
+          setTimeout(() => healthEl.classList.remove('damage-taken'), 800);
+        }
+      }
+      if (armorEl) armorEl.textContent = player.armor > 0 ? `+${player.armor}` : '0';
     }
   }
 
@@ -403,15 +471,24 @@ class GameUI {
 
     handEl.innerHTML = hand.map((card, i) => {
       const canPlay = card.cost <= player.mana && this.isPlayerTurn;
+      const cardType = card.type || 'minion';
+      const typeColor = cardType === 'spell' ? '#4a90d9' : cardType === 'weapon' ? '#d9a74a' : '#888';
       return `
         <div class="card ${canPlay ? 'can-play' : ''} ${this.selectedCardIndex === i ? 'selected' : ''}"
              data-index="${i}" draggable="${canPlay}">
-          <span class="card-cost">${card.cost}</span>
-          <span class="card-name">${card.name}</span>
-          <span class="card-text">${card.text || ''}</span>
-          <div class="card-stats">
-            ${card.attack !== undefined ? `<span class="card-attack">${card.attack}</span>` : ''}
+          <div class="card-header">
+            <span class="card-cost ${card.cost > player.mana ? 'high-cost' : ''}">${card.cost}</span>
+            <span class="card-type-icon" style="color: ${typeColor}">${cardType[0].toUpperCase()}</span>
+          </div>
+          <div class="card-name" title="${card.name}">${card.name}</div>
+          <div class="card-art">
+            <span class="card-art-placeholder">${this.getCardTypeIcon(cardType)}</span>
+          </div>
+          <div class="card-text" title="${card.text || ''}">${card.text || ''}</div>
+          <div class="card-footer">
+            ${card.attack !== undefined ? `<span class="card-attack">${card.attack}</span>` : '<span></span>'}
             ${card.health !== undefined ? `<span class="card-health">${card.health}</span>` : ''}
+            ${card.durability !== undefined ? `<span class="card-durability">${card.durability}</span>` : ''}
           </div>
         </div>
       `;
@@ -419,6 +496,16 @@ class GameUI {
 
     // 重新绑定拖拽事件
     this.bindDragEvents();
+  }
+
+  getCardTypeIcon(type) {
+    const icons = {
+      minion: '👤',
+      spell: '✨',
+      weapon: '⚔️',
+      hero: '👑'
+    };
+    return icons[type] || '◆';
   }
 
   updateControls() {
@@ -452,6 +539,84 @@ class GameUI {
       this.selectedMinionIndex = null;
       this.renderPlayerHand();
     }
+  }
+
+  /**
+   * 显示卡牌详情弹窗
+   */
+  showCardDetail(index) {
+    const player = this.gameState.player;
+    const card = player.hand[index];
+    if (!card) return;
+
+    // 创建或获取弹窗元素
+    let modal = document.getElementById('card-detail-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'card-detail-modal';
+      modal.className = 'card-detail-modal';
+      document.body.appendChild(modal);
+    }
+
+    const cardType = card.type || 'minion';
+    const typeColor = cardType === 'spell' ? '#4a90d9' : cardType === 'weapon' ? '#d9a74a' : '#888';
+    const typeNames = {
+      minion: i18n.t('card.minion', { defaultValue: '随从' }),
+      spell: i18n.t('card.spell', { defaultValue: '法术' }),
+      weapon: i18n.t('card.weapon', { defaultValue: '武器' })
+    };
+    const canPlay = card.cost <= player.mana && this.isPlayerTurn;
+
+    modal.innerHTML = `
+      <div class="card-detail-overlay" onclick="this.closest('.card-detail-modal').classList.remove('active')"></div>
+      <div class="card-detail-content large">
+        <div class="card-large" style="--type-color: ${typeColor}">
+          <div class="card-large-header">
+            <span class="card-large-cost">${card.cost}</span>
+            <span class="card-large-type" style="color: ${typeColor}">${typeNames[cardType] || cardType}</span>
+          </div>
+          <div class="card-large-name">${card.name}</div>
+          <div class="card-large-art">${this.getCardTypeIcon(cardType)}</div>
+          <div class="card-large-text">${this.formatCardText(card.text) || i18n.t('card.noDescription', { defaultValue: '无描述' })}</div>
+          <div class="card-large-footer">
+            ${card.attack !== undefined ? `<span class="card-large-attack">${card.attack}</span>` : '<span></span>'}
+            ${card.health !== undefined ? `<span class="card-large-health">${card.health}</span>` : ''}
+            ${card.durability !== undefined ? `<span class="card-large-durability">${card.durability}</span>` : ''}
+          </div>
+        </div>
+        <div class="card-detail-actions">
+          <button class="btn-play-card ${canPlay ? '' : 'disabled'}" ${canPlay ? '' : 'disabled'} onclick="window.gameUI.playCardAndClose(${index})">
+            ${canPlay ? i18n.t('ui.game.playCard', { defaultValue: '出牌' }) : i18n.t('ui.game.insufficientMana', { defaultValue: '法力不足' })}
+          </button>
+          <button class="btn-close-detail" onclick="this.closest('.card-detail-modal').classList.remove('active')">
+            ${i18n.t('ui.button.close', { defaultValue: '关闭' })}
+          </button>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('active');
+    this.selectedCardIndex = index;
+    this.renderPlayerHand();
+  }
+
+  /**
+   * 格式化卡牌文本（将\n转换为<br>）
+   */
+  formatCardText(text) {
+    if (!text) return '';
+    return text.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+  }
+
+  /**
+   * 出牌并关闭弹窗
+   */
+  async playCardAndClose(index) {
+    const modal = document.getElementById('card-detail-modal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    await this.playCard(index);
   }
 
   selectMinion(index) {
