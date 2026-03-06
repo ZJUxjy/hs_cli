@@ -1,0 +1,22 @@
+{
+  "locale": "zh-CN",
+  "cardNames": {},
+  "cardDescriptions": {},
+  "gameTexts": {
+    "game.start": "游戏开始",
+    "turn.begin": "第 {turn} 回合开始",
+    "turn.end": "第 {turn} 回合结束",
+    "player.draw": "{player} 抽了 {count} 张牌",
+    "attack.execute": "{attacker} 攻击 {target}",
+    "minion.death": "{minion} 被消灭"
+  },
+  "errorMessages": {
+    "invalid_target": "无效的目标",
+    "not_enough_mana": "法力值不足（需要 {required}，当前 {current}）",
+    "board_full": "场上已满"
+  },
+  "logMessages": {
+    "damage.dealt": "%s 对 %s 造成 %d 点伤害",
+    "heal.applied": "%s 为 %s 恢复 %d 点生命值"
+  }
+}

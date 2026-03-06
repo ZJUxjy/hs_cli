@@ -1,0 +1,22 @@
+{
+  "locale": "en",
+  "cardNames": {},
+  "cardDescriptions": {},
+  "gameTexts": {
+    "game.start": "Game started",
+    "turn.begin": "Turn {turn} begins",
+    "turn.end": "Turn {turn} ends",
+    "player.draw": "{player} draws {count} card(s)",
+    "attack.execute": "{attacker} attacks {target}",
+    "minion.death": "{minion} is destroyed"
+  },
+  "errorMessages": {
+    "invalid_target": "Invalid target",
+    "not_enough_mana": "Not enough mana (need {required}, have {current})",
+    "board_full": "Board is full"
+  },
+  "logMessages": {
+    "damage.dealt": "%s deals %d damage to %s",
+    "heal.applied": "%s heals %s for %d"
+  }
+}

@@ -1,0 +1,73 @@
+// Card mechanism types and interfaces
+import type { Entity } from '../../core/entity';
+
+// Event types that can trigger card effects
+export type EventType =
+  | 'DAMAGE'
+  | 'DEATH'
+  | 'PLAY'
+  | 'TURN_START'
+  | 'TURN_END'
+  | 'DRAW'
+  | 'DISCARD'
+  | 'ATTACK'
+  | 'SECRET_REVEALED'
+  | 'SPELL_PLAY'
+  | 'MINION_SUMMON'
+  | 'HERO_POWER';
+
+// Action context - passed to script functions
+export interface ActionContext {
+  source: Entity;
+  target?: Entity;
+  game: any;
+  event?: GameEvent;
+}
+
+// Game event
+export interface GameEvent {
+  type: EventType;
+  source?: Entity;
+  target?: Entity;
+  value?: number;
+}
+
+// Script function type
+export type ScriptFunction = (context: ActionContext) => unknown;
+
+// Card script definition
+export interface CardScript {
+  // Called when card is played (battlecry)
+  play?: ScriptFunction;
+  // Called when minion dies
+  deathrattle?: ScriptFunction;
+  // Called when damage is dealt to this entity
+  onDamage?: ScriptFunction;
+  // Event listeners - map event type to handler
+  events?: Partial<Record<EventType, ScriptFunction>>;
+  // Aura effect - applied each turn
+  update?: ScriptFunction;
+  // Combo - only active if played after another card
+  combo?: ScriptFunction;
+  // Inspire - when hero power is used
+  inspire?: ScriptFunction;
+  // Overload
+  overload?: number;
+  // Choose one - choices for choice cards
+  choose?: string[];
+  // Targeting requirements
+  requirements?: Record<string, number>;
+  // Additional properties
+  [key: string]: unknown;
+}
+
+// Pre-defined buff IDs
+export const BUFFS = {
+  // Example buffs
+  WINDFURY: 'DS1_184e',
+  TAUNT: 'CS2_101e',
+  DIVINE_SHIELD: 'CS2_086e',
+  LIFESTEAL: 'ICC_467e',
+  POISONOUS: 'ICC_468e',
+  FROZEN: 'CS2_031e',
+} as const;
