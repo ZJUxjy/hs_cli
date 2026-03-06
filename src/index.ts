@@ -25,3 +25,24 @@ import './cards/mechanics/classic/demonhunter';
 import './cards/mechanics/classic/neutral_common';
 import './cards/mechanics/classic/neutral_legendary';
 import './cards/mechanics/classic/neutral_epic';
+
+// Naxxramas cards
+import './cards/mechanics/naxxramas';
+
+// GVG (Goblins vs Gnomes) cards
+import './cards/mechanics/gvg';
+
+// TGT (The Grand Tournament) cards
+import './cards/mechanics/tgt';
+
+// BRM (Blackrock Mountain) cards
+import './cards/mechanics/brm';
+
+// WOG (Whispers of the Old Gods) cards
+import './cards/mechanics/wog';
+
+// Karazhan cards
+import './cards/mechanics/karazhan';
+
+// League of Explorers cards
+import './cards/mechanics/league';
