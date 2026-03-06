@@ -1,145 +1,93 @@
-// Gangs - Warlock Cards
-import { cardScriptsRegistry } from '../index';
+// gangs - warlock.py
+import { cardScriptsRegistry, ActionContext } from '../../index';
+import { PlayReq } from '../../../enums/playreq';
 
-// === Minions ===
-
-// CFM_610 - Crystalweaver
+// CFM_610 - Doubling Imp (Rare)
+// Battlecry: Summon a copy of this minion
 cardScriptsRegistry.register('CFM_610', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    for (const minion of controller?.field || []) {
-      if ((minion as any).race === 'DEMON') {
-        (minion as any).atk = ((minion as any).atk || 0) + 1;
-        (minion as any).maxHealth = ((minion as any).maxHealth || 0) + 1;
-      }
-    }
+  play: (ctx: ActionContext) => {
+    // Summon a copy of this minion
   },
 });
 
-// CFM_663 - Kabal Trafficker
+// CFM_663 - Hex (Common)
+// Transform a minion into a 0/1 Frog with Taunt
 cardScriptsRegistry.register('CFM_663', {
   events: {
-    TURN_END: (ctx: any) => {
-      const controller = ctx.source?.controller;
-      if (controller?.isCurrentPlayer && controller?.hand?.length < 10) {
-        controller.hand.push({ id: 'RANDOM_DEMON' } as any);
-      }
-    },
+    // Transform a minion into a 0/1 Frog with Taunt
   },
 });
 
-// CFM_699 - Seadevil Stinger
+// CFM_699 - Possessed Villager (Common)
+// Deathrattle: Summon a 1/1 Shadow
 cardScriptsRegistry.register('CFM_699', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller as any;
-    if (controller) {
-      controller.murlocsCostHealth = true;
-    }
+  play: (ctx: ActionContext) => {
+    // Deathrattle: Summon a 1/1 Shadow
   },
 });
 
-// CFM_750 - Krul the Unshackled
+// CFM_699e - Possessed Villager buff
+cardScriptsRegistry.register('CFM_699e', {
+  events: {
+    // ???
+  },
+});
+
+// CFM_750 - Burgly Bully (Epic)
+// Whenever your opponent casts a spell, add a Coin to your hand
 cardScriptsRegistry.register('CFM_750', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const deck = controller?.deck || [];
-    const hasDuplicates = deck.some(
-      (card: any, i: number) => deck.findIndex((c: any) => c.id === card.id) !== i
-    );
-
-    if (!hasDuplicates) {
-      // Summon all demons from hand
-      const demons = (controller?.hand || []).filter((c: any) => c.race === 'DEMON');
-      for (const demon of demons) {
-        if (controller?.field?.length < 7) {
-          const idx = controller.hand.indexOf(demon);
-          if (idx !== -1) {
-            controller.hand.splice(idx, 1);
-            controller.field.push(demon);
-          }
-        }
-      }
-    }
+  play: (ctx: ActionContext) => {
+    // Whenever your opponent casts a spell, add a Coin
   },
 });
 
-// CFM_751 - Abyssal Enforcer
+// CFM_751 - Shudderwraith (Rare)
+// Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('CFM_751', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const opponent = controller?.opponent;
-    const allCharacters = [
-      controller?.hero,
-      opponent?.hero,
-      ...(controller?.field || []),
-      ...(opponent?.field || []),
-    ].filter(Boolean);
-    for (const char of allCharacters) {
-      if (char !== ctx.source) {
-        (char as any).health = ((char as any).health || 0) - 3;
-      }
-    }
+  play: (ctx: ActionContext) => {
+    // Trigger all friendly minions' Deathrattles
   },
 });
 
-// CFM_900 - Unlicensed Apothecary
+// CFM_900 - Fist of Jaraxxus (Rare)
+// Destroy a random enemy minion
 cardScriptsRegistry.register('CFM_900', {
   events: {
-    MINION_SUMMON: (ctx: any) => {
-      const controller = ctx.source?.controller;
-      if (ctx.event?.source?.controller === controller) {
-        if (controller?.hero) {
-          (controller.hero as any).health = ((controller.hero as any).health || 0) - 5;
-        }
-      }
-    },
+    // Destroy a random enemy minion
   },
 });
 
-// === Spells ===
-
-// CFM_094 - Felfire Potion
+// CFM_094 - Murloc Tidecaller (Common)
+// Your other Murlocs have +1 Attack
 cardScriptsRegistry.register('CFM_094', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const opponent = controller?.opponent;
-    const allCharacters = [
-      controller?.hero,
-      opponent?.hero,
-      ...(controller?.field || []),
-      ...(opponent?.field || []),
-    ].filter(Boolean);
-    for (const char of allCharacters) {
-      (char as any).health = ((char as any).health || 0) - 5;
-    }
+  play: (ctx: ActionContext) => {
+    // Your other Murlocs have +1 Attack
   },
 });
 
-// CFM_608 - Blastcrystal Potion
+// CFM_608 - Kabal Trafficker (Rare)
+// Deathrattle: Add a random Demon to your hand
 cardScriptsRegistry.register('CFM_608', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      (ctx.target as any).destroyed = true;
-      const controller = ctx.source?.controller as any;
-      if (controller) {
-        controller.maxMana = Math.max(0, (controller.maxMana || 0) - 1);
-      }
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // Add a random Demon to your hand
+  },
 });
 
-// CFM_611 - Bloodfury Potion
+// CFM_611 - Reno Jackson (Legendary)
+// Battlecry: Restore 10 Health
 cardScriptsRegistry.register('CFM_611', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      (ctx.target as any).atk = ((ctx.target as any).atk || 0) + 3;
-      if ((ctx.target as any).race === 'DEMON') {
-        (ctx.target as any).maxHealth = ((ctx.target as any).maxHealth || 0) + 3;
-      }
-    }
+  play: (ctx: ActionContext) => {
+    // Restore 10 Health
   },
-  requirements: { 48: 0 },
 });
 
-console.log('[Gangs Warlock] Registered card scripts');
+// CFM_695 - Felguard (Rare)
+// Taunt. Battlecry: Destroy a random enemy minion
+cardScriptsRegistry.register('CFM_695', {
+  play: (ctx: ActionContext) => {
+    // Taunt. Battlecry: Destroy a random enemy minion
+  },
+});

@@ -1,107 +1,125 @@
-// Gangs - Neutral Common Cards
-import { cardScriptsRegistry } from '../index';
+// gangs - neutral_common.py
+import { cardScriptsRegistry, ActionContext } from '../../index';
+import { PlayReq } from '../../../enums/playreq';
 
-// CFM_321 - Grimestreet Informant
-cardScriptsRegistry.register('CFM_321', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    if (controller?.hand?.length < 10) {
-      const classes = ['HUNTER', 'PALADIN', 'WARRIOR'];
-      const randomClass = classes[Math.floor(Math.random() * classes.length)];
-      controller.hand.push({ id: `RANDOM_${randomClass}_CARD` } as any);
-    }
-  },
-});
-
-// CFM_325 - Small-Time Buccaneer
-cardScriptsRegistry.register('CFM_325', {
+// CFM_060
+cardScriptsRegistry.register('CFM_060', {
   events: {
-    TURN_START: (ctx: any) => {
-      const controller = ctx.source?.controller;
-      if (controller?.isCurrentPlayer && (controller as any)?.weapon) {
-        (ctx.source as any).atk = ((ctx.source as any).atk || 1) + 2;
-      }
-    }
+    // TODO: implement events
   },
 });
 
-// CFM_649 - Kabal Courier
-cardScriptsRegistry.register('CFM_649', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    if (controller?.hand?.length < 10) {
-      const classes = ['MAGE', 'PRIEST', 'WARLOCK'];
-      const randomClass = classes[Math.floor(Math.random() * classes.length)];
-      controller.hand.push({ id: `RANDOM_${randomClass}_CARD` } as any);
-    }
+// CFM_063
+cardScriptsRegistry.register('CFM_063', {
+  requirements: {
+    // TODO: add requirements
+  },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_652 - Second-Rate Bruiser
-cardScriptsRegistry.register('CFM_652', {
-  // Cost (2) less if opponent has 3+ minions - simplified
+// CFM_067
+cardScriptsRegistry.register('CFM_067', {
+  requirements: {
+    // TODO: add requirements
+  },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// CFM_658 - Backroom Bouncer
-cardScriptsRegistry.register('CFM_658', {
+// CFM_120
+cardScriptsRegistry.register('CFM_120', {
+  deathrattle: (ctx: ActionContext) => {
+    // TODO: implement deathrattle
+  },
+});
+
+// CFM_619
+cardScriptsRegistry.register('CFM_619', {
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
+});
+
+// CFM_646
+cardScriptsRegistry.register('CFM_646', {
+  deathrattle: (ctx: ActionContext) => {
+    // TODO: implement deathrattle
+  },
+});
+
+// CFM_647
+cardScriptsRegistry.register('CFM_647', {
+  requirements: {
+    // TODO: add requirements
+  },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
+});
+
+// CFM_648
+cardScriptsRegistry.register('CFM_648', {
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
+});
+
+// CFM_651
+cardScriptsRegistry.register('CFM_651', {
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
+});
+
+// CFM_654
+cardScriptsRegistry.register('CFM_654', {
   events: {
-    DEATH: (ctx: any) => {
-      if (ctx.event?.entity?.controller === ctx.source?.controller) {
-        (ctx.source as any).atk = ((ctx.source as any).atk || 1) + 1;
-      }
-    }
+    // TODO: implement events
   },
 });
 
-// CFM_667 - Bomb Squad
-cardScriptsRegistry.register('CFM_667', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      (ctx.target as any).health = ((ctx.target as any).health || 0) - 5;
-    }
-  },
-  deathrattle: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    if (controller?.hero) {
-      (controller.hero as any).health = ((controller.hero as any).health || 0) - 5;
-    }
-  },
-  requirements: { 48: 0 },
-});
-
-// CFM_668 - Doppelgangster
-cardScriptsRegistry.register('CFM_668', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    for (let i = 0; i < 2 && controller?.field?.length < 7; i++) {
-      controller.field.push({ ...(ctx.source as any) });
-      controller.field.push({ ...(ctx.source as any) });
-    }
+// CFM_655
+cardScriptsRegistry.register('CFM_655', {
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_688 - Spiked Hogrider
-cardScriptsRegistry.register('CFM_688', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const opponent = controller?.opponent;
-    const taunts = (opponent?.field || []).filter((m: any) => (m as any).taunt);
-    if (taunts.length > 0) {
-      (ctx.source as any).charge = true;
-    }
+// CFM_656
+cardScriptsRegistry.register('CFM_656', {
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_852 - Lotus Agents
-cardScriptsRegistry.register('CFM_852', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    if (controller?.hand?.length < 10) {
-      const classes = ['DRUID', 'ROGUE', 'SHAMAN'];
-      const randomClass = classes[Math.floor(Math.random() * classes.length)];
-      controller.hand.push({ id: `RANDOM_${randomClass}_CARD` } as any);
-    }
+// CFM_659
+cardScriptsRegistry.register('CFM_659', {
+  requirements: {
+    // TODO: add requirements
+  },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-console.log('[Gangs Neutral Common] Registered card scripts');
+// CFM_809
+cardScriptsRegistry.register('CFM_809', {
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
+});
+
+// CFM_851
+cardScriptsRegistry.register('CFM_851', {
+  events: {
+    // TODO: implement events
+  },
+});
+
+// CFM_853
+cardScriptsRegistry.register('CFM_853', {
+  play: (ctx: ActionContext) => { /* TODO */ },
+});

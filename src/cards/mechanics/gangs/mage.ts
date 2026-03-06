@@ -1,101 +1,71 @@
-// Gangs - Mage Cards
-import { cardScriptsRegistry } from '../index';
+// gangs - mage.py
+import { cardScriptsRegistry, ActionContext } from '../../index';
+import { PlayReq } from '../../../enums/playreq';
 
-// === Minions ===
-
-// CFM_066 - Kabal Lackey
+// CFM_066
 cardScriptsRegistry.register('CFM_066', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller as any;
-    if (controller) {
-      controller.nextSecretCost = 0;
-    }
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_660 - Manic Soulcaster
+// CFM_660
 cardScriptsRegistry.register('CFM_660', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      const controller = ctx.source?.controller;
-      if (controller?.deck) {
-        controller.deck.push({ ...(ctx.target as any) });
-      }
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 1: 0, 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// CFM_671 - Cryomancer
+// CFM_671
 cardScriptsRegistry.register('CFM_671', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const opponent = controller?.opponent;
-    const hasFrozen = [opponent?.hero, ...(opponent?.field || [])].some(
-      (c: any) => c?.frozen
-    );
-    if (hasFrozen) {
-      (ctx.source as any).atk = ((ctx.source as any).atk || 0) + 2;
-      (ctx.source as any).maxHealth = ((ctx.source as any).maxHealth || 0) + 2;
-    }
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_687 - Inkmaster Solia
+// CFM_687
 cardScriptsRegistry.register('CFM_687', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    // If no duplicates in deck, next spell costs 0 - simplified
-    (controller as any).nextSpellFree = true;
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_760 - Kabal Crystal Runner
+// CFM_687e
+cardScriptsRegistry.register('CFM_687e', {
+  events: {
+    // TODO: implement events
+  },
+});
+
+// CFM_760
 cardScriptsRegistry.register('CFM_760', {
-  // Cost reduced by secrets played - simplified aura
 });
 
-// === Spells ===
-
-// CFM_021 - Freezing Potion
+// CFM_021
 cardScriptsRegistry.register('CFM_021', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      (ctx.target as any).frozen = true;
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// CFM_065 - Volcanic Potion
+// CFM_065
 cardScriptsRegistry.register('CFM_065', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const opponent = controller?.opponent;
-    const allMinions = [...(controller?.field || []), ...(opponent?.field || [])];
-    for (const minion of allMinions) {
-      (minion as any).health = ((minion as any).health || 0) - 2;
-    }
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_620 - Potion of Polymorph
+// CFM_620
 cardScriptsRegistry.register('CFM_620', {
-  // Secret: Transform minion to Sheep - simplified
 });
 
-// CFM_623 - Greater Arcane Missiles
+// CFM_623
 cardScriptsRegistry.register('CFM_623', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const opponent = controller?.opponent;
-    const targets = opponent ? [opponent.hero, ...(opponent.field || [])] : [];
-
-    for (let i = 0; i < 3 && targets.length > 0; i++) {
-      const idx = Math.floor(Math.random() * targets.length);
-      (targets[idx] as any).health = ((targets[idx] as any).health || 0) - 3;
-    }
-  },
+  play: (ctx: ActionContext) => { /* TODO */ },
 });
-
-console.log('[Gangs Mage] Registered card scripts');

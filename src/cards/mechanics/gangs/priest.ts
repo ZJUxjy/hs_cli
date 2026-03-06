@@ -1,132 +1,87 @@
-// Gangs - Priest Cards
-import { cardScriptsRegistry } from '../index';
+// gangs - priest.py
+import { cardScriptsRegistry, ActionContext } from '../../index';
+import { PlayReq } from '../../../enums/playreq';
 
-// === Minions ===
-
-// CFM_020 - Raza the Chained
+// CFM_020
 cardScriptsRegistry.register('CFM_020', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller as any;
-    if (controller) {
-      controller.heroPowerCostZero = true;
-    }
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_605 - Drakonid Operative
+// CFM_020e
+cardScriptsRegistry.register('CFM_020e', {
+});
+
+// CFM_605
 cardScriptsRegistry.register('CFM_605', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const hasDragon = (controller?.hand || []).some((c: any) => c.race === 'DRAGON');
-    if (hasDragon) {
-      // Discover a card from opponent deck - simplified
-      const opponent = controller?.opponent;
-      if (opponent?.deck && opponent.deck.length > 0 && controller?.hand?.length < 10) {
-        const idx = Math.floor(Math.random() * opponent.deck.length);
-        controller.hand.push({ ...(opponent.deck[idx] as any) });
-      }
-    }
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_606 - Mana Geode
+// CFM_606
 cardScriptsRegistry.register('CFM_606', {
   events: {
-    TURN_END: (ctx: any) => {
-      const controller = ctx.source?.controller;
-      if (controller?.isCurrentPlayer) {
-        // Heal self and summon copy - simplified
-        const source = ctx.source as any;
-        source.health = Math.min((source.health || 0) + 4, source.maxHealth || 4);
-        if (controller?.field?.length < 7) {
-          controller.field.push({ id: 'CFM_606t' } as any);
-        }
-      }
-    }
+    // TODO: implement events
   },
 });
 
-// CFM_626 - Kabal Talonpriest
+// CFM_626
 cardScriptsRegistry.register('CFM_626', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      (ctx.target as any).maxHealth = ((ctx.target as any).maxHealth || 0) + 3;
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 1: 0, 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// CFM_657 - Kabal Songstealer
+// CFM_657
 cardScriptsRegistry.register('CFM_657', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      (ctx.target as any).silenced = true;
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// === Spells ===
-
-// CFM_603 - Potion of Madness
+// CFM_603
 cardScriptsRegistry.register('CFM_603', {
-  play: (ctx: any) => {
-    if (ctx.target && ((ctx.target as any).atk || 0) <= 2) {
-      // Take control of enemy minion until end of turn
-      const controller = ctx.source?.controller;
-      const opponent = controller?.opponent;
-      if (opponent?.field) {
-        const idx = opponent.field.indexOf(ctx.target);
-        if (idx !== -1) {
-          const minion = opponent.field.splice(idx, 1)[0];
-          if (controller?.field?.length < 7) {
-            minion.controller = controller;
-            controller.field.push(minion);
-          }
-        }
-      }
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 1: 0, 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// CFM_604 - Greater Healing Potion
+// CFM_603e
+cardScriptsRegistry.register('CFM_603e', {
+  events: {
+    // TODO: implement events
+  },
+});
+
+// CFM_604
 cardScriptsRegistry.register('CFM_604', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      (ctx.target as any).health = Math.min(
-        ((ctx.target as any).health || 0) + 12,
-        (ctx.target as any).maxHealth || 30
-      );
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// CFM_661 - Pint-Size Potion
+// CFM_661
 cardScriptsRegistry.register('CFM_661', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const opponent = controller?.opponent;
-    for (const minion of opponent?.field || []) {
-      (minion as any).atk = Math.max(0, ((minion as any).atk || 0) - 3);
-    }
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// CFM_662 - Dragonfire Potion
+// CFM_662
 cardScriptsRegistry.register('CFM_662', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const opponent = controller?.opponent;
-    const allMinions = [
-      ...(controller?.field || []),
-      ...(opponent?.field || []),
-    ].filter((m: any) => m.race !== 'DRAGON');
-    for (const minion of allMinions) {
-      (minion as any).health = ((minion as any).health || 0) - 5;
-    }
-  },
+  play: (ctx: ActionContext) => { /* TODO */ },
 });
-
-console.log('[Gangs Priest] Registered card scripts');

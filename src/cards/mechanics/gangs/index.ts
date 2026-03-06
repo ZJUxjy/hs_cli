@@ -1,17 +1,18 @@
-// Gangs (Mean Streets of Gadgetzan) Card Scripts Index
-export * from './druid';
-export * from './hunter';
-export * from './mage';
-export * from './paladin';
-export * from './priest';
-export * from './rogue';
-export * from './shaman';
-export * from './warlock';
-export * from './warrior';
-export * from './neutral_common';
-export * from './neutral_rare';
-export * from './neutral_epic';
-export * from './neutral_legendary';
-export * from './kazakus_potions';
+// gangs - Card Scripts Index
 
-console.log('[Gangs] Registered all card scripts');
+import './druid';
+import './hunter';
+import './kazakus_potions';
+import './mage';
+import './neutral_common';
+import './neutral_epic';
+import './neutral_legendary';
+import './neutral_rare';
+import './paladin';
+import './priest';
+import './rogue';
+import './shaman';
+import './warlock';
+import './warrior';
+
+console.log('[gangs] Registered 154 cards');

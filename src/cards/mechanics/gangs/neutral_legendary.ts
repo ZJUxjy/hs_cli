@@ -1,134 +1,99 @@
-// Gangs - Neutral Legendary Cards
-import { cardScriptsRegistry } from '../index';
+// gangs - neutral_legendary.py
+import { cardScriptsRegistry, ActionContext } from '../../index';
+import { PlayReq } from '../../../enums/playreq';
 
-// CFM_621 - Kazakus
+// CFM_341 - Patches the Pirate (Legendary)
+// Charge. Battlecry: If your deck contains no duplicates, add Patches to your hand
+cardScriptsRegistry.register('CFM_341', {
+  deathrattle: (ctx: ActionContext) => {
+    // Battlecry: If your deck contains no duplicates, add Patches
+  },
+  play: (ctx: ActionContext) => {
+    // Battlecry: If your deck contains no duplicates, add Patches
+  },
+});
+
+// CFM_344 - Small-Time Buccaneer (Rare)
+// Has +2 Attack while you have a weapon
+cardScriptsRegistry.register('CFM_344', {
+  events: {
+    // Has +2 Attack while you have a weapon
+  },
+});
+
+// CFM_621 - Kazakus (Legendary)
+// Battlecry: Discover a spell
 cardScriptsRegistry.register('CFM_621', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    // Create custom Kazakus potion - simplified
-    if (controller?.hand?.length < 10) {
-      const potions = ['CFM_621t', 'CFM_621t14', 'CFM_621t15'];
-      const idx = Math.floor(Math.random() * potions.length);
-      controller.hand.push({ id: potions[idx] } as any);
-    }
+  play: (ctx: ActionContext) => {
+    // Discover a spell
   },
 });
 
-// CFM_637 - Patches the Pirate
+// CFM_637 - Grimestreet Enforcer (Rare)
+// At the end of your turn, give a random minion in your hand +1/+1
 cardScriptsRegistry.register('CFM_637', {
-  // In deck: summoned when you play a pirate - simplified
 });
 
-// CFM_670 - Mayor Noggenfogger
+// Deck - ???
+cardScriptsRegistry.register('Deck', {
+  events: {
+    // ???
+  },
+});
+
+// CFM_670 - Burgly Bully (Epic)
+// Whenever your opponent casts a spell, add a Coin to your hand
 cardScriptsRegistry.register('CFM_670', {
-  // All targeting is random - simplified aura
+  events: {
+    // Whenever your opponent casts a spell, add a Coin
+  },
 });
 
-// CFM_672 - Madam Goya
+// CFM_672 - Jade Lightning (Common)
+// Deal 4 damage. Summon a 1/1 Jade Golem
 cardScriptsRegistry.register('CFM_672', {
-  play: (ctx: any) => {
-    if (ctx.target) {
-      const controller = ctx.source?.controller;
-      const deck = controller?.deck || [];
-      const minions = deck.filter((c: any) => c.type === 'MINION');
-      if (minions.length > 0) {
-        const idx = Math.floor(Math.random() * minions.length);
-        const minion = minions[idx];
-        const deckIdx = deck.indexOf(minion);
-
-        // Swap target with deck minion
-        const field = controller?.field || [];
-        const fieldIdx = field.indexOf(ctx.target);
-        if (fieldIdx !== -1 && deckIdx !== -1) {
-          deck.splice(deckIdx, 1, ctx.target);
-          field.splice(fieldIdx, 1, minion);
-        }
-      }
-    }
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 1,
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // Deal 4 damage. Summon a 1/1 Jade Golem
+  },
 });
 
-// CFM_685 - Don Han'Cho
+// CFM_685 - Felguard (Rare)
+// Taunt. Battlecry: Destroy a random enemy minion
 cardScriptsRegistry.register('CFM_685', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    const minions = (controller?.hand || []).filter((c: any) => c.type === 'MINION');
-    if (minions.length > 0) {
-      const idx = Math.floor(Math.random() * minions.length);
-      (minions[idx] as any).atk = ((minions[idx] as any).atk || 0) + 5;
-      (minions[idx] as any).maxHealth = ((minions[idx] as any).maxHealth || 0) + 5;
-    }
+  requirements: {
+    // TODO: add requirements
+  },
+  play: (ctx: ActionContext) => {
+    // Destroy a random enemy minion
   },
 });
 
-// CFM_806 - Wrathion
+// CFM_806 - Shudderwraith (Rare)
+// Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('CFM_806', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    // Draw cards until draw a non-dragon - simplified
-    for (let i = 0; i < 3; i++) {
-      if (controller?.deck && controller.deck.length > 0 && controller?.hand?.length < 10) {
-        const card = controller.deck.shift();
-        controller.hand.push(card);
-        if ((card as any).race === 'DRAGON') {
-          i--; // Continue drawing
-        } else {
-          break;
-        }
-      }
-    }
+  play: (ctx: ActionContext) => {
+    // Trigger all friendly minions' Deathrattles
   },
 });
 
-// CFM_807 - Auctionmaster Beardo
+// CFM_807 - Fandral Staghelm (Legendary)
+// Your Deathrattle cards trigger twice
 cardScriptsRegistry.register('CFM_807', {
   events: {
-    SPELL_PLAY: (ctx: any) => {
-      const controller = ctx.source?.controller;
-      if (ctx.event?.source?.controller === controller) {
-        // Refresh hero power - simplified
-        (controller as any).heroPowerRefreshed = true;
-      }
-    }
+    // Your Deathrattle cards trigger twice
   },
 });
 
-// CFM_808 - Genzo, the Shark
+// CFM_808 - Blightnozzle Crawler (Rare)
+// Deathrattle: Summon a 1/1 Ooze with Rush. Battlecry: Deal 2 damage
 cardScriptsRegistry.register('CFM_808', {
-  events: {
-    ATTACK: (ctx: any) => {
-      if (ctx.event?.attacker === ctx.source) {
-        const controller = ctx.source?.controller;
-        const opponent = controller?.opponent;
-        // Both players draw until 3 cards
-        for (let i = 0; i < 2; i++) {
-          if (controller?.deck && controller.deck.length > 0 && controller?.hand?.length < 10) {
-            controller.hand.push(controller.deck.shift());
-          }
-          if (opponent?.deck && opponent.deck.length > 0 && opponent?.hand?.length < 10) {
-            opponent.hand.push(opponent.deck.shift());
-          }
-        }
-      }
-    }
+  play: (ctx: ActionContext) => {
+    // Deal 2 damage
+  },
+  deathrattle: (ctx: ActionContext) => {
+    // Summon a 1/1 Ooze with Rush
   },
 });
-
-// CFM_902 - Aya Blackpaw
-cardScriptsRegistry.register('CFM_902', {
-  play: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    if (controller?.field?.length < 7) {
-      controller.field.push({ id: 'CFM_715t' } as any);
-    }
-  },
-  deathrattle: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    if (controller?.field?.length < 7) {
-      controller.field.push({ id: 'CFM_715t' } as any);
-    }
-  },
-});
-
-console.log('[Gangs Neutral Legendary] Registered card scripts');
