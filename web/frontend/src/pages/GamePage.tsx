@@ -2,10 +2,12 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { GameBoard } from '../components/game/GameBoard';
 import { useGameStore } from '../store/gameStore';
 
 export function GamePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     gameState,
@@ -56,7 +58,7 @@ export function GamePage() {
   if (isLoading && !gameState) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
-        <div className="text-2xl">Loading game...</div>
+        <div className="text-2xl">{t('game.loading')}</div>
       </div>
     );
   }
@@ -65,12 +67,12 @@ export function GamePage() {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
         <div className="text-center">
-          <div className="text-2xl text-red-500 mb-4">Error: {error}</div>
+          <div className="text-2xl text-red-500 mb-4">{t('game.error', { error })}</div>
           <button
             onClick={() => navigate('/')}
             className="px-4 py-2 bg-hearthstone-blue rounded"
           >
-            Back to Home
+            {t('nav.backToHome')}
           </button>
         </div>
       </div>
@@ -80,7 +82,7 @@ export function GamePage() {
   if (!gameState) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
-        <div className="text-2xl">No game state</div>
+        <div className="text-2xl">{t('game.noState')}</div>
       </div>
     );
   }

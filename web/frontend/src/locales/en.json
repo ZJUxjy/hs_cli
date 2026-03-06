@@ -1,0 +1,78 @@
+{
+  "app": {
+    "title": "Hearthstone WebUI",
+    "subtitle": "AI Training Environment for Hearthstone"
+  },
+  "nav": {
+    "startGame": "Start Game",
+    "deckBuilder": "Deck Builder",
+    "collection": "Collection",
+    "backToHome": "Back to Home"
+  },
+  "game": {
+    "loading": "Loading game...",
+    "error": "Error: {{error}}",
+    "noState": "No game state",
+    "endTurn": "END TURN",
+    "turnInfo": "Turn {{turn}} - {{player}}'s turn",
+    "emptyBoard": "Empty Board"
+  },
+  "card": {
+    "noImage": "No Image",
+    "spell": "Spell"
+  },
+  "mana": {
+    "label": "{{current}}/{{max}} mana"
+  },
+  "collection": {
+    "title": "Card Collection",
+    "loading": "Loading cards...",
+    "noCards": "No cards found",
+    "comingSoon": "Card Collection (Coming Soon)",
+    "filter": {
+      "allClasses": "All Classes",
+      "allCosts": "All Costs",
+      "heroClass": "Filter by Hero Class",
+      "cost": "Filter by Mana Cost"
+    },
+    "search": {
+      "placeholder": "Search cards...",
+      "label": "Search cards"
+    }
+  },
+  "deckBuilder": {
+    "loading": "Loading...",
+    "comingSoon": "Deck Builder (Coming Soon)",
+    "yourDecks": "Your Decks",
+    "deckInfo": "{{class}} - {{count}} cards",
+    "newDeck": "New Deck ({{count}}/30)",
+    "selectedCards": "Selected Cards",
+    "emptyMessage": "Click cards to add them",
+    "removeCard": "Remove",
+    "availableCards": "Available Cards",
+    "name": {
+      "placeholder": "Deck Name",
+      "label": "Deck Name"
+    },
+    "heroClass": {
+      "label": "Hero Class"
+    },
+    "save": {
+      "saving": "Saving...",
+      "label": "Save Deck (need 30 cards)"
+    }
+  },
+  "heroClasses": {
+    "NEUTRAL": "Neutral",
+    "WARRIOR": "Warrior",
+    "MAGE": "Mage",
+    "HUNTER": "Hunter",
+    "DRUID": "Druid",
+    "PALADIN": "Paladin",
+    "ROGUE": "Rogue",
+    "SHAMAN": "Shaman",
+    "WARLOCK": "Warlock",
+    "PRIEST": "Priest",
+    "DEMON_HUNTER": "Demon Hunter"
+  }
+}

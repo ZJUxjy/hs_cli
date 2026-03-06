@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { fetchCards } from '../api/cards'
 import { Card } from '../components/game/Card'
 import { Card as CardType } from '../types/card'
 
 export function Collection() {
+  const { t } = useTranslation()
   const [cards, setCards] = useState<CardType[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState({
@@ -30,7 +32,7 @@ export function Collection() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-white">Card Collection</h1>
+        <h1 className="text-3xl font-bold mb-8 text-white">{t('collection.title')}</h1>
 
         {/* Filters */}
         <div className="flex gap-4 mb-6 flex-wrap">
@@ -38,11 +40,12 @@ export function Collection() {
             value={filter.heroClass}
             onChange={(e) => setFilter({ ...filter, heroClass: e.target.value })}
             className="bg-gray-700 rounded px-3 py-2 text-white"
+            aria-label={t('collection.filter.heroClass')}
           >
-            <option value="">All Classes</option>
+            <option value="">{t('collection.filter.allClasses')}</option>
             {['NEUTRAL', 'WARRIOR', 'MAGE', 'HUNTER', 'DRUID', 'PALADIN', 'ROGUE', 'SHAMAN', 'WARLOCK', 'PRIEST', 'DEMON_HUNTER'].map(
               (cls) => (
-                <option key={cls} value={cls}>{cls}</option>
+                <option key={cls} value={cls}>{t(`heroClasses.${cls}`)}</option>
               )
             )}
           </select>
@@ -51,8 +54,9 @@ export function Collection() {
             value={filter.cost ?? ''}
             onChange={(e) => setFilter({ ...filter, cost: e.target.value ? Number(e.target.value) : null })}
             className="bg-gray-700 rounded px-3 py-2 text-white"
+            aria-label={t('collection.filter.cost')}
           >
-            <option value="">All Costs</option>
+            <option value="">{t('collection.filter.allCosts')}</option>
             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((cost) => (
               <option key={cost} value={cost}>{cost}</option>
             ))}
@@ -60,18 +64,19 @@ export function Collection() {
 
           <input
             type="text"
-            placeholder="Search cards..."
+            placeholder={t('collection.search.placeholder')}
             value={filter.search}
             onChange={(e) => setFilter({ ...filter, search: e.target.value })}
             className="bg-gray-700 rounded px-3 py-2 text-white w-48"
+            aria-label={t('collection.search.label')}
           />
         </div>
 
         {/* Card Grid */}
         {loading ? (
-          <div className="text-center text-gray-400 py-12">Loading cards...</div>
+          <div className="text-center text-gray-400 py-12">{t('collection.loading')}</div>
         ) : filteredCards.length === 0 ? (
-          <div className="text-center text-gray-400 py-12">No cards found</div>
+          <div className="text-center text-gray-400 py-12">{t('collection.noCards')}</div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredCards.map((card) => (

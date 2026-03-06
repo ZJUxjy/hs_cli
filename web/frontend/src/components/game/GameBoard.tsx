@@ -1,5 +1,6 @@
 // web/frontend/src/components/game/GameBoard.tsx
 
+import { useTranslation } from 'react-i18next';
 import { Hand } from './Hand';
 import { Board } from './Board';
 import { Hero } from './Hero';
@@ -27,6 +28,7 @@ export function GameBoard({
   onHeroClick,
   onEndTurn,
 }: GameBoardProps) {
+  const { t } = useTranslation();
   const isPlayer1Turn = gameState.current_player === gameState.player1.name;
   const currentPlayer = isPlayer1Turn ? gameState.player1 : gameState.player2;
   const opposingPlayer = isPlayer1Turn ? gameState.player2 : gameState.player1;
@@ -111,15 +113,16 @@ export function GameBoard({
           <button
             onClick={onEndTurn}
             className="px-8 py-4 bg-gradient-to-b from-hearthstone-gold to-yellow-600 rounded-lg text-black font-bold text-lg hover:opacity-80 transition shadow-lg"
+            aria-label={t('game.endTurn')}
           >
-            END TURN
+            {t('game.endTurn')}
           </button>
         </div>
       </div>
 
       {/* Game Info */}
       <div className="fixed top-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-4 py-2 rounded">
-        Turn {gameState.turn} - {currentPlayer.name}'s turn
+        {t('game.turnInfo', { turn: gameState.turn, player: currentPlayer.name })}
       </div>
     </div>
   );

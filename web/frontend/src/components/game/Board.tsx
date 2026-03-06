@@ -1,5 +1,6 @@
 // web/frontend/src/components/game/Board.tsx
 
+import { useTranslation } from 'react-i18next';
 import { Minion } from './Minion';
 import { Minion as MinionType } from '../../types/card';
 
@@ -16,11 +17,12 @@ export function Board({
   attackableMinions,
   onMinionClick,
 }: BoardProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex justify-center items-center gap-2 min-h-[160px] py-2">
       {minions.length === 0 ? (
         <div className="w-full h-[140px] border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center text-gray-500">
-          Empty Board
+          {t('game.emptyBoard')}
         </div>
       ) : (
         minions.map((minion) => (

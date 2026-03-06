@@ -1,0 +1,78 @@
+{
+  "app": {
+    "title": "炉石传说 WebUI",
+    "subtitle": "炉石传说 AI 训练环境"
+  },
+  "nav": {
+    "startGame": "开始游戏",
+    "deckBuilder": "卡组构建",
+    "collection": "卡牌收藏",
+    "backToHome": "返回首页"
+  },
+  "game": {
+    "loading": "加载游戏中...",
+    "error": "错误: {{error}}",
+    "noState": "无游戏状态",
+    "endTurn": "结束回合",
+    "turnInfo": "第 {{turn}} 回合 - {{player}} 的回合",
+    "emptyBoard": "空场面"
+  },
+  "card": {
+    "noImage": "无图片",
+    "spell": "法术"
+  },
+  "mana": {
+    "label": "{{current}}/{{max}} 法力"
+  },
+  "collection": {
+    "title": "卡牌收藏",
+    "loading": "加载卡牌中...",
+    "noCards": "未找到卡牌",
+    "comingSoon": "卡牌收藏 (即将推出)",
+    "filter": {
+      "allClasses": "所有职业",
+      "allCosts": "所有费用",
+      "heroClass": "按职业筛选",
+      "cost": "按费用筛选"
+    },
+    "search": {
+      "placeholder": "搜索卡牌...",
+      "label": "搜索卡牌"
+    }
+  },
+  "deckBuilder": {
+    "loading": "加载中...",
+    "comingSoon": "卡组构建 (即将推出)",
+    "yourDecks": "你的卡组",
+    "deckInfo": "{{class}} - {{count}} 张卡牌",
+    "newDeck": "新建卡组 ({{count}}/30)",
+    "selectedCards": "已选卡牌",
+    "emptyMessage": "点击卡牌添加到卡组",
+    "removeCard": "移除",
+    "availableCards": "可用卡牌",
+    "name": {
+      "placeholder": "卡组名称",
+      "label": "卡组名称"
+    },
+    "heroClass": {
+      "label": "英雄职业"
+    },
+    "save": {
+      "saving": "保存中...",
+      "label": "保存卡组 (需要30张卡牌)"
+    }
+  },
+  "heroClasses": {
+    "NEUTRAL": "中立",
+    "WARRIOR": "战士",
+    "MAGE": "法师",
+    "HUNTER": "猎人",
+    "DRUID": "德鲁伊",
+    "PALADIN": "圣骑士",
+    "ROGUE": "潜行者",
+    "SHAMAN": "萨满",
+    "WARLOCK": "术士",
+    "PRIEST": "牧师",
+    "DEMON_HUNTER": "恶魔猎手"
+  }
+}
