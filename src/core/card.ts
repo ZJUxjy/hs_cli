@@ -79,27 +79,178 @@ export class PlayableCard extends Card {
 }
 
 export class Minion extends PlayableCard {
-  public attack: number = 0;
-  public maxHealth: number = 0;
+  public _attack: number = 0;
+  public _maxHealth: number = 0;
   public damage: number = 0;
-  public taunt: boolean = false;
-  public divineShield: boolean = false;
-  public frozen: boolean = false;
+  public _taunt: boolean = false;
+  public _divineShield: boolean = false;
+  public _frozen: boolean = false;
   public silenced: boolean = false;
   public sleeping: boolean = false;
+  public windfury: boolean = false;
+  public charge: boolean = false;
+  public lifesteal: boolean = false;
+  public poisonous: boolean = false;
+  public _immune: boolean = false;
+  public stealth: boolean = false;
+
+  _buffs: import('./buff').Buff[] = [];
+  _slots: import('./buff').Slot[] = [];
+  _buffValues: Record<string, number> = {};
 
   constructor(definition: CardDefinition) {
     super(definition);
-    this.attack = definition.attack || 0;
-    this.maxHealth = definition.health || 0;
+    this._attack = definition.attack || 0;
+    this._maxHealth = definition.health || 0;
+  }
+
+  get attack(): number {
+    let value = this._attack;
+    for (const buff of this._buffs) {
+      // Check both 'attack' and 'atk' keys
+      value = buff._getattr('attack', value);
+      if ('atk' in buff.data) {
+        value += (buff.data.atk as number) || 0;
+      }
+    }
+    for (const slot of this._slots) {
+      value = slot._getattr('attack', value);
+    }
+    return value;
+  }
+
+  set attack(value: number) {
+    this._attack = value;
+  }
+
+  get maxHealth(): number {
+    let value = this._maxHealth;
+    for (const buff of this._buffs) {
+      value = buff._getattr('maxHealth', value);
+      if ('health' in buff.data) {
+        value += (buff.data.health as number) || 0;
+      }
+    }
+    for (const slot of this._slots) {
+      value = slot._getattr('maxHealth', value);
+    }
+    return value;
+  }
+
+  set maxHealth(value: number) {
+    this._maxHealth = value;
   }
 
   get health(): number {
     return this.maxHealth - this.damage;
   }
 
-  get realDamage(): number {
-    return this.damage;
+  get taunt(): boolean {
+    if (this._taunt) return true;
+    for (const buff of this._buffs) {
+      if (buff.getBoolean('taunt')) return true;
+    }
+    for (const slot of this._slots) {
+      if (slot.tags.get('taunt')) return true;
+    }
+    return false;
+  }
+
+  set taunt(value: boolean) {
+    this._taunt = value;
+  }
+
+  get divineShield(): boolean {
+    if (this._divineShield) return true;
+    for (const buff of this._buffs) {
+      if (buff.getBoolean('divineShield')) return true;
+    }
+    for (const slot of this._slots) {
+      if (slot.tags.get('divineShield')) return true;
+    }
+    return false;
+  }
+
+  set divineShield(value: boolean) {
+    this._divineShield = value;
+  }
+
+  get frozen(): boolean {
+    if (this._frozen) return true;
+    for (const buff of this._buffs) {
+      if (buff.getBoolean('frozen')) return true;
+    }
+    for (const slot of this._slots) {
+      if (slot.tags.get('frozen')) return true;
+    }
+    return false;
+  }
+
+  set frozen(value: boolean) {
+    this._frozen = value;
+  }
+
+  get immune(): boolean {
+    if (this._immune) return true;
+    for (const buff of this._buffs) {
+      if (buff.getBoolean('immune')) return true;
+    }
+    for (const slot of this._slots) {
+      if (slot.tags.get('immune')) return true;
+    }
+    return false;
+  }
+
+  set immune(value: boolean) {
+    this._immune = value;
+  }
+
+  // Buff accessors
+  get buffs(): import('./buff').Buff[] {
+    return this._buffs;
+  }
+
+  get slots(): import('./buff').Slot[] {
+    return this._slots;
+  }
+
+  // Buff methods
+  buff(source: Entity, idOrBuff: string | import('./buff').Buff, data?: import('./buff').BuffData): import('./buff').Buff {
+    const { Buff } = require('./buff');
+    let buff: import('./buff').Buff;
+
+    if (typeof idOrBuff === 'string') {
+      buff = new Buff(source, this as any, idOrBuff, data || {});
+    } else {
+      buff = idOrBuff;
+      buff.target = this as any;
+    }
+
+    this._buffs.push(buff);
+    console.log(`[Buff] Applied ${buff.id} to ${this.id}`);
+    return buff;
+  }
+
+  removeBuff(buff: import('./buff').Buff): void {
+    const idx = this._buffs.indexOf(buff);
+    if (idx !== -1) {
+      this._buffs.splice(idx, 1);
+      console.log(`[Buff] Removed ${buff.id} from ${this.id}`);
+    }
+  }
+
+  clearBuffs(): void {
+    for (const buff of [...this._buffs]) {
+      buff.remove();
+    }
+  }
+
+  hasBuff(id: string): boolean {
+    return this._buffs.some(b => b.id === id);
+  }
+
+  getBuff(id: string): import('./buff').Buff | undefined {
+    return this._buffs.find(b => b.id === id);
   }
 }
 
@@ -108,13 +259,107 @@ export class Spell extends PlayableCard {
 }
 
 export class Weapon extends PlayableCard {
-  public attack: number = 0;
-  public durability: number = 0;
+  public _attack: number = 0;
+  public _durability: number = 0;
+  public damage: number = 0;
+
+  _buffs: import('./buff').Buff[] = [];
+  _slots: import('./buff').Slot[] = [];
+  _buffValues: Record<string, number> = {};
 
   constructor(definition: CardDefinition) {
     super(definition);
-    this.attack = definition.attack || 0;
-    this.durability = definition.durability || 0;
+    this._attack = definition.attack || 0;
+    this._durability = definition.durability || 0;
+  }
+
+  get attack(): number {
+    let value = this._attack;
+    for (const buff of this._buffs) {
+      value = buff._getattr('attack', value);
+    }
+    for (const slot of this._slots) {
+      value = slot._getattr('attack', value);
+    }
+    return value;
+  }
+
+  set attack(value: number) {
+    this._attack = value;
+  }
+
+  get durability(): number {
+    let value = this._durability;
+    for (const buff of this._buffs) {
+      value = buff._getattr('durability', value);
+    }
+    for (const slot of this._slots) {
+      value = slot._getattr('durability', value);
+    }
+    return value - this.damage;
+  }
+
+  get maxDurability(): number {
+    let value = this._durability;
+    for (const buff of this._buffs) {
+      value = buff._getattr('durability', value);
+    }
+    for (const slot of this._slots) {
+      value = slot._getattr('durability', value);
+    }
+    return value;
+  }
+
+  set durability(value: number) {
+    this._durability = value;
+  }
+
+  // Buff accessors
+  get buffs(): import('./buff').Buff[] {
+    return this._buffs;
+  }
+
+  get slots(): import('./buff').Slot[] {
+    return this._slots;
+  }
+
+  // Buff methods
+  buff(source: Entity, idOrBuff: string | import('./buff').Buff, data?: import('./buff').BuffData): import('./buff').Buff {
+    const { Buff } = require('./buff');
+    let buff: import('./buff').Buff;
+
+    if (typeof idOrBuff === 'string') {
+      buff = new Buff(source, this as any, idOrBuff, data || {});
+    } else {
+      buff = idOrBuff;
+      buff.target = this as any;
+    }
+
+    this._buffs.push(buff);
+    console.log(`[Buff] Applied ${buff.id} to ${this.id}`);
+    return buff;
+  }
+
+  removeBuff(buff: import('./buff').Buff): void {
+    const idx = this._buffs.indexOf(buff);
+    if (idx !== -1) {
+      this._buffs.splice(idx, 1);
+      console.log(`[Buff] Removed ${buff.id} from ${this.id}`);
+    }
+  }
+
+  clearBuffs(): void {
+    for (const buff of [...this._buffs]) {
+      buff.remove();
+    }
+  }
+
+  hasBuff(id: string): boolean {
+    return this._buffs.some(b => b.id === id);
+  }
+
+  getBuff(id: string): import('./buff').Buff | undefined {
+    return this._buffs.find(b => b.id === id);
   }
 }
 

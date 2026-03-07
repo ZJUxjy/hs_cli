@@ -5,6 +5,7 @@ export { Summon } from './summon';
 export { Damage } from './damage';
 export { Heal } from './heal';
 export { Buff, Debuff } from './buff';
+export { BuffAction, UnbuffAction, SetAttribute, ClearBuffs } from './buffaction';
 export { Morph } from './morph';
 export { Give } from './give';
 export { Shuffle } from './shuffle';
