@@ -2,6 +2,7 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
 import { Damage, Draw, Buff, Give, Shuffle, Summon, Heal } from '../../../actions';
+import type { Entity } from '../../../core/entity';
 
 // OG_006 - Forbidden Healing - Spend all your Mana. Heal that much
 cardScriptsRegistry.register('OG_006', {
@@ -41,6 +42,15 @@ cardScriptsRegistry.register('OG_221', {
 // OG_229 - Ragnaros - Lightlord - Taunt. At the end of your turn, restore 8 health to your hero
 cardScriptsRegistry.register('OG_229', {
   events: {
+    TURN_END: (ctx: ActionContext) => {
+      const source = ctx.source as Entity;
+      const controller = (source as any).controller;
+      const hero = (controller as any)?.hero;
+      if (hero) {
+        const heal = new Heal(source, hero, 8);
+        heal.trigger(source);
+      }
+    },
   },
 });
 
