@@ -266,74 +266,113 @@ cardScriptsRegistry.register('EX1_019', {
 cardScriptsRegistry.register('EX1_025', {
 });
 
-// EX1_029
+// EX1_029 - Leper Gnome - Deathrattle: Deal 2 damage to the enemy hero
 cardScriptsRegistry.register('EX1_029', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const hero = opponent.hero;
+    if (hero) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(2);
+      damageAction.trigger(ctx.source, hero);
+    }
   },
 });
 
-// EX1_046
+// EX1_046 - Dark Iron Dwarf - Battlecry: Give all minions +1 Attack this turn
 cardScriptsRegistry.register('EX1_046', {
-  requirements: {
-    // TODO: add requirements
-  },
+  requirements: {},
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    // Buff all minions
+    const allMinions = [...(controller.field || []), ...(opponent.field || [])];
+    for (const minion of allMinions) {
+      const { Buff } = require('../../../actions/buff');
+      const buffAction = new Buff('EX1_046e', { ATK: 1 });
+      buffAction.trigger(ctx.source, minion);
+    }
   },
 });
 
-// EX1_048
+// EX1_048 - Spellbreaker - Battlecry: Silence a minion
 cardScriptsRegistry.register('EX1_048', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Silence } = require('../../../actions/silence');
+      const silenceAction = new Silence();
+      silenceAction.trigger(ctx.source, ctx.target);
+    }
   },
 });
 
-// EX1_049
+// EX1_049 - Youthful Brewmaster - Battlecry: Return a friendly minion to your hand
 cardScriptsRegistry.register('EX1_049', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
+    [PlayReq.REQ_FRIENDLY_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      target.zone = 'HAND';
+      const controller = (ctx.source as any).controller;
+      controller.field = controller.field.filter((m: any) => m !== target);
+    }
   },
 });
 
-// EX1_057
+// EX1_057 - Ancient Brewmaster - Battlecry: Return a friendly minion to your hand
 cardScriptsRegistry.register('EX1_057', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
+    [PlayReq.REQ_FRIENDLY_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      target.zone = 'HAND';
+      const controller = (ctx.source as any).controller;
+      controller.field = controller.field.filter((m: any) => m !== target);
+    }
   },
 });
 
-// EX1_066
+// EX1_066 - Acidic Swamp Ooze - Battlecry: Destroy your opponent's weapon
 cardScriptsRegistry.register('EX1_066', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    // Destroy opponent's weapon
+    if ((opponent as any).weapon) {
+      (opponent as any).weapon = null;
+    }
   },
 });
 
-// EX1_096
+// EX1_096 - Loot Hoarder - Deathrattle: Draw a card
 cardScriptsRegistry.register('EX1_096', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const { Draw } = require('../../../actions/draw');
+    const drawAction = new Draw(ctx.source);
+    drawAction.trigger(ctx.source);
   },
 });
 
-// EX1_283
+// EX1_283 - Frost Elemental - Battlecry: Freeze a minion
 cardScriptsRegistry.register('EX1_283', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      target.frozen = true;
+    }
   },
 });
 

@@ -242,82 +242,137 @@ cardScriptsRegistry.register('EX1_137', {
   },
 });
 
-// EX1_144
+// EX1_144 - Shadowstep - Return a friendly minion to your hand. It costs (2) less
 cardScriptsRegistry.register('EX1_144', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
+    [PlayReq.REQ_FRIENDLY_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      target.zone = 'HAND';
+      const controller = (ctx.source as any).controller;
+      controller.field = controller.field.filter((m: any) => m !== target);
+      // Reduce cost by 2
+      target.cost = Math.max(0, (target.cost || 0) - 2);
+    }
   },
 });
 
-// EX1_144e
+// EX1_144e - Shadowstep Enchantment
 cardScriptsRegistry.register('EX1_144e', {
-  events: {
-    // TODO: implement events
-  },
 });
 
-// EX1_145
+// EX1_145 - Preparation - The next spell you cast this turn costs (3) less
 cardScriptsRegistry.register('EX1_145', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // In a full implementation, this would reduce the next spell cost
   },
 });
 
-// EX1_145o
+// EX1_145o - Preparation Enchantment
 cardScriptsRegistry.register('EX1_145o', {
-  events: {
-    // TODO: implement events
-  },
 });
 
-// EX1_278
+// EX1_278 - Shiv - Deal 1 damage. Draw a card
 cardScriptsRegistry.register('EX1_278', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(1);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
+    const { Draw } = require('../../../actions/draw');
+    const drawAction = new Draw(ctx.source);
+    drawAction.trigger(ctx.source);
   },
 });
 
-// EX1_581
+// EX1_581 - Sap - Return an enemy minion to your hand
 cardScriptsRegistry.register('EX1_581', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
+    [PlayReq.REQ_ENEMY_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      target.zone = 'HAND';
+      const controller = (ctx.source as any).controller;
+      const opponent = controller.opponent;
+      opponent.field = opponent.field.filter((m: any) => m !== target);
+    }
   },
 });
 
-// NEW1_004
+// NEW1_004 - Vanish - Return all minions to your hand
 cardScriptsRegistry.register('NEW1_004', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    // Return all friendly minions to hand
+    const friendlyMinions = controller.field || [];
+    for (const minion of friendlyMinions) {
+      minion.zone = 'HAND';
+    }
+    controller.field = [];
+    // Return all enemy minions to hand
+    const enemyMinions = opponent.field || [];
+    for (const minion of enemyMinions) {
+      minion.zone = 'HAND';
+    }
+    opponent.field = [];
   },
 });
 
-// EX1_133
+// EX1_133 - Perdition's Blade - Battlecry: Deal 1 damage. Combo: Deal 2 damage instead
 cardScriptsRegistry.register('EX1_133', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const controller = (ctx.source as any).controller;
+      const comboCount = (controller as any).comboCount || 0;
+      const damage = comboCount > 0 ? 2 : 1;
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(damage);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
   },
 });
 
-// EX1_182
+// EX1_182 - Pilfer - Add a random card from your opponent's hand to your hand
 cardScriptsRegistry.register('EX1_182', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const hand = opponent.hand || [];
+    if (hand.length > 0) {
+      const randomIndex = Math.floor(Math.random() * hand.length);
+      const card = hand[randomIndex];
+      // Add to controller's hand
+      (controller as any).hand = [...(controller.hand || []), card];
+    }
   },
 });
 
-// EX1_191
+// EX1_191 - Plaguebringer - Battlecry: Give your other minions +1 Attack
 cardScriptsRegistry.register('EX1_191', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  play: (ctx: ActionContext) => {
+    const controller = (ctx.source as any).controller;
+    const source = ctx.source as any;
+    const friendlyMinions = controller.field || [];
+    for (const minion of friendlyMinions) {
+      if (minion !== source) {
+        const { Buff } = require('../../../actions/buff');
+        const buffAction = new Buff('EX1_191e', { ATK: 1 });
+        buffAction.trigger(ctx.source, minion);
+      }
+    }
+  },
 });

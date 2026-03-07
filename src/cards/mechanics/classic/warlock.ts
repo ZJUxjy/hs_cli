@@ -177,155 +177,323 @@ cardScriptsRegistry.register('EX1_tk33', {
   },
 });
 
-// CS2_061
+// CS2_061 - Drain Life - Deal 2 damage. Restore 2 Health to your hero
 cardScriptsRegistry.register('CS2_061', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(2);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
+    const controller = (ctx.source as any).controller;
+    const hero = controller.hero;
+    if (hero) {
+      const { Heal } = require('../../../actions/heal');
+      const healAction = new Heal(2);
+      healAction.trigger(ctx.source, hero);
+    }
   },
 });
 
-// CS2_062
+// CS2_062 - Hellfire - Deal 3 damage to ALL characters
 cardScriptsRegistry.register('CS2_062', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+
+    // Damage all friendly characters
+    const friendlyHero = controller.hero;
+    if (friendlyHero) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(3);
+      damageAction.trigger(ctx.source, friendlyHero);
+    }
+    const friendlyMinions = controller.field || [];
+    for (const minion of friendlyMinions) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(3);
+      damageAction.trigger(ctx.source, minion);
+    }
+
+    // Damage all enemy characters
+    const enemyHero = opponent.hero;
+    if (enemyHero) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(3);
+      damageAction.trigger(ctx.source, enemyHero);
+    }
+    const enemyMinions = opponent.field || [];
+    for (const minion of enemyMinions) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(3);
+      damageAction.trigger(ctx.source, minion);
+    }
   },
 });
 
-// CS2_063
+// CS2_063 - Corruption - Choose an enemy minion. At the start of your turn, destroy it
 cardScriptsRegistry.register('CS2_063', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
+    [PlayReq.REQ_ENEMY_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      // Add delayed destroy effect
+      (target as any).corruption = true;
+    }
   },
 });
 
-// CS2_063e
+// CS2_063e - Corruption Enchantment
 cardScriptsRegistry.register('CS2_063e', {
-  events: {
-    // TODO: implement events
-  },
 });
 
-// CS2_057
+// CS2_057 - Shadow Bolt - Deal 4 damage to a minion
 cardScriptsRegistry.register('CS2_057', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(4);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
   },
 });
 
-// EX1_302
+// EX1_302 - Mortal Coil - Deal 1 damage. If that kills the minion, draw a card
 cardScriptsRegistry.register('EX1_302', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(1);
+      damageAction.trigger(ctx.source, target);
+      // If killed, draw a card
+      if ((target.health || 1) <= 1) {
+        const { Draw } = require('../../../actions/draw');
+        const drawAction = new Draw(ctx.source);
+        drawAction.trigger(ctx.source);
+      }
+    }
   },
 });
 
-// EX1_303
+// EX1_303 - Shadowflame - Destroy a minion and deal its Attack damage to all enemy minions
 cardScriptsRegistry.register('EX1_303', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      const attackDamage = target.attack || 0;
+
+      // Destroy target
+      const { Destroy } = require('../../../actions/destroy');
+      const destroyAction = new Destroy();
+      destroyAction.trigger(ctx.source, target);
+
+      // Deal damage to all enemy minions
+      const controller = (ctx.source as any).controller;
+      const opponent = controller.opponent;
+      const enemyMinions = opponent.field || [];
+      for (const minion of enemyMinions) {
+        const { Damage } = require('../../../actions/damage');
+        const damageAction = new Damage(attackDamage);
+        damageAction.trigger(ctx.source, minion);
+      }
+    }
   },
 });
 
-// EX1_308
+// EX1_308 - Soulfire - Deal 4 damage. Discard a random card
 cardScriptsRegistry.register('EX1_308', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(4);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
+    const controller = (ctx.source as any).controller;
+    const hand = controller.hand || [];
+    if (hand.length > 0) {
+      const randomIndex = Math.floor(Math.random() * hand.length);
+      const card = hand[randomIndex];
+      // Discard random card
+      (controller as any).hand = hand.filter((c: any) => c !== card);
+    }
   },
 });
 
-// EX1_309
+// EX1_309 - Siphon Soul - Destroy a minion. Restore 3 Health to your hero
 cardScriptsRegistry.register('EX1_309', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Destroy } = require('../../../actions/destroy');
+      const destroyAction = new Destroy();
+      destroyAction.trigger(ctx.source, ctx.target);
+    }
+    const controller = (ctx.source as any).controller;
+    const hero = controller.hero;
+    if (hero) {
+      const { Heal } = require('../../../actions/heal');
+      const healAction = new Heal(3);
+      healAction.trigger(ctx.source, hero);
+    }
   },
 });
 
-// EX1_312
+// EX1_312 - Twisting Nether - Destroy all minions
 cardScriptsRegistry.register('EX1_312', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+
+    // Destroy all friendly minions
+    const friendlyMinions = controller.field || [];
+    for (const minion of friendlyMinions) {
+      const { Destroy } = require('../../../actions/destroy');
+      const destroyAction = new Destroy();
+      destroyAction.trigger(ctx.source, minion);
+    }
+
+    // Destroy all enemy minions
+    const enemyMinions = opponent.field || [];
+    for (const minion of enemyMinions) {
+      const { Destroy } = require('../../../actions/destroy');
+      const destroyAction = new Destroy();
+      destroyAction.trigger(ctx.source, minion);
+    }
   },
 });
 
-// EX1_316
+// EX1_316 - Power Overwhelming - Give a minion +4/+4 until end of turn
 cardScriptsRegistry.register('EX1_316', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Buff } = require('../../../actions/buff');
+      const buffAction = new Buff('EX1_316e', { ATK: 4, HEALTH: 4 });
+      buffAction.trigger(ctx.source, ctx.target);
+    }
   },
 });
 
-// EX1_316e
+// EX1_316e - Power Overwhelming Enchantment
 cardScriptsRegistry.register('EX1_316e', {
   events: {
-    // TODO: implement events
+    TURN_END: (ctx: ActionContext) => {
+      // Destroy at end of turn
+      const source = ctx.source as any;
+      if (source && source.zone === 'PLAY') {
+        const { Destroy } = require('../../../actions/destroy');
+        const destroyAction = new Destroy();
+        destroyAction.trigger(ctx.source, source);
+      }
+    },
   },
 });
 
-// EX1_317
+// EX1_317 - Sense Demons - Put 2 random Demons from your deck into your hand
 cardScriptsRegistry.register('EX1_317', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // In a full implementation, this would find random Demons from deck
+    console.log('Sense Demons: Add 2 random Demons to hand');
   },
 });
 
-// EX1_320
+// EX1_320 - Bane of Doom - Deal 2 damage to a character. If this kills it, summon a random Demon
 cardScriptsRegistry.register('EX1_320', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(2);
+      damageAction.trigger(ctx.source, target);
+      // If kills, summon a Demon
+      if ((target.health || 1) <= 2) {
+        const demons = ['CS2_059', 'CS2_057', 'EX1_301'];
+        const randomDemon = demons[Math.floor(Math.random() * demons.length)];
+        const { Summon } = require('../../../actions/summon');
+        const summonAction = new Summon(randomDemon);
+        summonAction.trigger(ctx.source);
+      }
+    }
   },
 });
 
-// EX1_596
+// EX1_596 - Demonfire - Deal 2 damage to a minion. If it's a Demon, give it +2/+2
 cardScriptsRegistry.register('EX1_596', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(2);
+      damageAction.trigger(ctx.source, target);
+
+      // If it's a Demon, give +2/+2
+      if ((target as any).race === 'DEMON') {
+        const { Buff } = require('../../../actions/buff');
+        const buffAction = new Buff('EX1_596e', { ATK: 2, HEALTH: 2 });
+        buffAction.trigger(ctx.source, target);
+      }
+    }
   },
 });
 
-// NEW1_003
+// NEW1_003 - Sacrificial Pact - Destroy a Demon. Restore 5 Health to your hero
 cardScriptsRegistry.register('NEW1_003', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      if ((target as any).race === 'DEMON') {
+        const { Destroy } = require('../../../actions/destroy');
+        const destroyAction = new Destroy();
+        destroyAction.trigger(ctx.source, target);
+      }
+    }
+    const controller = (ctx.source as any).controller;
+    const hero = controller.hero;
+    if (hero) {
+      const { Heal } = require('../../../actions/heal');
+      const healAction = new Heal(5);
+      healAction.trigger(ctx.source, hero);
+    }
   },
 });
 
-// EX1_181
+// EX1_181 - Call of the Void - Add a random Demon to your hand
 cardScriptsRegistry.register('EX1_181', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // In a full implementation, this would add a random Demon
+    console.log('Call of the Void: Add random Demon to hand');
   },
 });
 

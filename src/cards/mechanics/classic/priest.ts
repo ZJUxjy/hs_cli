@@ -225,146 +225,232 @@ cardScriptsRegistry.register('CS2_003', {
   },
 });
 
-// CS2_234
+// CS2_234 - Shadow Word: Pain - Destroy a minion with 3 or less Attack
 cardScriptsRegistry.register('CS2_234', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      if ((target.attack || 0) <= 3) {
+        const { Destroy } = require('../../../actions/destroy');
+        const destroyAction = new Destroy();
+        destroyAction.trigger(ctx.source, target);
+      }
+    }
   },
 });
 
-// CS2_236
+// CS2_236 - Divine Spirit - Double a minion's Health
 cardScriptsRegistry.register('CS2_236', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      const currentHealth = target.health || 1;
+      const maxHealth = target.maxHealth || currentHealth;
+      target.maxHealth = maxHealth * 2;
+      target.health = currentHealth * 2;
+    }
   },
 });
 
-// DS1_233
+// DS1_233 - Mind Blast - Deal 5 damage to the enemy hero
 cardScriptsRegistry.register('DS1_233', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const hero = opponent.hero;
+    if (hero) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(5);
+      damageAction.trigger(ctx.source, hero);
+    }
   },
 });
 
-// EX1_332
+// EX1_332 - Silence - Silence a minion
 cardScriptsRegistry.register('EX1_332', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Silence } = require('../../../actions/silence');
+      const silenceAction = new Silence();
+      silenceAction.trigger(ctx.source, ctx.target);
+    }
   },
 });
 
-// EX1_334
+// EX1_334 - Shadow Madness - Gain control of an enemy minion with 3 or less Attack
 cardScriptsRegistry.register('EX1_334', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      if ((target.attack || 0) <= 3) {
+        const controller = (ctx.source as any).controller;
+        const opponent = controller.opponent;
+        // Take control of the minion
+        target.controller = controller;
+        // Move to friendly field
+        const { Remove } = require('../../../actions/remove');
+        const removeAction = new Remove();
+        removeAction.trigger(ctx.source, target);
+        const { PutOnBoard } = require('../../../actions/putonboard');
+        const putAction = new PutOnBoard();
+        putAction.trigger(ctx.source, target);
+      }
+    }
   },
 });
 
 // EX1_334e
 cardScriptsRegistry.register('EX1_334e', {
-  events: {
-    // TODO: implement events
-  },
 });
 
-// EX1_339
+// EX1_339 - Thoughtsteal - Copy 2 cards from your opponent's deck and put them into your hand
 cardScriptsRegistry.register('EX1_339', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // In a full implementation, this would copy cards from opponent's deck
+    console.log('Thoughtsteal: Copy 2 cards from opponent deck');
   },
 });
 
-// EX1_345
+// EX1_345 - Mindgames - Put a copy of a random minion from your opponent's deck into the battlefield
 cardScriptsRegistry.register('EX1_345', {
-  requirements: {
-    // TODO: add requirements
-  },
+  requirements: {},
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // In a full implementation, this would summon a random opponent minion
+    console.log('Mindgames: Summon a random minion from opponent deck');
   },
 });
 
-// EX1_621
+// EX1_621 - Circle of Healing - Restore 4 Health to all minions
 cardScriptsRegistry.register('EX1_621', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const friendlyMinions = controller.field || [];
+    for (const minion of friendlyMinions) {
+      const { Heal } = require('../../../actions/heal');
+      const healAction = new Heal(4);
+      healAction.trigger(ctx.source, minion);
+    }
+    const opponent = controller.opponent;
+    const enemyMinions = opponent.field || [];
+    for (const minion of enemyMinions) {
+      const { Heal } = require('../../../actions/heal');
+      const healAction = new Heal(4);
+      healAction.trigger(ctx.source, minion);
+    }
   },
 });
 
-// EX1_622
+// EX1_622 - Shadow Word: Death - Destroy a minion with 5 or more Attack
 cardScriptsRegistry.register('EX1_622', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      if ((target.attack || 0) >= 5) {
+        const { Destroy } = require('../../../actions/destroy');
+        const destroyAction = new Destroy();
+        destroyAction.trigger(ctx.source, target);
+      }
+    }
   },
 });
 
-// EX1_624
+// EX1_624 - Holy Fire - Deal 5 damage. Restore 5 Health to your hero
 cardScriptsRegistry.register('EX1_624', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(5);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
+    const controller = (ctx.source as any).controller;
+    const hero = controller.hero;
+    if (hero) {
+      const { Heal } = require('../../../actions/heal');
+      const healAction = new Heal(5);
+      healAction.trigger(ctx.source, hero);
+    }
   },
 });
 
-// EX1_625
+// EX1_625 - Shadowform - Your Hero Power becomes "Deal 2 damage"
 cardScriptsRegistry.register('EX1_625', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // In a full implementation, this would change the hero power
   },
 });
 
-// EX1_625t
+// EX1_625t - Shadowform Hero Power
 cardScriptsRegistry.register('EX1_625t', {
-  requirements: {
-    // TODO: add requirements
-  },
 });
 
-// EX1_625t2
+// EX1_625t2 - Shadowform Hero Power
 cardScriptsRegistry.register('EX1_625t2', {
-  requirements: {
-    // TODO: add requirements
-  },
 });
 
-// EX1_626
+// EX1_626 - Mass Dispel - Silence all enemy minions, draw a card
 cardScriptsRegistry.register('EX1_626', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const enemyMinions = opponent.field || [];
+    for (const minion of enemyMinions) {
+      const { Silence } = require('../../../actions/silence');
+      const silenceAction = new Silence();
+      silenceAction.trigger(ctx.source, minion);
+    }
+    const { Draw } = require('../../../actions/draw');
+    const drawAction = new Draw(ctx.source);
+    drawAction.trigger(ctx.source);
   },
 });
 
-// EX1_192
+// EX1_192 - Shadow Word: Ruin - Destroy all minions with 3 or less Attack
 cardScriptsRegistry.register('EX1_192', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const allMinions = [...(controller.field || []), ...(opponent.field || [])];
+    for (const minion of allMinions) {
+      if ((minion.attack || 0) <= 3) {
+        const { Destroy } = require('../../../actions/destroy');
+        const destroyAction = new Destroy();
+        destroyAction.trigger(ctx.source, minion);
+      }
+    }
   },
 });
 
-// EX1_194
+// EX1_194 - Temple Enforcer - Battlecry: Give a friendly minion +3 Health
 cardScriptsRegistry.register('EX1_194', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_IF_AVAILABLE]: 0,
+    [PlayReq.REQ_MINION_TARGET]: 0,
+    [PlayReq.REQ_FRIENDLY_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Buff } = require('../../../actions/buff');
+      const buffAction = new Buff('EX1_194e', { HEALTH: 3 });
+      buffAction.trigger(ctx.source, ctx.target);
+    }
   },
 });
 

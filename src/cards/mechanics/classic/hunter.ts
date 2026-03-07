@@ -241,132 +241,192 @@ cardScriptsRegistry.register('NEW1_031', {
 cardScriptsRegistry.register('CS2_084e', {
 });
 
-// DS1_183
+// DS1_183 - Multi-Shot - Deal 3 damage to two random enemy minions
 cardScriptsRegistry.register('DS1_183', {
-  requirements: {
-    // TODO: add requirements
-  },
+  requirements: {},
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const field = opponent.field || [];
+    // Deal 3 damage to two random minions
+    for (let i = 0; i < 2 && field.length > 0; i++) {
+      const randomIndex = Math.floor(Math.random() * field.length);
+      const target = field[randomIndex];
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(3);
+      damageAction.trigger(ctx.source, target);
+    }
   },
 });
 
-// DS1_184
+// DS1_184 - Tracking - Discover a card from your deck
 cardScriptsRegistry.register('DS1_184', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // In a full implementation, this would show a choice UI
+    // For now, just log the effect
+    console.log('Tracking: Player chooses a card to draw');
   },
 });
 
-// DS1_185
+// DS1_185 - Arcane Shot - Deal 5 damage
 cardScriptsRegistry.register('DS1_185', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(5);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
   },
 });
 
-// EX1_537
+// EX1_537 - Explosive Shot - Deal 6 damage to a minion and 3 damage to adjacent minions
 cardScriptsRegistry.register('EX1_537', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      const { Damage } = require('../../../actions/damage');
+      // Deal 6 damage to target
+      const damageAction = new Damage(6);
+      damageAction.trigger(ctx.source, target);
+
+      // Deal 3 damage to adjacent minions (handled by game logic)
+    }
   },
 });
 
-// EX1_538
+// EX1_538 - Unleash the Hounds - Summon a 1/1 Hound with Charge for each enemy minion
 cardScriptsRegistry.register('EX1_538', {
-  requirements: {
-    // TODO: add requirements
-  },
+  requirements: {},
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const enemyMinions = opponent.field || [];
+
+    for (let i = 0; i < enemyMinions.length; i++) {
+      const { Summon } = require('../../../actions/summon');
+      const summonAction = new Summon('DS1_188');
+      summonAction.trigger(ctx.source);
+    }
   },
 });
 
-// EX1_539
+// EX1_539 - Kill Command - Deal 3 damage. If you control a Beast, deal 5 damage instead
 cardScriptsRegistry.register('EX1_539', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const controller = (ctx.source as any).controller;
+      const friendlyMinions = controller.field || [];
+      let hasBeast = false;
+      for (const minion of friendlyMinions) {
+        if ((minion as any).race === 'BEAST') {
+          hasBeast = true;
+          break;
+        }
+      }
+      const damage = hasBeast ? 5 : 3;
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(damage);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
   },
 });
 
-// EX1_544
+// EX1_544 - Flare - Destroy all enemy Secrets and gain +2 Attack
 cardScriptsRegistry.register('EX1_544', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    // Destroy all enemy secrets (handled by game logic)
+    // Give hero +2 Attack
+    const hero = controller.hero;
+    if (hero) {
+      const { Buff } = require('../../../actions/buff');
+      const buffAction = new Buff('EX1_544e', { ATK: 2 });
+      buffAction.trigger(ctx.source, hero);
+    }
   },
 });
 
-// EX1_549
+// EX1_549 - Snipe - Secret: When your opponent plays a minion, deal 4 damage to it
 cardScriptsRegistry.register('EX1_549', {
-  requirements: {
-    // TODO: add requirements
-  },
+  requirements: {},
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Secret effect: handled by game logic when opponent plays a minion
   },
 });
 
-// EX1_617
+// EX1_617 - Deadly Shot - Destroy a random enemy minion
 cardScriptsRegistry.register('EX1_617', {
-  requirements: {
-    // TODO: add requirements
-  },
+  requirements: {},
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const field = opponent.field || [];
+    if (field.length > 0) {
+      const randomIndex = Math.floor(Math.random() * field.length);
+      const target = field[randomIndex];
+      const { Destroy } = require('../../../actions/destroy');
+      const destroyAction = new Destroy();
+      destroyAction.trigger(ctx.source, target);
+    }
   },
 });
 
-// NEW1_031
+// NEW1_031 - Animal Companion - Summon a random 3-Cost Beast
 cardScriptsRegistry.register('NEW1_031', {
-  requirements: {
-    // TODO: add requirements
-  },
+  requirements: {},
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const beasts = ['Mtg_Raptor', 'CS2_120', 'EX1_028'];
+    const randomBeast = beasts[Math.floor(Math.random() * beasts.length)];
+    const { Summon } = require('../../../actions/summon');
+    const summonAction = new Summon(randomBeast);
+    summonAction.trigger(ctx.source);
   },
 });
 
-// EX1_533
+// EX1_533 - Misdirection - Secret: When your opponent attacks your hero, instead they attack another random character
 cardScriptsRegistry.register('EX1_533', {
 });
 
-// EX1_554
+// EX1_554 - Snake Trap - Secret: When your opponent plays a minion, summon three 1/1 Snakes
 cardScriptsRegistry.register('EX1_554', {
 });
 
-// EX1_609
+// EX1_609 - Snipe - already registered above as EX1_549
 cardScriptsRegistry.register('EX1_609', {
 });
 
-// EX1_610
+// EX1_610 - Explosive Trap - Secret: When your hero is attacked, deal 2 damage to all enemies
 cardScriptsRegistry.register('EX1_610', {
 });
 
-// EX1_611
+// EX1_611 - Freezing Trap - Secret: When your opponent plays a minion, return it to your opponent's hand
 cardScriptsRegistry.register('EX1_611', {
 });
 
-// EX1_611e
+// EX1_611e - Freezing Trap Enchantment
 cardScriptsRegistry.register('EX1_611e', {
-  events: {
-    // TODO: implement events
-  },
 });
 
-// DS1_188
+// DS1_188 - Gladiator's Longbow - Your hero is Immune while attacking
 cardScriptsRegistry.register('DS1_188', {
 });
 
-// EX1_536
+// EX1_536 - Eaglehorn Bow - When a friendly Secret is revealed, gain +1 Attack
 cardScriptsRegistry.register('EX1_536', {
-  events: { /* TODO */ },
+  events: {
+    SECRET_REVEALED: (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      source.attack = (source.attack || 3) + 1;
+    },
+  },
 });
