@@ -94,7 +94,10 @@ function showGameState(): void {
   console.log(`  Field: ${player2.field.length} minions`);
   player2.field.forEach((minion, i) => {
     const m = minion as any;
-    console.log(`    [${i}] ${minion.id} - ${minion.name} ${m.attack}/${m.health - (m.damage || 0)}`);
+    const atk = m._attack ?? m.attack ?? 0;
+    const hp = m._maxHealth ?? m.maxHealth ?? m.health ?? 1;
+    const dmg = m.damage || 0;
+    console.log(`    [${i}] ${minion.id} - ${minion.name} ${atk}/${hp - dmg}`);
   });
 
   console.log('\n' + '='.repeat(50));
@@ -166,8 +169,10 @@ rl.on('line', (line: string) => {
         break;
       }
 
+      console.log(`[Debug] Trying to play ${card.id} - ${card.name} (Cost: ${card.cost})`);
+
       if (!current.canPayCost(card)) {
-        console.log('Not enough mana');
+        console.log(`Not enough mana (have ${current.mana}, need ${card.cost})`);
         break;
       }
 

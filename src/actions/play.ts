@@ -1,5 +1,6 @@
 import { Action } from './base';
 import { Entity } from '../core/entity';
+import { CardType } from '../enums';
 import type { PlayableCard } from '../core/card';
 import type { Player } from '../core/player';
 
@@ -28,22 +29,22 @@ export class Play extends Action {
     // Pay mana cost
     const cost = this.card.cost || 0;
     this.player.usedMana += cost;
+    this.player.mana -= cost;
 
     // Track cards played
     this.player.cardsPlayedThisTurn++;
     this.player.combo = true;
 
     // Handle different card types
-    const cardAny = this.card as any;
-    if (cardAny.type === 'MINION') {
+    if (this.card.type === CardType.MINION) {
       // Summon minion
       if (this.player.field.length < 7) {
         this.player.field.push(this.card as any);
-        cardAny.zone = 'PLAY';
-        cardAny.turnsInPlay = 0;
+        (this.card as any).zone = 'PLAY';
+        (this.card as any).turnsInPlay = 0;
         console.log(`[Play] Minion ${this.card.id} summoned to field`);
       }
-    } else if (cardAny.type === 'SPELL') {
+    } else if (this.card.type === CardType.SPELL) {
       // Spell effect would be applied here
       console.log(`[Play] Spell ${this.card.id} cast`);
       this.player.graveyard.push(this.card);
