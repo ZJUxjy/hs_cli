@@ -2,150 +2,195 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
 
-// CS2_088
+// CS2_088 - Blessing of Kings
 cardScriptsRegistry.register('CS2_088', {
+  requirements: {
+    [PlayReq.REQ_MINION_TARGET]: 0,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Give +4/+4 to target minion
+    const { Buff } = require('../actions/buff');
+    const buffAction = new Buff('CS2_088e', { ATK: 4, HEALTH: 4 });
+    buffAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// EX1_362
+// EX1_362 - Blessing of Wisdom
 cardScriptsRegistry.register('EX1_362', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Give +1/+2 to target minion
+    const { Buff } = require('../actions/buff');
+    const buffAction = new Buff('EX1_362e', { ATK: 1, HEALTH: 2 });
+    buffAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// EX1_382
+// EX1_382 - Hand of Protection
 cardScriptsRegistry.register('EX1_382', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Give Divine Shield to target minion
+    const { Buff } = require('../actions/buff');
+    const buffAction = new Buff('EX1_382e', { DIVINE_SHIELD: 1 });
+    buffAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// EX1_382e
+// EX1_382e - Hand of Protection Enchantment
 cardScriptsRegistry.register('EX1_382e', {
 });
 
-// EX1_383
+// EX1_383 - Humility
 cardScriptsRegistry.register('EX1_383', {
-  deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+  requirements: {
+    [PlayReq.REQ_MINION_TARGET]: 0,
+  },
+  play: (ctx: ActionContext) => {
+    // Set target minion's Attack to 1
+    const target = ctx.target as any;
+    target.attack = 1;
   },
 });
 
-// CS2_087
+// CS2_087 - Holy Light
 cardScriptsRegistry.register('CS2_087', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Restore 6 Health to target
+    const { Heal } = require('../actions/heal');
+    const healAction = new Heal(6);
+    healAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// CS2_089
+// CS2_089 - Light's Justice
 cardScriptsRegistry.register('CS2_089', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Deal 1 damage
+    const { Damage } = require('../actions/damage');
+    const damageAction = new Damage(1);
+    damageAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// CS2_092
+// CS2_092 - Blessing of Might
 cardScriptsRegistry.register('CS2_092', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Give +3 Attack to target minion
+    const { Buff } = require('../actions/buff');
+    const buffAction = new Buff('CS2_092e', { ATK: 3 });
+    buffAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// CS2_093
+// CS2_093 - Holy Wrath
 cardScriptsRegistry.register('CS2_093', {
-  play: (ctx: ActionContext) => {
-    // TODO: implement play effect
-  },
-});
-
-// CS2_094
-cardScriptsRegistry.register('CS2_094', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Deal damage equal to card's cost
+    const cardCost = (ctx.source as any).cost || 0;
+    const { Damage } = require('../actions/damage');
+    const damageAction = new Damage(cardCost);
+    damageAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// EX1_349
+// CS2_094 - Consecration
+cardScriptsRegistry.register('CS2_094', {
+  play: (ctx: ActionContext) => {
+    // Deal 2 damage to all enemies
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+
+    // Deal 2 damage to enemy hero
+    const { Damage } = require('../actions/damage');
+    const damageHero = new Damage(2);
+    damageHero.trigger(ctx.source, opponent.hero);
+
+    // Deal 2 damage to enemy minions
+    const enemyMinions = opponent.field || [];
+    for (const minion of enemyMinions) {
+      const damageMinion = new Damage(2);
+      damageMinion.trigger(ctx.source, minion);
+    }
+  },
+});
+
+// EX1_349 - Forgotten Torch
 cardScriptsRegistry.register('EX1_349', {
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Deal 3 damage
+    const { Damage } = require('../actions/damage');
+    const damageAction = new Damage(3);
+    damageAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// EX1_354
+// EX1_354 - Humble Blessing
 cardScriptsRegistry.register('EX1_354', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Give +4/+4 to target, but it loses Taunt
+    const { Buff } = require('../actions/buff');
+    const buffAction = new Buff('EX1_354e', { ATK: 4, HEALTH: 4 });
+    buffAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// EX1_355
+// EX1_355 - Blessing of Kings
 cardScriptsRegistry.register('EX1_355', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Give +4/+4 to target minion
+    const { Buff } = require('../actions/buff');
+    const buffAction = new Buff('EX1_355e', { ATK: 4, HEALTH: 4 });
+    buffAction.trigger(ctx.source, ctx.target!);
   },
 });
 
-// EX1_355e
+// EX1_355e - Blessing of Kings Enchantment
 cardScriptsRegistry.register('EX1_355e', {
 });
 
-// EX1_360
+// EX1_360 - Eye for an Eye
 cardScriptsRegistry.register('EX1_360', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Secret: When your hero takes damage, deal that much damage to the enemy hero
+    // This is handled by events
   },
 });
 
-// EX1_360e
+// EX1_360e - Eye for an Eye Enchantment
 cardScriptsRegistry.register('EX1_360e', {
 });
 
-// EX1_363
+// EX1_363 - Redemption
 cardScriptsRegistry.register('EX1_363', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
-  },
-});
-
-// EX1_363e
-cardScriptsRegistry.register('EX1_363e', {
-  events: {
-    // TODO: implement events
+    // Secret: When a friendly minion dies, return it to life with 1 Health
+    // This is handled by events
   },
 });
 

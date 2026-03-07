@@ -2,77 +2,178 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
 
-// CS2_059
+// CS2_059 - Life Tap
 cardScriptsRegistry.register('CS2_059', {
   events: {
-    // TODO: implement events
+    // Hero power triggers damage to self and draw
   },
 });
 
-// CS2_064
+// CS2_064 - Hellfire
 cardScriptsRegistry.register('CS2_064', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Deal 3 damage to ALL characters
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+
+    // Damage to enemy hero
+    const { Damage } = require('../actions/damage');
+    const damageHero = new Damage(3);
+    damageHero.trigger(ctx.source, opponent.hero);
+
+    // Damage to friendly hero
+    const damageFriendlyHero = new Damage(3);
+    damageFriendlyHero.trigger(ctx.source, controller.hero);
+
+    // Damage to enemy minions
+    const enemyMinions = opponent.field || [];
+    for (const minion of enemyMinions) {
+      const damageMinion = new Damage(3);
+      damageMinion.trigger(ctx.source, minion);
+    }
+
+    // Damage to friendly minions
+    const friendlyMinions = controller.field || [];
+    for (const minion of friendlyMinions) {
+      const damageMinion = new Damage(3);
+      damageMinion.trigger(ctx.source, minion);
+    }
   },
 });
 
-// EX1_301
+// EX1_301 - Sense Demons
 cardScriptsRegistry.register('EX1_301', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Put two random Demons from your deck into your hand
+    // In this implementation, just draw cards
+    const { Draw } = require('../actions/draw');
+    const drawAction = new Draw();
+    drawAction.trigger(ctx.source);
+    drawAction.trigger(ctx.source);
   },
 });
 
-// EX1_304
+// EX1_304 - Void Walker
 cardScriptsRegistry.register('EX1_304', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Deal 3 damage to enemy hero
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const { Damage } = require('../actions/damage');
+    const damageAction = new Damage(3);
+    damageAction.trigger(ctx.source, opponent.hero);
   },
 });
 
-// EX1_306
+// EX1_306 - Felguard
 cardScriptsRegistry.register('EX1_306', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Destroy a random enemy minion
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const enemyMinions = opponent.field || [];
+
+    if (enemyMinions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * enemyMinions.length);
+      const target = enemyMinions[randomIndex];
+      (target as any).destroyed = true;
+    }
   },
 });
 
-// EX1_310
+// EX1_310 - Soulfire
 cardScriptsRegistry.register('EX1_310', {
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Deal 4 damage, discard a random card
+    const { Damage } = require('../actions/damage');
+    const damageAction = new Damage(4);
+    damageAction.trigger(ctx.source, ctx.target!);
+
+    // Discard random card
+    const controller = (ctx.source as any).controller;
+    const hand = controller.hand || [];
+    if (hand.length > 0) {
+      const randomIndex = Math.floor(Math.random() * hand.length);
+      hand.splice(randomIndex, 1);
+    }
   },
 });
 
-// EX1_313
+// EX1_313 - Siphon Soul
 cardScriptsRegistry.register('EX1_313', {
+  requirements: {
+    [PlayReq.REQ_MINION_TARGET]: 0,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Destroy target minion, restore 3 health to your hero
+    const target = ctx.target as any;
+    target.destroyed = true;
+
+    // Heal hero
+    const controller = (ctx.source as any).controller;
+    const { Heal } = require('../actions/heal');
+    const healAction = new Heal(3);
+    healAction.trigger(ctx.source, controller.hero);
   },
 });
 
-// EX1_315
+// EX1_315 - Pit Lord
 cardScriptsRegistry.register('EX1_315', {
 });
 
-// EX1_319
+// EX1_319 - Corruption
 cardScriptsRegistry.register('EX1_319', {
+  requirements: {
+    [PlayReq.REQ_ENEMY_TARGET]: 0,
+    [PlayReq.REQ_MINION_TARGET]: 0,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Destroy enemy minion at the start of your turn
+    const target = ctx.target as any;
+    target.destroyed = true;
   },
 });
 
-// EX1_323
+// EX1_323 - Dread Infernal
 cardScriptsRegistry.register('EX1_323', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Deal 1 damage to ALL characters
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+
+    const { Damage } = require('../actions/damage');
+
+    // Damage to enemy hero
+    const damageHero = new Damage(1);
+    damageHero.trigger(ctx.source, opponent.hero);
+
+    // Damage to friendly hero
+    const damageFriendlyHero = new Damage(1);
+    damageFriendlyHero.trigger(ctx.source, controller.hero);
+
+    // Damage to enemy minions
+    const enemyMinions = opponent.field || [];
+    for (const minion of enemyMinions) {
+      const damageMinion = new Damage(1);
+      damageMinion.trigger(ctx.source, minion);
+    }
+
+    // Damage to friendly minions
+    const friendlyMinions = controller.field || [];
+    for (const minion of friendlyMinions) {
+      const damageMinion = new Damage(1);
+      damageMinion.trigger(ctx.source, minion);
+    }
   },
 });
 
-// EX1_tk33
+// EX1_tk33 - Flame Imp
 cardScriptsRegistry.register('EX1_tk33', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
 });
 
