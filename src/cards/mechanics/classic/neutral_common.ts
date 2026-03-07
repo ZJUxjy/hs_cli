@@ -282,7 +282,6 @@ cardScriptsRegistry.register('EX1_029', {
 
 // EX1_046 - Dark Iron Dwarf - Battlecry: Give all minions +1 Attack this turn
 cardScriptsRegistry.register('EX1_046', {
-  requirements: {},
   play: (ctx: ActionContext) => {
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;

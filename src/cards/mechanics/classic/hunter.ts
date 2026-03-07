@@ -243,7 +243,9 @@ cardScriptsRegistry.register('CS2_084e', {
 
 // DS1_183 - Multi-Shot - Deal 3 damage to two random enemy minions
 cardScriptsRegistry.register('DS1_183', {
-  requirements: {},
+  requirements: {
+    [PlayReq.REQ_MINIMUM_ENEMY_MINIONS]: 1,
+  },
   play: (ctx: ActionContext) => {
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
@@ -302,7 +304,10 @@ cardScriptsRegistry.register('EX1_537', {
 
 // EX1_538 - Unleash the Hounds - Summon a 1/1 Hound with Charge for each enemy minion
 cardScriptsRegistry.register('EX1_538', {
-  requirements: {},
+  requirements: {
+    [PlayReq.REQ_MINIMUM_ENEMY_MINIONS]: 1,
+    [PlayReq.REQ_NUM_MINION_SLOTS]: 1,
+  },
   play: (ctx: ActionContext) => {
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
@@ -358,7 +363,6 @@ cardScriptsRegistry.register('EX1_544', {
 
 // EX1_549 - Snipe - Secret: When your opponent plays a minion, deal 4 damage to it
 cardScriptsRegistry.register('EX1_549', {
-  requirements: {},
   play: (ctx: ActionContext) => {
     // Secret effect: handled by game logic when opponent plays a minion
   },
@@ -366,7 +370,9 @@ cardScriptsRegistry.register('EX1_549', {
 
 // EX1_617 - Deadly Shot - Destroy a random enemy minion
 cardScriptsRegistry.register('EX1_617', {
-  requirements: {},
+  requirements: {
+    [PlayReq.REQ_MINIMUM_ENEMY_MINIONS]: 1,
+  },
   play: (ctx: ActionContext) => {
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
@@ -383,7 +389,9 @@ cardScriptsRegistry.register('EX1_617', {
 
 // NEW1_031 - Animal Companion - Summon a random 3-Cost Beast
 cardScriptsRegistry.register('NEW1_031', {
-  requirements: {},
+  requirements: {
+    [PlayReq.REQ_NUM_MINION_SLOTS]: 1,
+  },
   play: (ctx: ActionContext) => {
     const beasts = ['Mtg_Raptor', 'CS2_120', 'EX1_028'];
     const randomBeast = beasts[Math.floor(Math.random() * beasts.length)];

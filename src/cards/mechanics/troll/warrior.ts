@@ -92,13 +92,28 @@ cardScriptsRegistry.register('TRL_362', {
   },
 });
 
-// TRL_325 - Ornery Direhorn
-// Taunt. Battlecry: Deal 1 damage to all other minions
+// TRL_325 - Sul'thraze
+// Overkill: You may attack again
 cardScriptsRegistry.register('TRL_325', {
+  overkill: (ctx: ActionContext) => {
+    // Allow extra attack - simplified implementation
+    const source = ctx.source as any;
+    source.extraAttacks = (source.extraAttacks || 0) + 1;
+  },
 });
 
-// TRL_360 - Dr. Morr's Experiment
-// (experimental - simplified)
+// TRL_360 - Overlord's Whip
+// After you play a minion, deal 1 damage to it
 cardScriptsRegistry.register('TRL_360', {
-  events: { },
+  events: {
+    AFTER_MINION_PLAY: (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      // The target of AFTER_MINION_PLAY is the minion that was played
+      const target = ctx.target;
+      if (target) {
+        const damage = new Damage(source, target, 1);
+        damage.trigger(source);
+      }
+    },
+  },
 });

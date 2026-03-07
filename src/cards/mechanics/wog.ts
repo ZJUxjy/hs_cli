@@ -25,7 +25,14 @@ cardScriptsRegistry.register('OG_044a', {
 });
 
 // OG_202a - Mire Keeper (Summon 2/2)
-cardScriptsRegistry.register('OG_202a', {});
+cardScriptsRegistry.register('OG_202a', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller?.field?.length < 7) {
+      controller.field.push({ id: 'OG_202c' } as any);
+    }
+  },
+});
 
 // OG_202b - Mire Keeper (Gain Mana Crystal)
 cardScriptsRegistry.register('OG_202b', {

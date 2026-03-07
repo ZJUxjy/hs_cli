@@ -29,8 +29,7 @@ cardScriptsRegistry.register('FP1_002', {
   },
 });
 
-// FP1_003 - Echoing Ooze
-cardScriptsRegistry.register('FP1_003', {});
+// FP1_003 - Echoing Ooze (implemented in naxxramas/collectible.ts)
 
 // FP1_004 - Mad Scientist
 cardScriptsRegistry.register('FP1_004', {
@@ -283,8 +282,7 @@ cardScriptsRegistry.register('FP1_030', {
   },
 });
 
-// FP1_031 - Baron Rivendare
-cardScriptsRegistry.register('FP1_031', {});
+// FP1_031 - Baron Rivendare (implemented in naxxramas/collectible.ts)
 
 // === Spells ===
 

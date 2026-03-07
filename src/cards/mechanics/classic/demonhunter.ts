@@ -48,7 +48,6 @@ cardScriptsRegistry.register('BT_352', {
 
 // BT_495 - Glaivebound Adept - Battlecry: If your hero has 3 or less Health, gain +3 Attack
 cardScriptsRegistry.register('BT_495', {
-  requirements: {},
   play: (ctx: ActionContext) => {
     const controller = (ctx.source as any).controller;
     const hero = controller.hero;

@@ -341,7 +341,9 @@ cardScriptsRegistry.register('EX1_339', {
 
 // EX1_345 - Mindgames - Put a copy of a random minion from your opponent's deck into the battlefield
 cardScriptsRegistry.register('EX1_345', {
-  requirements: {},
+  requirements: {
+    [PlayReq.REQ_NUM_MINION_SLOTS]: 1,
+  },
   play: (ctx: ActionContext) => {
     // In a full implementation, this would summon a random opponent minion
     console.log('Mindgames: Summon a random minion from opponent deck');

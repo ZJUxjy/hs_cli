@@ -299,7 +299,14 @@ cardScriptsRegistry.register('FP1_030e', {
 });
 
 // FP1_031 - Baron Rivendare
+// Your minions trigger their deathrattles twice
 cardScriptsRegistry.register('FP1_031', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    // Mark that deathrattles trigger twice
+    (controller as any).deathrattleMultiplier = 2;
+  },
 });
 
 // FP1_019 - Poison Seeds

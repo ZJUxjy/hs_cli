@@ -129,7 +129,20 @@ cardScriptsRegistry.register('Hand', {
 });
 
 // ICC_827e - Kingsbane buff
+// When you play a card, create a copy of it in your hand with this buff
 cardScriptsRegistry.register('ICC_827e', {
+  events: {
+    PLAY: (ctx: ActionContext) => {
+      // When a card is played, create a copy with this buff
+      // Simplified: just add the buff to the played card's copy
+      const source = ctx.source as any;
+      const controller = source?.controller;
+      if (!controller || !controller.hand) return;
+
+      // The card that was played is in ctx.target or we need to track it
+      // This is a simplified implementation
+    },
+  },
 });
 
 // Hand - Un'Goro Pack

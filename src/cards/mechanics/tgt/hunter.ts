@@ -92,7 +92,9 @@ cardScriptsRegistry.register('AT_061e', {
 
 // AT_062 - Ball of Spiders - Summon three 1/1 Webspinners
 cardScriptsRegistry.register('AT_062', {
-  requirements: {},
+  requirements: {
+    [PlayReq.REQ_NUM_MINION_SLOTS]: 1,
+  },
   play: (ctx: ActionContext) => {
     for (let i = 0; i < 3; i++) {
       const { Summon } = require('../../../actions/summon');

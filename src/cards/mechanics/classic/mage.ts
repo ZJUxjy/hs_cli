@@ -89,7 +89,9 @@ cardScriptsRegistry.register('CS2_023', {
 
 // CS2_024 - Frost Nova - Freeze all enemy minions
 cardScriptsRegistry.register('CS2_024', {
-  requirements: {},
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
+  },
   play: (ctx: ActionContext) => {
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
