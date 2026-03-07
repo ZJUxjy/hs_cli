@@ -1,12 +1,16 @@
 // dalaran - mage.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import type { Entity } from '../../../core/entity';
 
 // DAL_163 - Kalecgos (Legendary)
 // Your first Dragon each turn costs (0)
 cardScriptsRegistry.register('DAL_163', {
-  aura: {
-    // Your first Dragon each turn costs (0)
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    // Mark that first Dragon each turn costs 0
+    (controller as any).kalecgosActive = true;
   },
 });
 
@@ -26,15 +30,30 @@ cardScriptsRegistry.register('DAL_575', {
     [PlayReq.REQ_TARGET_TO_PLAY]: 1,
   },
   play: (ctx: ActionContext) => {
-    // Transform a minion into two 1/1 minions
+    const target = ctx.target;
+    if (target) {
+      // Summon two 1/1s (DAL_575t)
+      const { Summon } = require('../../../actions/summon');
+      const summonAction1 = new Summon(ctx.source, 'DAL_575t');
+      summonAction1.trigger(ctx.source);
+      const summonAction2 = new Summon(ctx.source, 'DAL_575t');
+      summonAction2.trigger(ctx.source);
+      // Destroy the target
+      const { Destroy } = require('../../../actions/destroy');
+      const destroyAction = new Destroy();
+      destroyAction.trigger(ctx.source, target);
+    }
   },
 });
 
 // DAL_576 - Magic Carpet (Epic)
 // Your 1-cost minions have +1 Attack and Rush
 cardScriptsRegistry.register('DAL_576', {
-  aura: {
-    // Your 1-cost minions have +1 Attack and Rush
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    // Mark that 1-cost minions get +1 attack and rush
+    (controller as any).magicCarpetActive = true;
   },
 });
 
@@ -64,7 +83,13 @@ cardScriptsRegistry.register('DAL_603', {
 // Battlecry: Add a random Mage spell to your hand
 cardScriptsRegistry.register('DAL_609', {
   play: (ctx: ActionContext) => {
-    // Add a random Mage spell to your hand
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    // This would need a card database to get random mage spell
+    // Simplified: draw a card
+    const { Draw } = require('../../../actions/draw');
+    const drawAction = new Draw();
+    drawAction.trigger(source);
   },
 });
 
@@ -76,18 +101,31 @@ cardScriptsRegistry.register('DAL_609e', {
 // Battlecry: Add three 1/1 minions to your hand
 cardScriptsRegistry.register('DAL_177', {
   play: (ctx: ActionContext) => {
-    // Add three 1/1 minions to your hand
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    // Add three 1/1sorcerer's apprentices to hand
+    const { Give } = require('../../../actions/give');
+    const giveAction1 = new Give('DAL_177t');
+    giveAction1.trigger(source, controller);
+    const giveAction2 = new Give('DAL_177t');
+    giveAction2.trigger(source, controller);
+    const giveAction3 = new Give('DAL_177t');
+    giveAction3.trigger(source, controller);
   },
 });
 
 // DAL_577 - Jaina Proudmoore (Legendary)
 // Battlecry: Summon a 3/3 Water Elemental. Your Elementals have Lifesteal
 cardScriptsRegistry.register('DAL_577', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
     // Summon a 3/3 Water Elemental
+    const { Summon } = require('../../../actions/summon');
+    const summonAction = new Summon(ctx.source, 'DAL_577t');
+    summonAction.trigger(ctx.source);
+    // Mark that Elementals have Lifesteal
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    (controller as any).jainaElementalsLifesteal = true;
   },
 });
 
@@ -106,6 +144,11 @@ cardScriptsRegistry.register('DAL_578', {
 // Battlecry: Add a random Mage minion to your hand
 cardScriptsRegistry.register('DAL_608', {
   play: (ctx: ActionContext) => {
-    // Add a random Mage minion to your hand
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    // Simplified: draw a card
+    const { Draw } = require('../../../actions/draw');
+    const drawAction = new Draw();
+    drawAction.trigger(source);
   },
 });

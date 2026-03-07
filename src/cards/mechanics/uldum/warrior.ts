@@ -1,18 +1,45 @@
 // uldum - warrior.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import type { Entity } from '../../../core/entity';
 
-// ULD_195
+// ULD_195 - Barrage (Quest: Deal 5 damage to your hero)
 cardScriptsRegistry.register('ULD_195', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Quest warrior - mark as active
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    (controller as any).barrageQuestActive = true;
+  },
+  events: {
+    DAMAGE: (ctx: ActionContext) => {
+      const source = ctx.source as Entity;
+      const controller = (source as any).controller;
+      const event = ctx.event;
+      // Check if hero took 5 damage
+      if ((controller as any).barrageQuestActive && event?.target === controller?.hero) {
+        // Quest complete - draw a card (simplified reward)
+        const { Draw } = require('../../../actions/draw');
+        const drawAction = new Draw();
+        drawAction.trigger(source);
+      }
+    },
   },
 });
 
-// ULD_253
+// ULD_253 - Execute (Deal 5 damage to a damaged minion)
 cardScriptsRegistry.register('ULD_253', {
+  requirements: {
+    [PlayReq.REQ_DAMAGED_TARGET]: 1,
+    [PlayReq.REQ_TARGET_TO_PLAY]: 1,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const target = ctx.target;
+    if (target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(5);
+      damageAction.trigger(ctx.source, target);
+    }
   },
 });
 

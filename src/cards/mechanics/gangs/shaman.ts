@@ -1,6 +1,7 @@
 // gangs - shaman.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import type { Entity } from '../../../core/entity';
 
 // CFM_061 - Jade Lightning (Common)
 // Deal 4 damage. Summon a 1/1 Jade Golem
@@ -9,15 +10,36 @@ cardScriptsRegistry.register('CFM_061', {
     [PlayReq.REQ_TARGET_TO_PLAY]: 1,
   },
   play: (ctx: ActionContext) => {
-    // Deal 4 damage. Summon a 1/1 Jade Golem
+    const target = ctx.target;
+    // Deal 4 damage
+    if (target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(4);
+      damageAction.trigger(ctx.source, target);
+    }
+    // Summon a 1/1 Jade Golem
+    const { Summon } = require('../../../actions/summon');
+    const summonAction = new Summon(ctx.source, 'CFM_712t');
+    summonAction.trigger(ctx.source);
   },
 });
 
 // CFM_324 - Shudderwraith (Rare)
 // Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('CFM_324', {
-  deathrattle: (ctx: ActionContext) => {
-    // Battlecry: Trigger all friendly minions' Deathrattles
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    const field = controller?.field as Entity[];
+    // Trigger deathrattles of all friendly minions
+    if (field) {
+      for (const minion of field) {
+        if (minion !== source) {
+          const { executeDeathrattle } = require('../../index');
+          executeDeathrattle(minion as any);
+        }
+      }
+    }
   },
 });
 
@@ -51,8 +73,16 @@ cardScriptsRegistry.register('CFM_313', {
 // CFM_696 - Fire Plume Phoenix (Rare)
 // Battlecry: Deal 3 damage
 cardScriptsRegistry.register('CFM_696', {
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 1,
+  },
   play: (ctx: ActionContext) => {
-    // Deal 3 damage
+    const target = ctx.target;
+    if (target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(3);
+      damageAction.trigger(ctx.source, target);
+    }
   },
 });
 
