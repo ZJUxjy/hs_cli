@@ -452,8 +452,8 @@ cardScriptsRegistry.register('NAX11_04', {
   },
 });
 
-// NAX12_
-cardScriptsRegistry04 - Frost Nova.register('NAX12_04', {
+// NAX12_04 - Frost Nova
+cardScriptsRegistry.register('NAX12_04', {
   play: (ctx: ActionContext) => {
     // Freeze all enemy minions - handled by game
   },

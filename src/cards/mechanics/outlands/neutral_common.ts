@@ -67,11 +67,16 @@ cardScriptsRegistry.register('BT_714', {
   },
 });
 
-// BT_715 Nether Portal - At the end of your turn, summon a random 6-Cost demon
+// BT_715 Bonechewer Brawler - Taunt. Whenever this minion takes damage, gain +2 Attack.
 cardScriptsRegistry.register('BT_715', {
   events: {
-    TURN_END: (ctx: ActionContext) => {
-      // In full implementation, summon random demon
+    DAMAGE: (ctx: ActionContext) => {
+      const source = ctx.source as Entity;
+      // Check if this minion took damage
+      if (ctx.event?.target === source) {
+        const buff = new Buff(source, source, { ATK: 2 });
+        buff.trigger(source);
+      }
     },
   },
 });
@@ -174,8 +179,21 @@ cardScriptsRegistry.register('BT_728', {
   },
 });
 
-// BT_730 - Dragonmaw Sentinel - Battlecry: If you're holding a Dragon, gain +2/+2
+// BT_730 - Overconfident Orc - Taunt. While at full Health, this has +2 Attack.
 cardScriptsRegistry.register('BT_730', {
+  events: {
+    TURN_START: (ctx: ActionContext) => {
+      const source = ctx.source as Entity;
+      const sourceAny = source as any;
+      // Check if at full health
+      const damage = sourceAny.damage || 0;
+      const maxHealth = sourceAny.maxHealth || sourceAny.health || 0;
+      if (damage === 0 && maxHealth > 0) {
+        const buff = new Buff(source, source, { ATK: 2 });
+        buff.trigger(source);
+      }
+    },
+  },
 });
 
 // BT_732 - Sky Gen'rator - Battlecry: Deal 3 damage to all other minions

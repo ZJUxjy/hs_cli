@@ -109,8 +109,18 @@ cardScriptsRegistry.register('ICC_701', {
   },
 });
 
-// ICC_706
+// ICC_706 - Nerubian Unraveler - Enemy spells cost (2) more.
 cardScriptsRegistry.register('ICC_706', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    const opponent = (controller as any)?.opponent;
+    // Enemy spells cost +2 - simplified implementation
+    // Full implementation would track spell cost modifier on opponent
+    if (opponent) {
+      (opponent as any).spellCostModifier = ((opponent as any).spellCostModifier || 0) + 2;
+    }
+  },
 });
 
 // ICC_810 - Deathaxe Punisher - Battlecry: Give a random Lifesteal minion in your hand +2/+2.
@@ -155,8 +165,14 @@ cardScriptsRegistry.register('ICC_812', {
   },
 });
 
-// ICC_901
+// ICC_901 - Drakkari Enchanter - Your end of turn effects trigger twice.
 cardScriptsRegistry.register('ICC_901', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    // End of turn effects trigger twice - simplified implementation
+    (controller as any).extraEndTurnEffects = true;
+  },
 });
 
 // ICC_912 - Corpsetaker - Battlecry: Gain Taunt if your deck has a Taunt minion.

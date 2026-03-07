@@ -70,11 +70,33 @@ cardScriptsRegistry.register('LOOT_134', {
 cardScriptsRegistry.register('LOOT_134e', {
 });
 
-// LOOT_136 - Fungal Enchanter
-cardScriptsRegistry.register('LOOT_136', {
+// LOOT_136 - Fungal Enchanter - Battlecry: Restore 2 Health to all friendly characters
+cardScriptsRegistry.register('LOOT_388', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source.controller;
+    // Heal all friendly characters - handled by game
+  },
 });
 
-// LOOT_144 - Rotten Applebaum
+// LOOT_152 - Dorothee (actually Boisterous Bard) - Battlecry: Give your other minions +1 Health
+cardScriptsRegistry.register('LOOT_152', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const field = controller.field || [];
+    for (const minion of field) {
+      if (minion !== source) {
+        const buff = new Buff(source, minion, { HEALTH: 1 });
+        buff.trigger(source);
+      }
+    }
+  },
+});
+
+// LOOT_152e - Inspired
+cardScriptsRegistry.register('LOOT_152e', {
+});
 cardScriptsRegistry.register('LOOT_144', {
   deathrattle: (ctx: ActionContext) => {
     const source = ctx.source as Entity;
@@ -83,13 +105,6 @@ cardScriptsRegistry.register('LOOT_144', {
       const heal = new Heal(source, controller.hero, 3);
       heal.trigger(source);
     }
-  },
-});
-
-// LOOT_152 - Dorothee
-cardScriptsRegistry.register('LOOT_152', {
-  play: (ctx: ActionContext) => {
-    // Battlecry - handled by game
   },
 });
 
@@ -145,10 +160,24 @@ cardScriptsRegistry.register('LOOT_291', {
   },
 });
 
-// LOOT_347 - Wax Elemental
+// LOOT_347 - Kobold Apprentice - Battlecry: Deal 3 damage randomly split among all enemies
 cardScriptsRegistry.register('LOOT_347', {
   play: (ctx: ActionContext) => {
-    // Battlecry - handled by game
+    const source = ctx.source as any;
+    const game = source.game;
+    // Deal 3 damage randomly split among all enemies (1 damage to 3 random enemy minions)
+    for (let i = 0; i < 3; i++) {
+      const opponent = source.controller.opponent;
+      const field = opponent.field || [];
+      if (field.length > 0) {
+        const targets = field.filter((m: any) => m !== source);
+        if (targets.length > 0) {
+          const target = targets[Math.floor(Math.random() * targets.length)];
+          const damage = new Damage(source, target, 1);
+          damage.trigger(source);
+        }
+      }
+    }
   },
 });
 

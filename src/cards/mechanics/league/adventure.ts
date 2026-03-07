@@ -106,7 +106,6 @@ cardScriptsRegistry.register('LOEA02_10', {
       summon.trigger(source);
     }
   },
-  },
 });
 
 // LOEA02_10a

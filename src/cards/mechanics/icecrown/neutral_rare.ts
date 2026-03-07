@@ -82,8 +82,20 @@ cardScriptsRegistry.register('ICC_466', {
   },
 });
 
-// ICC_700
+// ICC_700 - Happy Ghoul - When your hero is healed, this card's cost becomes 0.
 cardScriptsRegistry.register('ICC_700', {
+  events: {
+    HEAL: (ctx: ActionContext) => {
+      const source = ctx.source as Entity;
+      const controller = (source as any).controller;
+      const hero = (controller as any)?.hero;
+      // Check if hero was healed
+      if (ctx.event?.target === hero) {
+        // Set cost to 0 - simplified implementation
+        (source as any).cost = 0;
+      }
+    },
+  },
 });
 
 // ICC_700e - Grim Necromancer buff
@@ -109,8 +121,20 @@ cardScriptsRegistry.register('ICC_702', {
   },
 });
 
-// ICC_902
+// ICC_902 - Mindbreaker - Hero Powers are disabled.
 cardScriptsRegistry.register('ICC_902', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    const opponent = (controller as any)?.opponent;
+    // Disable hero powers - simplified implementation
+    if ((controller as any)?.heroPower) {
+      (controller as any).heroPower.disabled = true;
+    }
+    if (opponent?.heroPower) {
+      opponent.heroPower.disabled = true;
+    }
+  },
 });
 
 // ICC_911 - Cobalt Scalekin - At the end of your turn, discard your hand, Deal 1 damage to each player.

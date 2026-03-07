@@ -1,7 +1,7 @@
 // ungoro - neutral_common.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
-import { Give, Damage, Buff, Draw, Shuffle } from '../../../actions';
+import { Give, Damage, Buff, Draw, Shuffle, Summon } from '../../../actions';
 import { Entity } from '../../../core/entity';
 
 // UNG_001 Piranha Swarm - No special ability
@@ -15,10 +15,23 @@ cardScriptsRegistry.register('UNG_009', {
   },
 });
 
-// UNG_010 Stonehill Defender - Battlecry: Discover a Taunt minion
+// UNG_010 - Sated Threshadon - Deathrattle: Summon three 1/1 Murloc Scouts
 cardScriptsRegistry.register('UNG_010', {
   deathrattle: (ctx: ActionContext) => {
-    // Would need discover mechanics
+    const source = ctx.source as any;
+    const summon1 = new Summon(source, 'UNG_201t');
+    summon1.trigger(source);
+    const summon2 = new Summon(source, 'UNG_201t');
+    summon2.trigger(source);
+    const summon3 = new Summon(source, 'UNG_201t');
+    summon3.trigger(source);
+  },
+});
+
+// UNG_072 - Stonehill Defender - Battlecry: Discover a Taunt minion
+cardScriptsRegistry.register('UNG_072', {
+  play: (ctx: ActionContext) => {
+    // Discover a Taunt minion - handled by game
   },
 });
 
@@ -35,10 +48,14 @@ cardScriptsRegistry.register('UNG_073', {
   },
 });
 
-// UNG_076 Primalfin Lookout - Deathrattle: Discover a Murloc
+// UNG_076 - Eggnapper - Deathrattle: Summon two 1/1 Murloc Scouts
 cardScriptsRegistry.register('UNG_076', {
   deathrattle: (ctx: ActionContext) => {
-    // Would need discover mechanics
+    const source = ctx.source as any;
+    const summon1 = new Summon(source, 'UNG_076t1');
+    summon1.trigger(source);
+    const summon2 = new Summon(source, 'UNG_076t1');
+    summon2.trigger(source);
   },
 });
 
@@ -101,9 +118,22 @@ cardScriptsRegistry.register('UNG_845', {
 cardScriptsRegistry.register('UNG_928', {
 });
 
-// UNG_937 Galvadon - Battlecry: Adapt 5 times
+// UNG_937 Primalfin Lookout - Battlecry: If you control a Murloc, Discover a Murloc
 cardScriptsRegistry.register('UNG_937', {
   play: (ctx: ActionContext) => {
-    // Adapt mechanics would need choice UI
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const field = controller.field || [];
+    const hasMurloc = field.some((m: any) => m.race === 'murloc');
+    if (hasMurloc) {
+      // Discover a Murloc - handled by game
+    }
+  },
+});
+
+// UNG_954t1 - Galvadon - Battlecry: Adapt 5 times
+cardScriptsRegistry.register('UNG_954t1', {
+  play: (ctx: ActionContext) => {
+    // Adapt mechanics would need choice UI - 5 times
   },
 });

@@ -2,6 +2,7 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
 import { Buff, Draw, Damage, Heal, Give, Shuffle, Summon, Destroy } from '../../../actions';
+import type { Entity } from '../../../core/entity';
 
 // BT_190 - Fungal Fortunes - Draw 3 cards
 cardScriptsRegistry.register('BT_190', {
@@ -22,6 +23,13 @@ cardScriptsRegistry.register('BT_729', {
   },
 });
 
-// BT_733 - Sky Gen'rator - Battlecry: Deal 3 damage to all other minions
+// BT_733 - Mo'arg Artificer - All minions take double damage from spells.
 cardScriptsRegistry.register('BT_733', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    // Set global spell damage multiplier - simplified implementation
+    // Full implementation would track spell damage multiplier on game state
+    (controller as any).spellDamageMultiplier = 2;
+  },
 });

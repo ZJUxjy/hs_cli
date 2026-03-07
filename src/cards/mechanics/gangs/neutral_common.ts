@@ -3,13 +3,21 @@ import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
 import { Buff, Draw, Damage, Heal, Give, Shuffle, Summon, Destroy } from '../../../actions';
 
-// CFM_060 - Unlicensed Strangler - Battlecry: Destroy a minion with 5 or more Attack
+// CFM_060 - Red Mana Wyrm - Whenever you cast a spell, gain +2 Attack
 cardScriptsRegistry.register('CFM_060', {
   events: {
-    TURN_END: (ctx: ActionContext) => {
-      // At the end of your turn, deal 2 damage to a random enemy minion
+    SPELL_PLAY: (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      if ((source as any).controller === (ctx.source as any).controller) {
+        const buff = new Buff(source, source, { ATK: 2 });
+        buff.trigger(source);
+      }
     },
   },
+});
+
+// CFM_060e
+cardScriptsRegistry.register('CFM_060e', {
 });
 
 // CFM_063 - Blubber Baron - Battlecry: Give a random friendly minion +3/+3
@@ -31,15 +39,28 @@ cardScriptsRegistry.register('CFM_063', {
   },
 });
 
-// CFM_067 - Street Trickster - Battlecry: Give your opponent a free card
+// CFM_039 - Street Trickster - Battlecry: Give your opponent a free card
+cardScriptsRegistry.register('CFM_039', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    // Give opponent a card - handled by game
+  },
+});
+
+// CFM_067 - Hozen Healer - Battlecry: Restore 4 Health
 cardScriptsRegistry.register('CFM_067', {
   requirements: {
     [PlayReq.REQ_TARGET_TO_PLAY]: 0,
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const opponent = controller.opponent;
-    // Give opponent a card - handled by game
+    const target = ctx.target;
+    if (target) {
+      const heal = new Heal(ctx.source, target, 4);
+      heal.trigger(ctx.source);
+    }
   },
 });
 
@@ -109,19 +130,50 @@ cardScriptsRegistry.register('CFM_648', {
   },
 });
 
-// CFM_651 - Kabal Chemist - Battlecry: Add a random potion to your hand
+// CFM_651 - Naga Corsair - Battlecry: Give your weapon +1 Attack
 cardScriptsRegistry.register('CFM_651', {
   play: (ctx: ActionContext) => {
-    // Add a random potion to hand - handled by game
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const weapon = controller.weapon;
+    if (weapon) {
+      const buff = new Buff(source, weapon, { ATK: 1 });
+      buff.trigger(source);
+    }
   },
 });
 
-// CFM_654 - Backstreet Leper - Battlecry: Deal 2 damage to the enemy hero
+// CFM_654 - Friendly Bartender - At the end of your turn, restore 1 Health to your hero
 cardScriptsRegistry.register('CFM_654', {
   events: {
     TURN_END: (ctx: ActionContext) => {
-      // At end of your turn, deal 1 damage to enemy hero
+      const source = ctx.source as any;
+      const controller = source.controller;
+      if (controller?.hero) {
+        const heal = new Heal(source, controller.hero, 1);
+        heal.trigger(source);
+      }
     },
+  },
+});
+
+// CFM_646 - Backstreet Leper - Deathrattle: Deal 2 damage to the enemy hero
+cardScriptsRegistry.register('CFM_646', {
+  deathrattle: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    if (opponent?.hero) {
+      const damage = new Damage(source, opponent.hero, 2);
+      damage.trigger(source);
+    }
+  },
+});
+
+// CFM_619 - Kabal Chemist - Battlecry: Add a random potion to your hand
+cardScriptsRegistry.register('CFM_619', {
+  play: (ctx: ActionContext) => {
+    // Add a random potion to hand - handled by game
   },
 });
 
