@@ -46,7 +46,7 @@ export function heal(amount: number | ((ctx: ActionContext) => number)): ScriptF
 export function drawCard(cardId?: string): ScriptFunction {
   return (context: ActionContext) => {
     const { Draw } = require('../actions/draw');
-    const drawAction = new Draw(cardId);
+    const drawAction = new Draw(context.source, 1, cardId as any);
     drawAction.trigger(context.source);
   };
 }

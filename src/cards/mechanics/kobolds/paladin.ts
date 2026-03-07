@@ -113,7 +113,7 @@ cardScriptsRegistry.register('LOOT_286t1', {
   play: (ctx: ActionContext) => {
     // 2 cards
     const { Draw } = require('../../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
     drawAction.trigger(ctx.source);
   },

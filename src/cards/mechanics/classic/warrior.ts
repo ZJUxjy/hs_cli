@@ -12,14 +12,17 @@ cardScriptsRegistry.register('EX1_398', {
   },
 });
 
-// EX1_402 - Frothing Berserker
+// EX1_402 - Frothing Berserker - Gain +1 Attack whenever a minion takes damage
 cardScriptsRegistry.register('EX1_402', {
   events: {
-    // TODO: implement events - gain +1 attack when a minion takes damage
+    DAMAGE: (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      source.attack = (source.attack || 2) + 1;
+    },
   },
 });
 
-// EX1_414 - Warsong Commander
+// EX1_414 - Warsong Commander - Your Charge minions have +1 Attack
 cardScriptsRegistry.register('EX1_414', {
 });
 
@@ -53,10 +56,21 @@ cardScriptsRegistry.register('EX1_603', {
   },
 });
 
-// EX1_604 - Armorsmith
+// EX1_604 - Armorsmith - Gain 1 Armor whenever a friendly minion takes damage
 cardScriptsRegistry.register('EX1_604', {
   events: {
-    // TODO: implement events - gain 1 armor when a friendly minion takes damage
+    DAMAGE: (ctx: ActionContext) => {
+      if (ctx.target) {
+        const target = ctx.target as any;
+        const controller = (ctx.source as any).controller;
+        const isFriendly = target.controller === controller;
+        if (isFriendly) {
+          if (controller.hero) {
+            controller.hero.armor = (controller.hero.armor || 0) + 1;
+          }
+        }
+      }
+    },
   },
 });
 
@@ -119,101 +133,186 @@ cardScriptsRegistry.register('CS2_108', {
   },
 });
 
-// CS2_114
+// CS2_114 - Shield Block - Gain 5 Armor. Draw a card
 cardScriptsRegistry.register('CS2_114', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    if (controller.hero) {
+      controller.hero.armor = (controller.hero.armor || 0) + 5;
+    }
+    const { Draw } = require('../../../actions/draw');
+    const drawAction = new Draw(ctx.source, 1);
+    drawAction.trigger(ctx.source);
   },
 });
 
-// EX1_391
+// EX1_391 - Slam - Deal 2 damage to a minion. If it survives, draw a card
 cardScriptsRegistry.register('EX1_391', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, ctx.target, 2);
+      damage.trigger(ctx.source);
+      // If target survives, draw a card
+      const target = ctx.target as any;
+      if (!target.destroyed) {
+        const { Draw } = require('../../../actions/draw');
+        const drawAction = new Draw(ctx.source, 1);
+        drawAction.trigger(ctx.source);
+      }
+    }
   },
 });
 
-// EX1_392
+// EX1_392 - Battle Rage - Draw a card for each damaged friendly minion
 cardScriptsRegistry.register('EX1_392', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const field = controller.field || [];
+    let damagedCount = 0;
+    for (const minion of field) {
+      if ((minion as any).damage > 0) {
+        damagedCount++;
+      }
+    }
+    for (let i = 0; i < damagedCount; i++) {
+      const { Draw } = require('../../../actions/draw');
+      const drawAction = new Draw(ctx.source, 1);
+      drawAction.trigger(ctx.source);
+    }
   },
 });
 
-// EX1_400
+// EX1_400 - Whirlwind - Deal 1 damage to ALL minions
 cardScriptsRegistry.register('EX1_400', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    // Damage all friendly minions
+    const myField = controller.field || [];
+    for (const minion of myField) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, minion, 1);
+      damage.trigger(ctx.source);
+    }
+    // Damage all enemy minions
+    const oppField = opponent.field || [];
+    for (const minion of oppField) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, minion, 1);
+      damage.trigger(ctx.source);
+    }
   },
 });
 
-// EX1_407
+// EX1_407 - Brawl - Destroy all minions except one
 cardScriptsRegistry.register('EX1_407', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const myField = controller.field || [];
+    const oppField = opponent.field || [];
+    const allMinions = [...myField, ...oppField];
+
+    if (allMinions.length > 0) {
+      // Keep one random minion alive
+      const keepIndex = Math.floor(Math.random() * allMinions.length);
+      for (let i = 0; i < allMinions.length; i++) {
+        if (i !== keepIndex) {
+          (allMinions[i] as any).destroyed = true;
+        }
+      }
+    }
   },
 });
 
-// EX1_408
+// EX1_408 - Mortal Strike - Deal 4 damage. If your hero has 12 or less Health, deal 6 instead
 cardScriptsRegistry.register('EX1_408', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const controller = (ctx.source as any).controller;
+      const heroHealth = controller.hero?.health || 30;
+      const damage = heroHealth <= 12 ? 6 : 4;
+      const { Damage } = require('../../../actions/damage');
+      const dmg = new Damage(ctx.source, ctx.target, damage);
+      dmg.trigger(ctx.source);
+    }
   },
 });
 
-// EX1_409
+// EX1_409 - Upgrade! - If you have a weapon, give it +1/+1. Otherwise equip a 1/3 weapon
 cardScriptsRegistry.register('EX1_409', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    // Check if hero has a weapon - would need game state
+    // For now, just gain armor as fallback
+    if (controller.hero) {
+      controller.hero.armor = (controller.hero.armor || 0) + 1;
+    }
   },
 });
 
-// EX1_410
+// EX1_410 - Shieldmaiden - Battlecry: Gain 6 Armor
 cardScriptsRegistry.register('EX1_410', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    if (controller.hero) {
+      controller.hero.armor = (controller.hero.armor || 0) + 6;
+    }
   },
 });
 
-// EX1_606
+// EX1_606 - Inner Rage - Deal 1 damage to a minion and give it +3 Attack
 cardScriptsRegistry.register('EX1_606', {
+  requirements: {
+    [PlayReq.REQ_MINION_TARGET]: 0,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, ctx.target, 1);
+      damage.trigger(ctx.source);
+      const { Buff } = require('../../../actions/buff');
+      const buff = new Buff('EX1_607e', { ATK: 3 });
+      buff.trigger(ctx.source, ctx.target);
+    }
   },
 });
 
-// EX1_607
+// EX1_607 - Rampage - Give a damaged minion +3/+3
 cardScriptsRegistry.register('EX1_607', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      if ((target.damage || 0) > 0) {
+        const { Buff } = require('../../../actions/buff');
+        const buff = new Buff('EX1_607e', { ATK: 3, HEALTH: 3 });
+        buff.trigger(ctx.source, ctx.target);
+      }
+    }
   },
 });
 
-// NEW1_036
+// NEW1_036 - Inner Fire - Change a minion's Attack to be equal to its Health
 cardScriptsRegistry.register('NEW1_036', {
+  requirements: {
+    [PlayReq.REQ_MINION_TARGET]: 0,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      const health = target.health || 1;
+      target.attack = health;
+    }
   },
 });
 

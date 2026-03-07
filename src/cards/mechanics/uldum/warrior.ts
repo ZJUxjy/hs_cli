@@ -20,7 +20,7 @@ cardScriptsRegistry.register('ULD_195', {
       if ((controller as any).barrageQuestActive && event?.target === controller?.hero) {
         // Quest complete - draw a card (simplified reward)
         const { Draw } = require('../../../actions/draw');
-        const drawAction = new Draw();
+        const drawAction = new Draw(ctx.source, 1);
         drawAction.trigger(source);
       }
     },

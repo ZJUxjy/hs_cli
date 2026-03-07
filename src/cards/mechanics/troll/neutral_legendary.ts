@@ -52,7 +52,7 @@ cardScriptsRegistry.register('TRL_541', {
     // This would need a card database to get random hunter minion
     // Simplified: just draw a card
     const { Draw } = require('../../../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
   },
 });

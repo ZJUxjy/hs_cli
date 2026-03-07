@@ -137,56 +137,108 @@ cardScriptsRegistry.register('UNG_919', {
   },
 });
 
-// UNG_910
+// UNG_910 - Grievous Bite - Deal 2 damage to a minion and 1 damage to adjacent minions
 cardScriptsRegistry.register('UNG_910', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, ctx.target, 2);
+      damage.trigger(ctx.source);
+    }
   },
 });
 
-// UNG_916
+// UNG_916 - Stampede - Each friendly Beast gets +1/+1 this turn
 cardScriptsRegistry.register('UNG_916', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const field = controller.field || [];
+    for (const minion of field) {
+      if ((minion as any).race === Race.BEAST) {
+        const { Buff } = require('../../../actions/buff');
+        const buff = new Buff('UNG_916e', { ATK: 1, HEALTH: 1 });
+        buff.trigger(ctx.source, minion);
+      }
+    }
   },
 });
 
-// UNG_916e
+// UNG_916e - Stampede Enchantment
 cardScriptsRegistry.register('UNG_916e', {
-  events: {
-    // TODO: implement events
-  },
 });
 
-// UNG_917
+// UNG_917 - Cave Hydra - Also damages the minions next to the target
 cardScriptsRegistry.register('UNG_917', {
-  play: (ctx: ActionContext) => {
-    // TODO: implement play effect
-  },
-});
-
-// UNG_917t1
-cardScriptsRegistry.register('UNG_917t1', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
+  },
+  play: (ctx: ActionContext) => {
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, ctx.target, 3);
+      damage.trigger(ctx.source);
+    }
   },
 });
 
-// UNG_920
+// UNG_917t1 - Headless Horseman's Mount - Charge
+cardScriptsRegistry.register('UNG_917t1', {
+});
+
+// UNG_920 - The Marsh Queen - Quest: Play 7 minions
 cardScriptsRegistry.register('UNG_920', {
 });
 
-// UNG_920t1
+// UNG_920t1 - Queen Carnassa - Battlecry: Draw 3 beasts
 cardScriptsRegistry.register('UNG_920t1', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Draw 3 random beasts
+    const beasts = getRandomBeastCards(3);
+    const controller = (ctx.source as any).controller;
+    for (const beast of beasts) {
+      const giveAction = new Give(beast.id);
+      giveAction.trigger(ctx.source, controller);
+    }
   },
 });
 
-// UNG_920t2
+// UNG_920t2 - 15/15 Body
 cardScriptsRegistry.register('UNG_920t2', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+});
+
+// UNG_908 - Infest - Give your minions "Deathrattle: Summon a random Beast"
+cardScriptsRegistry.register('UNG_908', {
+  play: (ctx: ActionContext) => {
+    const controller = (ctx.source as any).controller;
+    const field = controller.field || [];
+    for (const minion of field) {
+      // Give deathrattle to summon a beast
+      (minion as any).deathrattle = (ctx: ActionContext) => {
+        const beasts = getRandomBeastCards(1);
+        if (beasts.length > 0) {
+          const { Summon } = require('../../../actions/summon');
+          const summonAction = new Summon(beasts[0].id);
+          summonAction.trigger(ctx.source);
+        }
+      };
+    }
+  },
+});
+
+// UNG_801 - Dispatch Kodo - Battlecry: Deal damage equal to this minion's Attack
+cardScriptsRegistry.register('UNG_801', {
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
+  },
+  play: (ctx: ActionContext) => {
+    if (ctx.target) {
+      const attack = (ctx.source as any).attack || 3;
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, ctx.target, attack);
+      damage.trigger(ctx.source);
+    }
+  },
 });

@@ -47,7 +47,7 @@ cardScriptsRegistry.register('EX1_301', {
     // Put two random Demons from your deck into your hand
     // In this implementation, just draw cards
     const { Draw } = require('../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
     drawAction.trigger(ctx.source);
   },

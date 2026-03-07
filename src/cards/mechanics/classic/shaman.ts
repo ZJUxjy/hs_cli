@@ -20,7 +20,7 @@ cardScriptsRegistry.register('EX1_258', {
   play: (ctx: ActionContext) => {
     // Draw a card, reduce its cost by 3
     const { Draw } = require('../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
   },
 });

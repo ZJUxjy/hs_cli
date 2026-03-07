@@ -23,7 +23,7 @@ cardScriptsRegistry.register('BT_321', {
     }
     // Draw a card
     const { Draw } = require('../../../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(source);
   },
 });
@@ -235,7 +235,7 @@ cardScriptsRegistry.register('BT_514', {
     // Draw 3 cards
     for (let i = 0; i < 3; i++) {
       const { Draw } = require('../../../actions/draw');
-      const drawAction = new Draw();
+      const drawAction = new Draw(ctx.source, 1);
       drawAction.trigger(source);
     }
     // Reduce cost by 3 - would need to track drawn cards

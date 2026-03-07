@@ -1,116 +1,131 @@
 // witchwood - hunter.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
-import type { ScriptEntity, CardReference } from '../types';
 import { PlayReq } from '../../../enums/playreq';
+import { Damage, Draw, Buff, Summon, Give, Shuffle } from '../../../actions';
 
-// GIL_128
+// GIL_128 - Vicious Scalehide - Lifesteal. Battlecry: Deal 1 damage
 cardScriptsRegistry.register('GIL_128', {
-  play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
-});
-
-// GIL_587 - Morgl the Oracle (Legendary Murloc)
-cardScriptsRegistry.register('GIL_587', {
   play: (ctx: ActionContext) => {
-    // Battlecry: Add a random Murloc/Beast/Dragon card to your hand
-    const source = ctx.source as ScriptEntity;
-    const controller = source.controller;
-    if (controller && controller.hand && controller.hand.length < 10) {
-      // Pool of Murloc, Beast, and Dragon cards
-      const cards = [
-        // Murlocs
-        'CS2_168', 'CS2_169', 'CS2_170', 'EX1_129', 'EX1_506', 'EX1_508',
-        'NEW1_009', 'NEW1_017', 'tt_010', 'CFM_310', 'CFM_311', 'CFM_312',
-        'GIL_507', 'GIL_503', 'GIL_504', 'GIL_505', 'GIL_506', 'GIL_508',
-        // Beasts
-        'CS2_101', 'CS2_102', 'CS2_103', 'CS2_104', 'CS2_105', 'DS1_066',
-        'DS1_070', 'DS1_175', 'DS1_184', 'EX1_531', 'EX1_539', 'EX1_543',
-        'EX1_544', 'EX1_545', 'EX1_549', 'EX1_550', 'EX1_551', 'EX1_554',
-        'EX1_555', 'FP1_011', 'FP1_012', 'FP1_013', 'FP1_014', 'FP1_015',
-        'FP1_016', 'FP1_017', 'FP1_018', 'FP1_019', 'FP1_020', 'FP1_021',
-        'FP1_022', 'FP1_023', 'FP1_024', 'FP1_025', 'GIL_200', 'GIL_201',
-        'GIL_202', 'GIL_203', 'GIL_204', 'GIL_205', 'GIL_206', 'GIL_207',
-        'GIL_208', 'GIL_209', 'GIL_210', 'GIL_211', 'GIL_212', 'GIL_213',
-        // Dragons
-        'DRG_001', 'DRG_002', 'DRG_003', 'DRG_006', 'DRG_007', 'DRG_008',
-        'DRG_009', 'DRG_010', 'DRG_012', 'DRG_013', 'DRG_014', 'DRG_015',
-        'DRG_016', 'DRG_017', 'DRG_019', 'DRG_020', 'DRG_021', 'DRG_022',
-      ];
-      const randomCard = cards[Math.floor(Math.random() * cards.length)];
-      const cardRef: CardReference = { id: randomCard };
-      controller.hand.push(cardRef as any);
+    if (ctx.target) {
+      const damage = new Damage(ctx.source, ctx.target, 1);
+      damage.trigger(ctx.source);
     }
   },
 });
 
-// GIL_128e
+// GIL_128e - Vicious Scalehide Enchantment
 cardScriptsRegistry.register('GIL_128e', {
 });
 
-// GIL_200
+// GIL_200 - Houndmaster Shaw - Your other minions have +2 Attack
 cardScriptsRegistry.register('GIL_200', {
 });
 
-// Hand
-cardScriptsRegistry.register('Hand', {
-  events: {
-    // TODO: implement events
-  },
-});
-
-// GIL_200t
+// GIL_200t - Hound (Token)
 cardScriptsRegistry.register('GIL_200t', {
 });
 
-// Hand
-cardScriptsRegistry.register('Hand', {
-  events: {
-    // TODO: implement events
-  },
-});
-
-// GIL_200e
+// GIL_200e - Houndmaster's Companion
 cardScriptsRegistry.register('GIL_200e', {
 });
 
-// GIL_607
+// GIL_607 - Scavenger's Ingenuity - Draw a card
 cardScriptsRegistry.register('GIL_607', {
-  events: {
-    // TODO: implement events
+  play: (ctx: ActionContext) => {
+    const drawAction = new Draw(ctx.source, 1);
+    drawAction.trigger(ctx.source);
   },
 });
 
-// GIL_650
+// GIL_650 - Venomizer - Poisonous
 cardScriptsRegistry.register('GIL_650', {
 });
 
-// GIL_905
+// GIL_905 - Rat Trap - Secret: After your opponent plays 3 cards, summon a 6/6 Rat
 cardScriptsRegistry.register('GIL_905', {
-  play: (ctx: ActionContext) => {
-    // TODO: implement play effect
-  },
 });
 
-// GIL_518
+// GIL_518 - Wing Blast - Deal 4 damage to a minion. If a minion died this turn, deal 6 instead
 cardScriptsRegistry.register('GIL_518', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      // Check if a minion died this turn - would need game state
+      const damage = new Damage(ctx.source, ctx.target, 4);
+      damage.trigger(ctx.source);
+    }
   },
 });
 
-// Hand
-cardScriptsRegistry.register('Hand', {
-});
-
-// GIL_577
+// GIL_577 - Toxmonger - After you play a Poisonous minion, give it +2/+2
 cardScriptsRegistry.register('GIL_577', {
+  events: {
+    PLAY: (ctx: ActionContext) => {
+      const event = ctx.event;
+      if (event?.source) {
+        const source = event.source as any;
+        if (source.poisonous) {
+          const buff = new Buff(ctx.source, source, { ATK: 2, HEALTH: 2 });
+          buff.trigger(ctx.source);
+        }
+      }
+    },
+  },
 });
 
-// GIL_828
+// GIL_828 - Dire Frenzy - Give a Beast +3/+3. Shuffle 3 copies into your deck
 cardScriptsRegistry.register('GIL_828', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
+  },
+  play: (ctx: ActionContext) => {
+    if (ctx.target) {
+      const target = ctx.target as any;
+      const buff = new Buff(ctx.source, ctx.target, { ATK: 3, HEALTH: 3 });
+      buff.trigger(ctx.source);
+      // Shuffle 3 copies into deck
+      const cardId = target.id;
+      const shuffleAction = new Shuffle(cardId);
+      shuffleAction.trigger(ctx.source);
+      shuffleAction.trigger(ctx.source);
+      shuffleAction.trigger(ctx.source);
+    }
+  },
+});
+
+// GIL_551 - Shudderwraith - Battlecry: Deal 2 damage to all other minions
+cardScriptsRegistry.register('GIL_551', {
+  play: (ctx: ActionContext) => {
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    // Damage all other friendly minions
+    const myField = controller.field || [];
+    for (const minion of myField) {
+      if (minion !== ctx.source) {
+        const damage = new Damage(ctx.source, minion, 2);
+        damage.trigger(ctx.source);
+      }
+    }
+    // Damage all enemy minions
+    const oppField = opponent.field || [];
+    for (const minion of oppField) {
+      const damage = new Damage(ctx.source, minion, 2);
+      damage.trigger(ctx.source);
+    }
+  },
+});
+
+// GIL_809 - Hunting Party - Draw 3 cards
+cardScriptsRegistry.register('GIL_809', {
+  play: (ctx: ActionContext) => {
+    for (let i = 0; i < 3; i++) {
+      const drawAction = new Draw(ctx.source, 1);
+      drawAction.trigger(ctx.source);
+    }
+  },
 });

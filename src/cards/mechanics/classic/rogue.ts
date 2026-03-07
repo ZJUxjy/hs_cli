@@ -48,7 +48,7 @@ cardScriptsRegistry.register('NEW1_005', {
 
     // Draw a card
     const { Draw } = require('../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
   },
 });
@@ -82,7 +82,7 @@ cardScriptsRegistry.register('CS2_072', {
 
     // Draw a card
     const { Draw } = require('../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
   },
 });
@@ -118,7 +118,7 @@ cardScriptsRegistry.register('CS2_075', {
   play: (ctx: ActionContext) => {
     // Draw 4 cards
     const { Draw } = require('../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
     drawAction.trigger(ctx.source);
     drawAction.trigger(ctx.source);
@@ -212,7 +212,7 @@ cardScriptsRegistry.register('EX1_128', {
   play: (ctx: ActionContext) => {
     // Draw a card
     const { Draw } = require('../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
   },
 });

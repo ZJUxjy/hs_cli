@@ -1,6 +1,7 @@
 // dalaran - mage.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Damage } from '../../../actions';
 import type { Entity } from '../../../core/entity';
 
 // DAL_163 - Kalecgos (Legendary)
@@ -88,7 +89,7 @@ cardScriptsRegistry.register('DAL_609', {
     // This would need a card database to get random mage spell
     // Simplified: draw a card
     const { Draw } = require('../../../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(source);
   },
 });
@@ -132,11 +133,14 @@ cardScriptsRegistry.register('DAL_577', {
 // DAL_578 - Frost Lich Jaina (Hero)
 // Battlecry: Summon a 3/3 Water Elemental. Your Elementals have Lifesteal
 cardScriptsRegistry.register('DAL_578', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
     // Summon a 3/3 Water Elemental
+    const { Summon } = require('../../../actions/summon');
+    const summonAction = new Summon('DAL_577t');
+    summonAction.trigger(ctx.source);
+    // Mark that Elementals have Lifesteal
+    const controller = (ctx.source as any).controller;
+    (controller as any).jainaElementalsLifesteal = true;
   },
 });
 
@@ -148,7 +152,39 @@ cardScriptsRegistry.register('DAL_608', {
     const controller = (source as any).controller;
     // Simplified: draw a card
     const { Draw } = require('../../../actions/draw');
-    const drawAction = new Draw();
+    const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(source);
+  },
+});
+
+// DAL_604 - Magic Dart - Deal 2 damage
+cardScriptsRegistry.register('DAL_604', {
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
+  },
+  play: (ctx: ActionContext) => {
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, ctx.target, 2);
+      damage.trigger(ctx.source);
+    }
+  },
+});
+
+// DAL_605 - Cinder Storm - Deal 5 damage randomly split
+cardScriptsRegistry.register('DAL_605', {
+  play: (ctx: ActionContext) => {
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const targets: any[] = [...(opponent.field || [])];
+    if (opponent.hero) targets.push(opponent.hero);
+    // Deal 1 damage 5 times randomly
+    for (let i = 0; i < 5; i++) {
+      if (targets.length === 0) break;
+      const randomIndex = Math.floor(Math.random() * targets.length);
+      const target = targets[randomIndex];
+      const damage = new Damage(ctx.source, target, 1);
+      damage.trigger(ctx.source);
+    }
   },
 });
