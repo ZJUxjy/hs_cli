@@ -22,3 +22,9 @@ export { EndTurn } from './endturn';
 export { Death } from './death';
 export { Play } from './play';
 export { Fatigue } from './fatigue';
+export {
+  Hit, Discard, DiscardRandom, Battlecry, Deathrattle,
+  SetTag, UnsetTag, Reveal, Hide, SpendMana, GainManaCrystal,
+  Overload, Copy, Transform, SwapAttackHealth, Equip,
+  DestroyWeapon, DrawUntil, ForcePlay
+} from './extended';

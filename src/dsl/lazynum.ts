@@ -26,7 +26,7 @@ export class Attr extends LazyValue<number> {
 
   evaluate(source: Entity, game: Game): number {
     const entities = this.selector(source, game);
-    return entities.reduce((sum, e) => sum + ((e as any)[this.attr] || 0), 0);
+    return entities.reduce((sum: number, e: Entity) => sum + ((e as any)[this.attr] || 0), 0);
   }
 }
 
