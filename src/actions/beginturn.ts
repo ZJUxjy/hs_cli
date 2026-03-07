@@ -11,9 +11,9 @@ export class BeginTurn extends Action {
   }
 
   trigger(source: Entity): unknown[] {
-    const game = (source as any).game;
+    // source is the Game instance when called from game.queueActions()
+    const game = source as any;
     if (game) {
-      game.turn++;
       console.log(`[Game] Turn ${game.turn} begins for ${this.player.name}`);
 
       // Reset turn-based counters
@@ -23,12 +23,18 @@ export class BeginTurn extends Action {
       (this.player as any).minionsKilledThisTurn = [];
 
       // Mana crystal management
+      // First, apply overload from previous turn
+      this.player.overloadLocked = this.player.overloaded;
+      this.player.overloaded = 0;
+
+      // Then add mana crystal
       if (this.player.maxMana < 10) {
         this.player.maxMana++;
       }
+
+      // Finally, set available mana (after overload is applied)
+      this.player.mana = this.player.maxMana - this.player.overloadLocked;
       this.player.usedMana = 0;
-      this.player.overloadLocked = this.player.overloaded;
-      this.player.overloaded = 0;
 
       // Draw a card at the start of turn
       this.player.draw(1);

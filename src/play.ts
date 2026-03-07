@@ -60,7 +60,7 @@ function showGameState(): void {
 
   console.log('\n' + '='.repeat(50));
   console.log(`Turn ${game.turn}: ${current.name}'s turn`);
-  console.log(`Mana: ${current.maxMana - current.usedMana}/${current.maxMana}`);
+  console.log(`Mana: ${current.mana}/${current.maxMana}`);
   console.log('='.repeat(50));
 
   // Show Player 1 info
