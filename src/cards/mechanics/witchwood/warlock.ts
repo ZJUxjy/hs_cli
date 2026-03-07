@@ -1,5 +1,6 @@
 // witchwood - warlock.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
+import type { ScriptEntity, CardReference } from '../types';
 import { PlayReq } from '../../../enums/playreq';
 
 // GIL_508
@@ -24,11 +25,13 @@ cardScriptsRegistry.register('GIL_565', {
   events: {
     TURN_END: (ctx: ActionContext) => {
       // At the end of your turn, deal 1 damage to all your other minions
-      const controller = (ctx.source as any).controller;
+      const source = ctx.source as ScriptEntity;
+      const controller = source.controller;
       if (controller?.isCurrentPlayer && controller.field) {
         for (const minion of controller.field) {
-          if (minion !== ctx.source && minion !== (ctx.source as any)) {
-            (minion as any).damage = ((minion as any).damage || 0) + 1;
+          if (minion !== ctx.source && minion !== source) {
+            const minionWithDamage = minion as ScriptEntity & { damage: number };
+            minionWithDamage.damage = (minionWithDamage.damage || 0) + 1;
           }
         }
       }
@@ -48,11 +51,14 @@ cardScriptsRegistry.register('GIL_618', {
   events: {
     TURN_END: (ctx: ActionContext) => {
       // At the end of your turn, summon a random enemy minion's copy
-      const controller = (ctx.source as any).controller;
+      const source = ctx.source as ScriptEntity;
+      const controller = source.controller;
       const opponent = controller?.opponent;
-      if (opponent?.field?.length > 0 && controller?.field?.length < 7) {
-        const randomEnemy = opponent.field[Math.floor(Math.random() * opponent.field.length)];
-        controller.field.push({ id: randomEnemy.id } as any);
+      if (controller && controller.field && opponent && opponent.field && opponent.field.length > 0 && controller.field.length < 7) {
+        const enemyMinions = Array.from(opponent.field);
+        const randomEnemy = enemyMinions[Math.floor(Math.random() * enemyMinions.length)];
+        const cardRef: CardReference = { id: randomEnemy.id };
+        controller.field.push(cardRef as any);
       }
     },
   },

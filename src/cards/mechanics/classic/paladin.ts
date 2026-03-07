@@ -1,322 +1,234 @@
-// Classic Paladin Card Scripts
+// classic - paladin.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
-
-// Import actions
-import { Damage } from '../../../actions/damage';
-import { Draw } from '../../../actions/draw';
-import { Buff } from '../../../actions/buff';
-import { Heal } from '../../../actions/heal';
-
-// Import selectors
 import { PlayReq } from '../../../enums/playreq';
 
-// === Minions ===
-
-// Guardian of Kings - Battlecry: Restore 6 Health to your hero
+// CS2_088
 cardScriptsRegistry.register('CS2_088', {
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    if (controller?.hero) {
-      const heal = new Heal(ctx.source, controller.hero, 6);
-      heal.trigger(ctx.source);
-    }
+    // TODO: implement play effect
   },
 });
 
-// Argent Protector - Battlecry: Give a friendly minion Divine Shield
+// EX1_362
 cardScriptsRegistry.register('EX1_362', {
   requirements: {
-    [PlayReq.REQ_FRIENDLY_TARGET]: 0,
-    [PlayReq.REQ_MINION_TARGET]: 0,
-    [PlayReq.REQ_TARGET_IS_NOT_SELF]: 0,
-    [PlayReq.REQ_TARGET_IF_AVAILABLE]: 0,
+    // TODO: add requirements
   },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      (ctx.target as any).divineShield = true;
-    }
+    // TODO: implement play effect
   },
 });
 
-// Aldor Peacekeeper - Battlecry: Change an enemy minion's Attack to 1
+// EX1_382
 cardScriptsRegistry.register('EX1_382', {
   requirements: {
-    [PlayReq.REQ_ENEMY_TARGET]: 0,
-    [PlayReq.REQ_MINION_TARGET]: 0,
-    [PlayReq.REQ_TARGET_IF_AVAILABLE]: 0,
+    // TODO: add requirements
   },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const buff = new Buff(ctx.source, ctx.target, { ATK: 1 });
-      buff.trigger(ctx.source);
-    }
+    // TODO: implement play effect
   },
 });
 
-// EX1_382e - Aldor Peacekeeper debuff
-cardScriptsRegistry.register('EX1_382e', {});
+// EX1_382e
+cardScriptsRegistry.register('EX1_382e', {
+});
 
-// Tirion Fordring - Deathrattle: Equip a 1/3 Ashbringer
+// EX1_383
 cardScriptsRegistry.register('EX1_383', {
   deathrattle: (ctx: ActionContext) => {
-    // Would equip weapon
+    // TODO: implement deathrattle
   },
 });
 
-// === Spells ===
-
-// Blessing of Might - Give a minion +3 Attack
+// CS2_087
 cardScriptsRegistry.register('CS2_087', {
-  requirements: { [PlayReq.REQ_MINION_TARGET]: 0, [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const buff = new Buff(ctx.source, ctx.target, { ATK: 3 });
-      buff.trigger(ctx.source);
-    }
+    // TODO: implement play effect
   },
 });
 
-// CS2_087e - Blessing of Might buff
-cardScriptsRegistry.register('CS2_087e', {});
-
-// Holy Light - Restore 6 Health
+// CS2_089
 cardScriptsRegistry.register('CS2_089', {
-  requirements: { [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const heal = new Heal(ctx.source, ctx.target, 6);
-      heal.trigger(ctx.source);
-    }
+    // TODO: implement play effect
   },
 });
 
-// Blessing of Kings - Give a minion +4/+4
+// CS2_092
 cardScriptsRegistry.register('CS2_092', {
-  requirements: { [PlayReq.REQ_MINION_TARGET]: 0, [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const buff = new Buff(ctx.source, ctx.target, { ATK: 4, HEALTH: 4 });
-      buff.trigger(ctx.source);
-    }
+    // TODO: implement play effect
   },
 });
 
-// CS2_092e - Blessing of Kings buff
-cardScriptsRegistry.register('CS2_092e', {});
-
-// Consecration - Deal 2 damage to all enemies
+// CS2_093
 cardScriptsRegistry.register('CS2_093', {
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const opponent = controller?.opponent;
-    if (opponent?.hero) {
-      const dmg = new Damage(ctx.source, opponent.hero, 2);
-      dmg.trigger(ctx.source);
-    }
-    if (opponent?.field) {
-      for (const minion of opponent.field) {
-        const dmg = new Damage(ctx.source, minion, 2);
-        dmg.trigger(ctx.source);
-      }
-    }
+    // TODO: implement play effect
   },
 });
 
-// Hammer of Wrath - Deal 3 damage and draw a card
+// CS2_094
 cardScriptsRegistry.register('CS2_094', {
-  requirements: { [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const dmg = new Damage(ctx.source, ctx.target, 3);
-      dmg.trigger(ctx.source);
-    }
-    const draw = new Draw(ctx.source, 1);
-    draw.trigger(ctx.source);
+    // TODO: implement play effect
   },
 });
 
-// Divine Favor - Draw cards until you have as many as your opponent
+// EX1_349
 cardScriptsRegistry.register('EX1_349', {
   play: (ctx: ActionContext) => {
-    // Would draw cards to match opponent hand count
+    // TODO: implement play effect
   },
 });
 
-// Lay on Hands - Restore 8 Health and draw 3 cards
+// EX1_354
 cardScriptsRegistry.register('EX1_354', {
-  requirements: { [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const heal = new Heal(ctx.source, ctx.target, 8);
-      heal.trigger(ctx.source);
-    }
-    const draw1 = new Draw(ctx.source, 1);
-    const draw2 = new Draw(ctx.source, 1);
-    const draw3 = new Draw(ctx.source, 1);
-    draw1.trigger(ctx.source);
-    draw2.trigger(ctx.source);
-    draw3.trigger(ctx.source);
+    // TODO: implement play effect
   },
 });
 
-// Blessed Champion - Double a minion's Attack
+// EX1_355
 cardScriptsRegistry.register('EX1_355', {
-  requirements: { [PlayReq.REQ_MINION_TARGET]: 0, [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const target = ctx.target as any;
-      const currentAtk = target.attack || 0;
-      const buff = new Buff(ctx.source, ctx.target, { ATK: currentAtk });
-      buff.trigger(ctx.source);
-    }
+    // TODO: implement play effect
   },
 });
 
-// EX1_355e - Blessed Champion buff
-cardScriptsRegistry.register('EX1_355e', {});
+// EX1_355e
+cardScriptsRegistry.register('EX1_355e', {
+});
 
-// Humility - Change a minion's Attack to 1
+// EX1_360
 cardScriptsRegistry.register('EX1_360', {
-  requirements: { [PlayReq.REQ_MINION_TARGET]: 0, [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const target = ctx.target as any;
-      target.attack = 1;
-    }
+    // TODO: implement play effect
   },
 });
 
-// EX1_360e - Humility debuff
-cardScriptsRegistry.register('EX1_360e', {});
+// EX1_360e
+cardScriptsRegistry.register('EX1_360e', {
+});
 
-// Blessing of Wisdom - Draw a card when minion attacks
+// EX1_363
 cardScriptsRegistry.register('EX1_363', {
-  requirements: { [PlayReq.REQ_MINION_TARGET]: 0, [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      // Add event listener for attack to draw card
-    }
+    // TODO: implement play effect
   },
 });
 
-// EX1_363e - Blessing of Wisdom buff
-cardScriptsRegistry.register('EX1_363e', {});
+// EX1_363e
+cardScriptsRegistry.register('EX1_363e', {
+  events: {
+    // TODO: implement events
+  },
+});
 
-// Holy Wrath - Draw a card and deal damage equal to its cost
+// EX1_363e2
+cardScriptsRegistry.register('EX1_363e2', {
+  events: {
+    // TODO: implement events
+  },
+});
+
+// EX1_365
 cardScriptsRegistry.register('EX1_365', {
-  requirements: { [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    const draw = new Draw(ctx.source, 1);
-    draw.trigger(ctx.source);
-    // Would deal damage equal to card cost
+    // TODO: implement play effect
   },
 });
 
-// Hand of Protection - Give a minion Divine Shield
+// EX1_371
 cardScriptsRegistry.register('EX1_371', {
-  requirements: { [PlayReq.REQ_MINION_TARGET]: 0, [PlayReq.REQ_TARGET_TO_PLAY]: 0 },
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      (ctx.target as any).divineShield = true;
-    }
+    // TODO: implement play effect
   },
 });
 
-// Avenging Wrath - Deal 8 damage randomly split among enemies
+// EX1_384
 cardScriptsRegistry.register('EX1_384', {
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const opponent = controller?.opponent;
-    const targets: any[] = [];
-    if (opponent?.hero) targets.push(opponent.hero);
-    if (opponent?.field) targets.push(...opponent.field);
-    for (let i = 0; i < 8; i++) {
-      if (targets.length === 0) break;
-      const idx = Math.floor(Math.random() * targets.length);
-      const target = targets[idx];
-      const dmg = new Damage(ctx.source, target, 1);
-      dmg.trigger(ctx.source);
-    }
+    // TODO: implement play effect
   },
 });
 
-// Equality - Set all minions' Health to 1
+// EX1_619
 cardScriptsRegistry.register('EX1_619', {
   play: (ctx: ActionContext) => {
-    const game = (ctx.source as any).game;
-    if (game) {
-      const p1Field = (game as any).player1?.field || [];
-      const p2Field = (game as any).player2?.field || [];
-      for (const minion of [...p1Field, ...p2Field]) {
-        const target = minion as any;
-        target.maxHealth = 1;
-        if (target.health > 1) {
-          target.damage = (target.health || 0) - 1;
-        }
-      }
-    }
+    // TODO: implement play effect
   },
 });
 
-// EX1_619e - Equality debuff
-cardScriptsRegistry.register('EX1_619e', {});
+// EX1_619e
+cardScriptsRegistry.register('EX1_619e', {
+});
 
-// === Secrets ===
+// EX1_130
+cardScriptsRegistry.register('EX1_130', {
+});
 
-// Noble Sacrifice - When an enemy attacks, summon a 2/1 Defender
-cardScriptsRegistry.register('EX1_130', {});
+// EX1_132
+cardScriptsRegistry.register('EX1_132', {
+});
 
-// Eye for an Eye - When your hero takes damage, deal that much to the enemy hero
-cardScriptsRegistry.register('EX1_132', {});
+// EX1_136
+cardScriptsRegistry.register('EX1_136', {
+});
 
-// Redemption - When a friendly minion dies, return it to life with 1 Health
-cardScriptsRegistry.register('EX1_136', {});
+// EX1_379
+cardScriptsRegistry.register('EX1_379', {
+});
 
-// Repentance - After your opponent plays a minion, reduce its Health to 1
-cardScriptsRegistry.register('EX1_379', {});
+// EX1_379e
+cardScriptsRegistry.register('EX1_379e', {
+});
 
-// EX1_379e - Repentance debuff
-cardScriptsRegistry.register('EX1_379e', {});
-
-// === Weapons ===
-
-// Truesilver Champion - Whenever your hero attacks, restore 2 Health
+// CS2_097
 cardScriptsRegistry.register('CS2_097', {
   events: {
-    ATTACK: (ctx: ActionContext) => {
-      const controller = (ctx.source as any).controller;
-      if (controller?.hero) {
-        const heal = new Heal(ctx.source, controller.hero, 2);
-        heal.trigger(ctx.source);
-      }
-    },
+    // TODO: implement events
   },
 });
 
-// Sword of Justice - After you summon a minion, give it +1/+1 and this loses 1 durability
+// EX1_366
 cardScriptsRegistry.register('EX1_366', {
   events: {
-    MINION_SUMMON: (ctx: ActionContext) => {
-      if (ctx.target) {
-        const buff = new Buff(ctx.source, ctx.target, { ATK: 1, HEALTH: 1 });
-        buff.trigger(ctx.source);
-      }
-    },
+    // TODO: implement events
   },
 });
 
-// EX1_366e - Sword of Justice buff
-cardScriptsRegistry.register('EX1_366e', {});
-
-// Righteousness - Give your minions Divine Shield
+// EX1_184
 cardScriptsRegistry.register('EX1_184', {
-  play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const field = controller?.field || [];
-    for (const minion of field) {
-      (minion as any).divineShield = true;
-    }
-  },
+  play: (ctx: ActionContext) => { /* TODO */ },
 });
-
-console.log('[Classic Paladin] Registered card scripts');

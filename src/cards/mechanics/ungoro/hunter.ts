@@ -4,6 +4,25 @@ import { PlayReq } from '../../../enums/playreq';
 import { Give, Shuffle } from '../../../actions';
 import { CardLoader } from '../../../cards/loader';
 import { Race, CardType } from '../../../enums';
+import { Entity } from '../../../core/entity';
+import { CardDefinition } from '../../../cards';
+
+// Helper function to get random beast cards
+function getRandomBeastCards(count: number): CardDefinition[] {
+  const beastCards = CardLoader.filter({
+    type: CardType.MINION,
+    race: Race.BEAST,
+  });
+
+  if (beastCards.length === 0) return [];
+
+  const result: CardDefinition[] = [];
+  for (let i = 0; i < count; i++) {
+    const randomIndex = Math.floor(Math.random() * beastCards.length);
+    result.push(beastCards[randomIndex]);
+  }
+  return result;
+}
 
 // UNG_800 Terrorscale Stalker
 // Battlecry: Trigger a random friendly minion's Deathrattle
@@ -17,14 +36,14 @@ cardScriptsRegistry.register('UNG_800', {
   play: (ctx: ActionContext) => {
     // Trigger the target's deathrattle
     if (ctx.target) {
-      const target = ctx.target as any;
-      if (target.deathrattle) {
+      const target = ctx.target as Entity;
+      if ((target as any).deathrattle) {
         // Execute deathrattle directly
         const deathrattleCtx: ActionContext = {
           source: target,
           game: ctx.game,
         };
-        target.deathrattle(deathrattleCtx);
+        (target as any).deathrattle(deathrattleCtx);
       }
     }
   },
@@ -34,23 +53,15 @@ cardScriptsRegistry.register('UNG_800', {
 // Battlecry: Add a random Beast to your hand
 cardScriptsRegistry.register('UNG_912', {
   play: (ctx: ActionContext) => {
-    const source = ctx.source as any;
-    const controller = source.controller;
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
 
-    // Get all beast minions
-    const beastCards = CardLoader.filter({
-      type: CardType.MINION,
-      race: Race.BEAST,
-    });
-
-    if (beastCards.length === 0) return;
-
-    // Pick a random beast
-    const randomIndex = Math.floor(Math.random() * beastCards.length);
-    const randomBeast = beastCards[randomIndex];
+    // Get random beast cards
+    const beasts = getRandomBeastCards(1);
+    if (beasts.length === 0) return;
 
     // Give the beast to controller's hand
-    const giveAction = new Give(randomBeast.id);
+    const giveAction = new Give(beasts[0].id);
     giveAction.trigger(ctx.source, controller);
   },
 });
@@ -59,23 +70,16 @@ cardScriptsRegistry.register('UNG_912', {
 // Battlecry: Add 2 random Beasts to your hand
 cardScriptsRegistry.register('UNG_913', {
   play: (ctx: ActionContext) => {
-    const source = ctx.source as any;
-    const controller = source.controller;
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
 
-    // Get all beast minions
-    const beastCards = CardLoader.filter({
-      type: CardType.MINION,
-      race: Race.BEAST,
-    });
+    // Get 2 random beast cards
+    const beasts = getRandomBeastCards(2);
+    if (beasts.length === 0) return;
 
-    if (beastCards.length === 0) return;
-
-    // Add 2 random beasts to hand
-    for (let i = 0; i < 2; i++) {
-      const randomIndex = Math.floor(Math.random() * beastCards.length);
-      const randomBeast = beastCards[randomIndex];
-
-      const giveAction = new Give(randomBeast.id);
+    // Add beasts to hand
+    for (const beast of beasts) {
+      const giveAction = new Give(beast.id);
       giveAction.trigger(ctx.source, controller);
     }
   },
@@ -102,13 +106,13 @@ cardScriptsRegistry.register('UNG_915', {
     // Simplified: just trigger deathrattle on target if it has one
     // In real HS, this requires checking if a friendly minion died this turn
     if (ctx.target) {
-      const target = ctx.target as any;
-      if (target.deathrattle) {
+      const target = ctx.target as Entity;
+      if ((target as any).deathrattle) {
         const deathrattleCtx: ActionContext = {
           source: target,
           game: ctx.game,
         };
-        target.deathrattle(deathrattleCtx);
+        (target as any).deathrattle(deathrattleCtx);
       }
     }
   },
@@ -122,11 +126,11 @@ cardScriptsRegistry.register('UNG_919', {
       // Check if the spell played was a secret
       const event = ctx.event;
       if (event?.source) {
-        const source = event.source as any;
-        if (source.type === 5 && source.secret) { // SPELL type and secret flag
+        const source = event.source as Entity;
+        if (source.type === CardType.SPELL && (source as any).secret) {
           // Give this minion charge
-          const minion = ctx.source as any;
-          minion.charge = true;
+          const minion = ctx.source as Entity;
+          (minion as any).charge = true;
         }
       }
     },

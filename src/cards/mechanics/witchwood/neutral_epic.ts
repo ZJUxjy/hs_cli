@@ -1,5 +1,6 @@
 // witchwood - neutral_epic.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
+import type { ScriptEntity, CardReference } from '../types';
 import { PlayReq } from '../../../enums/playreq';
 
 // GIL_117
@@ -30,8 +31,9 @@ cardScriptsRegistry.register('GIL_614', {
   },
   play: (ctx: ActionContext) => {
     // Battlecry: Add a random Beast/Dragon/Murloc card to your hand
-    const controller = (ctx.source as any).controller;
-    if (controller?.hand?.length < 10) {
+    const source = ctx.source as ScriptEntity;
+    const controller = source.controller;
+    if (controller && controller.hand && controller.hand.length < 10) {
       const cards = [
         // Beasts
         'CS2_101', 'CS2_102', 'CS2_103', 'CS2_104', 'CS2_105', 'DS1_066',
@@ -52,7 +54,8 @@ cardScriptsRegistry.register('GIL_614', {
         'GIL_507', 'GIL_503', 'GIL_504', 'GIL_505', 'GIL_506', 'GIL_508',
       ];
       const randomCard = cards[Math.floor(Math.random() * cards.length)];
-      controller.hand.push({ id: randomCard } as any);
+      const cardRef: CardReference = { id: randomCard };
+      controller.hand.push(cardRef as any);
     }
   },
 });

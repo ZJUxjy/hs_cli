@@ -49,3 +49,60 @@ import './cards/mechanics/league';
 
 // Gangs (Mean Streets of Gadgetzan) cards
 import './cards/mechanics/gangs';
+
+// Un'Goro cards
+import './cards/mechanics/ungoro';
+
+// Knights of the Frozen Throne (Icecrown)
+import './cards/mechanics/icecrown';
+
+// The Witchwood
+import './cards/mechanics/witchwood';
+
+// The Boomsday Project
+import './cards/mechanics/boomsday';
+
+// Kobolds & Catacombs
+import './cards/mechanics/kobolds';
+
+// Rise of Shadows (Dalaran)
+import './cards/mechanics/dalaran';
+
+// Descent of Dragons
+import './cards/mechanics/dragons';
+
+// Scholomance Academy
+import './cards/mechanics/scholomance';
+
+// Rastakhan's Rumble
+import './cards/mechanics/troll';
+
+// Saviors of Uldum
+import './cards/mechanics/uldum';
+
+// Ashes of Outland
+import './cards/mechanics/outlands';
+
+// Demon Hunter Initiate
+import './cards/mechanics/initiate';
+
+// Blackrock Mountain
+import './cards/mechanics/blackrock';
+
+// Tavern Brawl
+import './cards/mechanics/brawl';
+
+// Custom cards
+import './cards/mechanics/custom';
+
+// Debug cards
+import './cards/mechanics/debug';
+
+// Tutorial cards
+import './cards/mechanics/tutorial';
+
+// The Shrouded City
+import './cards/mechanics/the_shrounded_city';
+
+// Hero Skins
+import './cards/mechanics/skins';

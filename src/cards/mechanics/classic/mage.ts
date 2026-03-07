@@ -1,294 +1,200 @@
-// Classic Mage Card Scripts
+// classic - mage.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
+import { PlayReq } from '../../../enums/playreq';
 
-// Import actions
-import { Damage } from '../../../actions/damage';
-import { Draw } from '../../../actions/draw';
-import { Summon } from '../../../actions/summon';
-import { Buff } from '../../../actions/buff';
-import { Morph } from '../../../actions/morph';
-import { Give } from '../../../actions/give';
-
-// === Minions ===
-
-// Water Elemental - Freeze any character that damages it
+// CS2_033
 cardScriptsRegistry.register('CS2_033', {
   events: {
-    DAMAGE: (ctx: ActionContext) => {
-      if (ctx.event?.target) {
-        (ctx.event.target as any).frozen = true;
-      }
-    },
+    // TODO: implement events
   },
 });
 
-// Ethereal Arcanist - If you control a Secret at the end of your turn, gain +2/+2
+// EX1_274
 cardScriptsRegistry.register('EX1_274', {
   events: {
-    TURN_END: (ctx: ActionContext) => {
-      const controller = (ctx.source as any).controller;
-      const secrets = controller?.secrets || [];
-      if (secrets.length > 0) {
-        const buff = new Buff(ctx.source, ctx.source, { ATK: 2, HEALTH: 2 });
-        buff.trigger(ctx.source);
-      }
-    },
+    // TODO: implement events
   },
 });
 
-// Archmage Antonidas - Whenever you cast a spell, add a 'Fireball' to your hand
+// EX1_559
 cardScriptsRegistry.register('EX1_559', {
   events: {
-    SPELL_PLAY: (ctx: ActionContext) => {
-      const controller = (ctx.source as any).controller;
-      if (controller) {
-        const give = new Give('CS2_029');
-        give.trigger(ctx.source, controller);
-      }
-    },
+    // TODO: implement events
   },
 });
 
-// Sorcerer's Apprentice - Your spells cost (1) less
+// EX1_608
 cardScriptsRegistry.register('EX1_608', {
 });
 
-// Kirin Tor Mage - Battlecry: Discover a Secret
+// EX1_612
 cardScriptsRegistry.register('EX1_612', {
-  play: (_ctx: ActionContext) => {
-    // Would trigger secret discovery
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
   },
 });
 
-// Mana Wyrm - Whenever you cast a spell, gain +1 Attack
+// EX1_612o
+cardScriptsRegistry.register('EX1_612o', {
+  events: {
+    // TODO: implement events
+  },
+});
+
+// NEW1_012
 cardScriptsRegistry.register('NEW1_012', {
   events: {
-    SPELL_PLAY: (ctx: ActionContext) => {
-      const buff = new Buff(ctx.source, ctx.source, { ATK: 1 });
-      buff.trigger(ctx.source);
-    },
+    // TODO: implement events
   },
 });
 
-// === Spells ===
-
-// Polymorph - Transform a minion into a 1/1 Sheep
+// CS2_022
 cardScriptsRegistry.register('CS2_022', {
-  play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const morph = new Morph('CS2_tk1');
-      morph.trigger(ctx.source, ctx.target);
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 1: 0, 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// Arcane Intellect - Draw 2 cards
+// CS2_023
 cardScriptsRegistry.register('CS2_023', {
   play: (ctx: ActionContext) => {
-    const draw1 = new Draw(ctx.source, 1);
-    const draw2 = new Draw(ctx.source, 1);
-    draw1.trigger(ctx.source);
-    draw2.trigger(ctx.source);
+    // TODO: implement play effect
   },
 });
 
-// Frostbolt - Deal 3 damage and Freeze
+// CS2_024
 cardScriptsRegistry.register('CS2_024', {
-  play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const dmg = new Damage(ctx.source, ctx.target, 3);
-      dmg.trigger(ctx.source);
-      (ctx.target as any).frozen = true;
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// Arcane Explosion - Deal 1 damage to all enemy minions
+// CS2_025
 cardScriptsRegistry.register('CS2_025', {
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const opponent = controller?.opponent;
-    if (opponent?.field) {
-      for (const minion of opponent.field) {
-        const dmg = new Damage(ctx.source, minion, 1);
-        dmg.trigger(ctx.source);
-      }
-    }
+    // TODO: implement play effect
   },
 });
 
-// Frost Nova - Freeze all enemy minions
+// CS2_026
 cardScriptsRegistry.register('CS2_026', {
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const opponent = controller?.opponent;
-    if (opponent?.field) {
-      for (const minion of opponent.field) {
-        (minion as any).frozen = true;
-      }
-    }
+    // TODO: implement play effect
   },
 });
 
-// Mirror Image - Summon two 0/2 minions with Taunt
+// CS2_027
 cardScriptsRegistry.register('CS2_027', {
-  play: (ctx: ActionContext) => {
-    const summon1 = new Summon(ctx.source, 'CS2_mirror');
-    const summon2 = new Summon(ctx.source, 'CS2_mirror');
-    summon1.trigger(ctx.source);
-    summon2.trigger(ctx.source);
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 24: 1 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// Blizzard - Deal 2 damage to all enemy minions and Freeze them
+// CS2_028
 cardScriptsRegistry.register('CS2_028', {
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const opponent = controller?.opponent;
-    if (opponent?.field) {
-      for (const minion of opponent.field) {
-        const dmg = new Damage(ctx.source, minion, 2);
-        dmg.trigger(ctx.source);
-        (minion as any).frozen = true;
-      }
-    }
+    // TODO: implement play effect
   },
 });
 
-// Fireball - Deal 6 damage
+// CS2_029
 cardScriptsRegistry.register('CS2_029', {
-  play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const dmg = new Damage(ctx.source, ctx.target, 6);
-      dmg.trigger(ctx.source);
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// Ice Lance - If target is Frozen, deal 4 instead. Otherwise, Freeze
+// CS2_031
 cardScriptsRegistry.register('CS2_031', {
-  play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const target = ctx.target as any;
-      if (target.frozen) {
-        const dmg = new Damage(ctx.source, ctx.target, 4);
-        dmg.trigger(ctx.source);
-      } else {
-        target.frozen = true;
-      }
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// Flamestrike - Deal 4 damage to all enemy minions
+// CS2_032
 cardScriptsRegistry.register('CS2_032', {
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const opponent = controller?.opponent;
-    if (opponent?.field) {
-      for (const minion of opponent.field) {
-        const dmg = new Damage(ctx.source, minion, 4);
-        dmg.trigger(ctx.source);
-      }
-    }
+    // TODO: implement play effect
   },
 });
 
-// Cone of Cold - Deal 1 damage to a minion and its neighbors, Freeze them
+// EX1_275
 cardScriptsRegistry.register('EX1_275', {
-  play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const target = ctx.target as any;
-      const field = (target as any).controller?.field || [];
-      const idx = field.indexOf(target);
-
-      const dmg1 = new Damage(ctx.source, target, 1);
-      dmg1.trigger(ctx.source);
-      target.frozen = true;
-
-      if (idx > 0) {
-        const left = field[idx - 1];
-        const dmg2 = new Damage(ctx.source, left, 1);
-        dmg2.trigger(ctx.source);
-        (left as any).frozen = true;
-      }
-
-      if (idx < field.length - 1) {
-        const right = field[idx + 1];
-        const dmg3 = new Damage(ctx.source, right, 1);
-        dmg3.trigger(ctx.source);
-        (right as any).frozen = true;
-      }
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 1: 0, 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// Arcane Missiles - Deal 3 damage randomly split among all enemies
+// EX1_277
 cardScriptsRegistry.register('EX1_277', {
   play: (ctx: ActionContext) => {
-    const controller = (ctx.source as any).controller;
-    const opponent = controller?.opponent;
-    const targets: any[] = [];
-
-    if (opponent?.hero) targets.push(opponent.hero);
-    if (opponent?.field) targets.push(...opponent.field);
-
-    for (let i = 0; i < 3; i++) {
-      if (targets.length === 0) break;
-      const idx = Math.floor(Math.random() * targets.length);
-      const target = targets[idx];
-      const dmg = new Damage(ctx.source, target, 1);
-      dmg.trigger(ctx.source);
-    }
+    // TODO: implement play effect
   },
 });
 
-// Pyroblast - Deal 10 damage
+// EX1_279
 cardScriptsRegistry.register('EX1_279', {
-  play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const dmg = new Damage(ctx.source, ctx.target, 10);
-      dmg.trigger(ctx.source);
-    }
+  requirements: {
+    // TODO: add requirements
   },
-  requirements: { 48: 0 },
+  play: (ctx: ActionContext) => {
+    // TODO: implement play effect
+  },
 });
 
-// Secrets
-cardScriptsRegistry.register('EX1_287', {});
-cardScriptsRegistry.register('EX1_289', {});
-cardScriptsRegistry.register('EX1_294', {});
-cardScriptsRegistry.register('EX1_295', {});
-cardScriptsRegistry.register('EX1_594', {});
+// tt_010
+cardScriptsRegistry.register('tt_010', {
+});
 
-// Icicle - Deal 2 damage. If Frozen, draw a card
+// EX1_287
+cardScriptsRegistry.register('EX1_287', {
+});
+
+// EX1_289
+cardScriptsRegistry.register('EX1_289', {
+});
+
+// EX1_294
+cardScriptsRegistry.register('EX1_294', {
+});
+
+// EX1_295
+cardScriptsRegistry.register('EX1_295', {
+});
+
+// EX1_594
+cardScriptsRegistry.register('EX1_594', {
+});
+
+// EX1_179
 cardScriptsRegistry.register('EX1_179', {
+  requirements: {
+    // TODO: add requirements
+  },
   play: (ctx: ActionContext) => {
-    if (ctx.target) {
-      const target = ctx.target as any;
-      const dmg = new Damage(ctx.source, ctx.target, 2);
-      dmg.trigger(ctx.source);
-
-      if (target.frozen) {
-        const draw = new Draw(ctx.source, 1);
-        draw.trigger(ctx.source);
-      }
-    }
+    // TODO: implement play effect
   },
-  requirements: { 1: 0, 48: 0 },
 });
 
-// Tome of Intellect
+// EX1_180
 cardScriptsRegistry.register('EX1_180', {
-  play: (_ctx: ActionContext) => {
-    // Would give a random mage spell
-  },
+  play: (ctx: ActionContext) => { /* TODO */ },
 });
-
-console.log('[Classic Mage] Registered card scripts');

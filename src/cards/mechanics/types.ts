@@ -1,5 +1,24 @@
 // Card mechanism types and interfaces
 import type { Entity } from '../../core/entity';
+import type { Player } from '../../core/player';
+
+// Extended player type for card scripts with common properties
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ScriptPlayer extends Player {
+  isCurrentPlayer?: boolean;
+  playedCards?: string[];
+}
+
+// Extended entity type for card scripts with common properties
+export interface ScriptEntity extends Entity {
+  controller?: ScriptPlayer;
+  id: string;
+}
+
+// Card to be added to hand/field
+export interface CardReference {
+  id: string;
+}
 
 // Event types that can trigger card effects
 export type EventType =

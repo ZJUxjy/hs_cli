@@ -1,5 +1,6 @@
 // witchwood - neutral_legendary.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
+import type { ScriptEntity, CardReference } from '../types';
 import { PlayReq } from '../../../enums/playreq';
 
 // GIL_558 - Emeriss (Legendary Dragon)
@@ -7,8 +8,9 @@ cardScriptsRegistry.register('GIL_558', {
   play: (ctx: ActionContext) => {
     // Battlecry: Discover a Dragon and put a copy of it into your hand
     // For simplicity, just add a random dragon card to hand
-    const controller = (ctx.source as any).controller;
-    if (controller?.hand?.length < 10) {
+    const source = ctx.source as ScriptEntity;
+    const controller = source.controller;
+    if (controller && controller.hand && controller.hand.length < 10) {
       // Add a random dragon card ID
       const dragonCards = [
         'DRG_001', 'DRG_002', 'DRG_003', 'DRG_006', 'DRG_007', 'DRG_008',
@@ -57,7 +59,8 @@ cardScriptsRegistry.register('GIL_558', {
         'DRG_402', 'DRG_403', 'DRG_404', 'DRG_405', 'DRG_406', 'DRG_407',
       ];
       const randomDragon = dragonCards[Math.floor(Math.random() * dragonCards.length)];
-      controller.hand.push({ id: randomDragon } as any);
+      const cardRef: CardReference = { id: randomDragon };
+      controller.hand.push(cardRef as any);
     }
   },
 });
@@ -91,13 +94,15 @@ cardScriptsRegistry.register('GIL_620e', {
 cardScriptsRegistry.register('GIL_692', {
   deathrattle: (ctx: ActionContext) => {
     // Deathrattle: Summon one of your Totems that died this game
-    const controller = (ctx.source as any).controller;
-    if (controller) {
+    const source = ctx.source as ScriptEntity;
+    const controller = source.controller;
+    if (controller && controller.field) {
       // Simplified: just summon a random basic totem
       const totems = ['CS2_050', 'CS2_051', 'CS2_052', 'CS2_053'];
       const randomTotem = totems[Math.floor(Math.random() * totems.length)];
-      if (controller.field?.length < 7) {
-        controller.field.push({ id: randomTotem } as any);
+      if (controller.field.length < 7) {
+        const cardRef: CardReference = { id: randomTotem };
+        controller.field.push(cardRef as any);
       }
     }
   },
@@ -126,12 +131,14 @@ cardScriptsRegistry.register('GIL_826', {
   deathrattle: (ctx: ActionContext) => {
     // Deathrattle: Replay every card you've played this game (that didn't have Echo)
     // Simplified: Just re-add a random card from played cards
-    const controller = (ctx.source as any).controller;
-    if (controller && (controller as any).playedCards) {
-      const playedCards = (controller as any).playedCards;
-      if (playedCards.length > 0 && controller.hand?.length < 10) {
+    const source = ctx.source as ScriptEntity;
+    const controller = source.controller;
+    if (controller && controller.playedCards && controller.hand) {
+      const playedCards = controller.playedCards;
+      if (playedCards.length > 0 && controller.hand.length < 10) {
         const randomCard = playedCards[Math.floor(Math.random() * playedCards.length)];
-        controller.hand.push({ id: randomCard } as any);
+        const cardRef: CardReference = { id: randomCard };
+        controller.hand.push(cardRef as any);
       }
     }
   },

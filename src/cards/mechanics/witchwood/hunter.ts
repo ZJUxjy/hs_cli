@@ -1,5 +1,6 @@
 // witchwood - hunter.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
+import type { ScriptEntity, CardReference } from '../types';
 import { PlayReq } from '../../../enums/playreq';
 
 // GIL_128
@@ -13,8 +14,9 @@ cardScriptsRegistry.register('GIL_128', {
 cardScriptsRegistry.register('GIL_587', {
   play: (ctx: ActionContext) => {
     // Battlecry: Add a random Murloc/Beast/Dragon card to your hand
-    const controller = (ctx.source as any).controller;
-    if (controller?.hand?.length < 10) {
+    const source = ctx.source as ScriptEntity;
+    const controller = source.controller;
+    if (controller && controller.hand && controller.hand.length < 10) {
       // Pool of Murloc, Beast, and Dragon cards
       const cards = [
         // Murlocs
@@ -36,7 +38,8 @@ cardScriptsRegistry.register('GIL_587', {
         'DRG_016', 'DRG_017', 'DRG_019', 'DRG_020', 'DRG_021', 'DRG_022',
       ];
       const randomCard = cards[Math.floor(Math.random() * cards.length)];
-      controller.hand.push({ id: randomCard } as any);
+      const cardRef: CardReference = { id: randomCard };
+      controller.hand.push(cardRef as any);
     }
   },
 });
