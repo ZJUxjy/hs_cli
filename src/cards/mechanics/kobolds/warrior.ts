@@ -1,29 +1,69 @@
 // kobolds - warrior.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Give, Damage, Buff, Draw, Shuffle, Summon } from '../../../actions';
+import { Entity } from '../../../core/entity';
 
-// LOOT_041
+// LOOT_041 Bring It On! - Gain 10 Armor. Deal 10 damage to your hero
 cardScriptsRegistry.register('LOOT_041', {
-  events: {
-    // TODO: implement events
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    // Gain 10 armor
+    if (controller?.hero) {
+      (controller.hero as any).armor = ((controller.hero as any).armor || 0) + 10;
+    }
+    // Deal 10 damage to own hero
+    if (controller?.hero) {
+      const damage = new Damage(source, controller.hero, 10);
+      damage.trigger(source);
+    }
   },
 });
 
-// LOOT_365
+// LOOT_365 Unidentified Shield - Gain 5 Armor
 cardScriptsRegistry.register('LOOT_365', {
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    if (controller?.hero) {
+      (controller.hero as any).armor = ((controller.hero as any).armor || 0) + 5;
+    }
+  },
 });
 
-// LOOT_367
+// LOOT_367 Blood Razor - Battlecry: Deal 2 damage to all minions
 cardScriptsRegistry.register('LOOT_367', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    const opponent = controller?.opponent;
+    // Deal 2 damage to all minions on both fields
+    const myField = controller?.field || [];
+    const oppField = opponent?.field || [];
+    for (const minion of [...myField, ...oppField]) {
+      const damage = new Damage(source, minion, 2);
+      damage.trigger(source);
+    }
   },
 });
 
-// LOOT_519
+// LOOT_519 Reckless Flurry - Destroy your Armor
 cardScriptsRegistry.register('LOOT_519', {
-  events: {
-    // TODO: implement events
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    // Deal damage equal to armor
+    const armor = (controller?.hero as any)?.armor || 0;
+    if (armor > 0) {
+      const opponent = controller?.opponent;
+      if (opponent?.hero) {
+        const damage = new Damage(source, opponent.hero, armor);
+        damage.trigger(source);
+      }
+      // Remove armor
+      (controller.hero as any).armor = 0;
+    }
   },
 });
 
