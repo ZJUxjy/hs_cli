@@ -1,11 +1,15 @@
 // classic - priest.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Draw, Damage, Heal } from '../../../actions';
 
-// CS2_235 - Northshire Cleric
+// CS2_235 - Northshire Cleric - Whenever a minion is healed, draw a card
 cardScriptsRegistry.register('CS2_235', {
   events: {
-    // TODO: implement events - heal triggers draw
+    HEAL: (ctx: ActionContext) => {
+      const draw = new Draw((ctx.source as any).controller);
+      draw.trigger(ctx.source);
+    },
   },
 });
 
@@ -75,17 +79,29 @@ cardScriptsRegistry.register('EX1_193', {
   },
 });
 
-// EX1_195 - Lightwarden
+// EX1_195 - Lightwarden - Whenever a minion is healed, gain +2 Attack
 cardScriptsRegistry.register('EX1_195', {
   events: {
-    // TODO: implement events - gain attack when healed
+    HEAL: (ctx: ActionContext) => {
+      const buff = new Buff(ctx.source, ctx.source, { ATK: 2 });
+      buff.trigger(ctx.source);
+    },
   },
 });
 
-// EX1_196 - Shadowboxer
+// EX1_196 - Shadowboxer - Whenever a minion is healed, deal 1 damage to a random enemy
 cardScriptsRegistry.register('EX1_196', {
   events: {
-    // TODO: implement events - deal 1 damage when a minion is healed
+    HEAL: (ctx: ActionContext) => {
+      const controller = (ctx.source as any).controller;
+      const opponent = controller.opponent;
+      const field = opponent.field || [];
+      if (field.length > 0) {
+        const target = field[Math.floor(Math.random() * field.length)];
+        const damage = new Damage(ctx.source, target, 1);
+        damage.trigger(ctx.source);
+      }
+    },
   },
 });
 

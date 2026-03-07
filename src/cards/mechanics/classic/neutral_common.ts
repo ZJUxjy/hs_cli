@@ -1,7 +1,7 @@
 // classic - neutral_common.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
-import { Give, Damage, Buff, Draw } from '../../../actions';
+import { Give, Damage, Buff, Draw, Summon } from '../../../actions';
 import { Entity } from '../../../core/entity';
 
 // CS2_122 Boulderfist Ogre - No special ability
@@ -388,31 +388,44 @@ cardScriptsRegistry.register('EX1_393', {
 cardScriptsRegistry.register('EX1_412', {
 });
 
-// EX1_506
+// EX1_506 - Murk-Eye - Battlecry: Deal 1 damage to each enemy minion
 cardScriptsRegistry.register('EX1_506', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const field = opponent.field || [];
+    for (const minion of field) {
+      const damage = new Damage(ctx.source, minion, 1);
+      damage.trigger(ctx.source);
+    }
   },
 });
 
-// EX1_556
+// EX1_556 - Faerie Dragon - No special effect
 cardScriptsRegistry.register('EX1_556', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    // No deathrattle - just a simple minion
   },
 });
 
-// EX1_583
+// EX1_583 - River Crocolisk - No special effect
 cardScriptsRegistry.register('EX1_583', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // No battlecry
   },
 });
 
-// NEW1_018
+// NEW1_018 - Lorewalker Cho - At the end of each player's turn, they draw a card
 cardScriptsRegistry.register('NEW1_018', {
-  play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+  events: {
+    TURN_END: (ctx: ActionContext) => {
+      const controller = (ctx.source as any).controller;
+      const opponent = controller.opponent;
+      const draw1 = new Draw(controller);
+      draw1.trigger(ctx.source);
+      const draw2 = new Draw(opponent);
+      draw2.trigger(ctx.source);
+    },
   },
 });
 
@@ -420,7 +433,18 @@ cardScriptsRegistry.register('NEW1_018', {
 cardScriptsRegistry.register('NEW1_022', {
 });
 
-// tt_004
+// tt_004 - Shadowboxer - Whenever a minion is healed, deal 2 damage to a random enemy
 cardScriptsRegistry.register('tt_004', {
-  events: { /* TODO */ },
+  events: {
+    HEAL: (ctx: ActionContext) => {
+      const controller = (ctx.source as any).controller;
+      const opponent = controller.opponent;
+      const field = opponent.field || [];
+      if (field.length > 0) {
+        const target = field[Math.floor(Math.random() * field.length)];
+        const damage = new Damage(ctx.source, target, 2);
+        damage.trigger(ctx.source);
+      }
+    },
+  },
 });

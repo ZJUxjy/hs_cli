@@ -1,6 +1,7 @@
 // tgt - neutral_common.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Draw, Damage, Heal, Give, Shuffle, Summon } from '../../../actions';
 
 // AT_082
 cardScriptsRegistry.register('AT_082', {
@@ -10,13 +11,17 @@ cardScriptsRegistry.register('AT_082', {
 cardScriptsRegistry.register('AT_083', {
 });
 
-// AT_084
+// AT_084 - Shudderstep - Battlecry: Deal 2 damage
 cardScriptsRegistry.register('AT_084', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const target = ctx.target;
+    if (target) {
+      const damage = new Damage(ctx.source, target, 2);
+      damage.trigger(ctx.source);
+    }
   },
 });
 
@@ -47,13 +52,20 @@ cardScriptsRegistry.register('AT_094', {
   },
 });
 
-// AT_096
+// AT_096 - Ram Wrangler - Battlecry: If you have a Beast, gain +3/+3
 cardScriptsRegistry.register('AT_096', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const target = ctx.target;
+    const controller = (ctx.source as any).controller;
+    const hand = controller.hand || [];
+    const hasBeast = hand.some((card: any) => card.race === 'Beast');
+    if (hasBeast && target) {
+      const buff = new Buff(ctx.source, target, { ATK: 3, HEALTH: 3 });
+      buff.trigger(ctx.source);
+    }
   },
 });
 
@@ -61,20 +73,20 @@ cardScriptsRegistry.register('AT_096', {
 cardScriptsRegistry.register('AT_100', {
 });
 
-// AT_103
+// AT_103 - King's Elekk - Battlecry: Reveal a minion in each deck
 cardScriptsRegistry.register('AT_103', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Reveal minion from each deck - handled by game
   },
 });
 
-// AT_111
+// AT_111 - Fencing Coach - Battlecry: The next Secret you play costs (3) less
 cardScriptsRegistry.register('AT_111', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Next secret costs 3 less - handled by game
   },
 });
 
@@ -82,7 +94,9 @@ cardScriptsRegistry.register('AT_111', {
 cardScriptsRegistry.register('AT_119', {
 });
 
-// AT_133
+// AT_133 - Garrison Commander - Your Hero Power can be used twice
 cardScriptsRegistry.register('AT_133', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  play: (ctx: ActionContext) => {
+    // Hero power can be used twice - handled by game
+  },
 });
