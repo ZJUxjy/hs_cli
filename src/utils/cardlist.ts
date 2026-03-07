@@ -76,6 +76,14 @@ export class CardList<T = unknown> {
     return this.items[this.items.length - 1];
   }
 
+  at(index: number): T | undefined {
+    return this.items[index];
+  }
+
+  toArray(): T[] {
+    return [...this.items];
+  }
+
   [Symbol.iterator](): Iterator<T> {
     return this.items[Symbol.iterator]();
   }
@@ -86,6 +94,14 @@ export class CardList<T = unknown> {
 
   forEach(callback: (value: T, index: number) => void): void {
     this.items.forEach(callback);
+  }
+
+  find(predicate: (value: T, index: number) => boolean): T | undefined {
+    return this.items.find(predicate);
+  }
+
+  map<U>(callback: (value: T, index: number) => U): U[] {
+    return this.items.map(callback);
   }
 
   reduce<U>(callback: (accumulator: U, value: T, index: number) => U, initialValue: U): U {
