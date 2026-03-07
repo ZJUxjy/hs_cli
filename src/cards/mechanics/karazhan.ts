@@ -13,6 +13,9 @@ cardScriptsRegistry.register('KAR_005', {
   },
 });
 
+// KAR_005a - Big Bad Wolf
+cardScriptsRegistry.register('KAR_005a', {});
+
 // KAR_006 - Cloaked Huntress
 cardScriptsRegistry.register('KAR_006', {
   // Secrets cost 0 - simplified aura
@@ -388,8 +391,22 @@ cardScriptsRegistry.register('KAR_712', {
 
 // KAR_004 - Cat Trick
 cardScriptsRegistry.register('KAR_004', {
-  // Secret: summon Tiger when opponent casts spell - simplified
+  events: {
+    SPELL_PLAY: (ctx: any) => {
+      const controller = ctx.source?.controller;
+      const caster = ctx.event?.source?.controller;
+      if (caster === controller?.opponent && controller?.field?.length < 7) {
+        controller.field.push({ id: 'KAR_004t' } as any);
+      }
+    },
+  },
 });
+
+// KAR_004t - Mr. Bigglesworth
+cardScriptsRegistry.register('KAR_004t', {});
+
+// KAR_004a - Cat in a Canopy
+cardScriptsRegistry.register('KAR_004a', {});
 
 // KAR_013 - Purify
 cardScriptsRegistry.register('KAR_013', {
@@ -397,6 +414,7 @@ cardScriptsRegistry.register('KAR_013', {
     if (ctx.target) {
       // Silence target - simplified
       (ctx.target as any).silenced = true;
+      (ctx.target as any).buffs = [];
     }
     const controller = ctx.source?.controller;
     if (controller?.deck && controller.deck.length > 0 && controller?.hand?.length < 10) {
@@ -404,6 +422,16 @@ cardScriptsRegistry.register('KAR_013', {
     }
   },
   requirements: { 1: 0, 49: 0, 48: 0 },
+});
+
+// KAR_013a - Purify
+cardScriptsRegistry.register('KAR_013a', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller?.deck && controller.deck.length > 0 && controller?.hand?.length < 10) {
+      controller.hand.push(controller.deck.shift());
+    }
+  },
 });
 
 // KAR_025 - Kara Kazham!

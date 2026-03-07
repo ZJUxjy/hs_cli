@@ -19,6 +19,24 @@ cardScriptsRegistry.register('OG_044', {
   // Choose Both cards effect - simplified aura
 });
 
+// OG_044a - Fandral Staghelm (Choose Both)
+cardScriptsRegistry.register('OG_044a', {
+  // Passive aura - choose both
+});
+
+// OG_202a - Mire Keeper (Summon 2/2)
+cardScriptsRegistry.register('OG_202a', {});
+
+// OG_202b - Mire Keeper (Gain Mana Crystal)
+cardScriptsRegistry.register('OG_202b', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller) {
+      controller.maxMana = Math.min((controller.maxMana || 0) + 1, 10);
+    }
+  },
+});
+
 // OG_202 - Mire Keeper
 cardScriptsRegistry.register('OG_202', {
   play: (ctx: any) => {
@@ -55,6 +73,44 @@ cardScriptsRegistry.register('OG_188', {
 cardScriptsRegistry.register('OG_293', {
   play: (ctx: any) => {
     // Buff C'Thun +3/+3 - simplified
+  },
+});
+
+// OG_282 - CThuns Chosen
+cardScriptsRegistry.register('OG_282', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    // Give your other minions +1/+1 - simplified
+    for (const minion of controller?.field || []) {
+      if (minion !== ctx.source) {
+        (minion as any).atk = ((minion as any).atk || 0) + 1;
+        (minion as any).maxHealth = ((minion as any).maxHealth || 0) + 1;
+      }
+    }
+  },
+});
+
+// OG_256 - Twilight Elder
+cardScriptsRegistry.register('OG_256', {
+  events: {
+    TURN_END: (ctx: any) => {
+      const controller = ctx.source?.controller;
+      if (controller?.isCurrentPlayer) {
+        // Buff C'Thun +1/+1 - simplified
+      }
+    },
+  },
+});
+
+// OG_247 - Usher of Souls
+cardScriptsRegistry.register('OG_247', {
+  events: {
+    DEATH: (ctx: any) => {
+      const target = ctx.event?.target;
+      if (target && (target as any).controller === ctx.source?.controller?.opponent) {
+        // Buff C'Thun - simplified
+      }
+    },
   },
 });
 
@@ -137,6 +193,9 @@ cardScriptsRegistry.register('OG_216', {
   },
 });
 
+// OG_216a - Spawn
+cardScriptsRegistry.register('OG_216a', {});
+
 // OG_309 - Princess Huhuran
 cardScriptsRegistry.register('OG_309', {
   play: (ctx: any) => {
@@ -178,6 +237,9 @@ cardScriptsRegistry.register('OG_061', {
   requirements: { 48: 0 },
 });
 
+// OG_061t - Search Party
+cardScriptsRegistry.register('OG_061t', {});
+
 // OG_211 - Call of the Wild
 cardScriptsRegistry.register('OG_211', {
   play: (ctx: any) => {
@@ -185,6 +247,22 @@ cardScriptsRegistry.register('OG_211', {
     if (controller?.field?.length < 7) controller.field.push({ id: 'NEW1_034' } as any);
     if (controller?.field?.length < 7) controller.field.push({ id: 'NEW1_033' } as any);
     if (controller?.field?.length < 7) controller.field.push({ id: 'NEW1_032' } as any);
+  },
+});
+
+// OG_179t - Embercat
+cardScriptsRegistry.register('OG_179t', {
+  events: {
+    ATTACK: (ctx: any) => {
+      if (ctx.event?.attacker === ctx.source) {
+        const opponent = ctx.source?.controller?.opponent;
+        const targets = opponent ? [opponent.hero, ...(opponent.field || [])] : [];
+        if (targets.length > 0) {
+          const idx = Math.floor(Math.random() * targets.length);
+          (targets[idx] as any).destroyed = true;
+        }
+      }
+    },
   },
 });
 

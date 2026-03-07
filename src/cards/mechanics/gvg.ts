@@ -485,7 +485,11 @@ cardScriptsRegistry.register('GVG_028', {
 cardScriptsRegistry.register('GVG_042', {
   events: {
     SPELL_PLAY: (ctx: any) => {
-      // Gain copy of opponent's spell - simplified
+      const controller = ctx.source?.controller;
+      const caster = ctx.event?.source?.controller;
+      if (caster === controller?.opponent && controller?.hand?.length < 10) {
+        controller.hand.push({ ...(ctx.event?.source as any) });
+      }
     },
   },
 });
@@ -493,8 +497,13 @@ cardScriptsRegistry.register('GVG_042', {
 // GVG_043 - Sabotage
 cardScriptsRegistry.register('GVG_043', {
   play: (ctx: any) => {
-    // Destroy opponent's weapon or random card from deck - simplified
+    const controller = ctx.source?.controller;
+    const opponent = controller?.opponent;
+    if (opponent?.weapon) {
+      opponent.weapon = null;
+    }
   },
+  requirements: { 1: 0, 48: 0 },
 });
 
 // GVG_044 - Tinker's Sharpsword Oil
@@ -503,6 +512,10 @@ cardScriptsRegistry.register('GVG_044', {
     const controller = ctx.source?.controller;
     if (controller?.weapon) {
       (controller.weapon as any).atk = ((controller.weapon as any).atk || 0) + 3;
+    }
+    const mechs = controller?.field?.filter((m: any) => m.race === 'MECH') || [];
+    for (const mech of mechs) {
+      (mech as any).atk = ((mech as any).atk || 0) + 1;
     }
   },
 });
@@ -514,6 +527,53 @@ cardScriptsRegistry.register('GVG_045', {
     if (controller?.hand?.length < 10) {
       controller.hand.push({ id: 'GAME_005' } as any); // The Coin
     }
+  },
+});
+
+// GVG_046 - Ogre Ninja
+cardScriptsRegistry.register('GVG_046', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    const opponent = controller?.opponent;
+    const targets = opponent ? [opponent.hero, ...(opponent.field || [])] : [];
+    if (targets.length > 0) {
+      const target = targets[Math.floor(Math.random() * targets.length)];
+      (target as any).frozen = true;
+    }
+  },
+});
+
+// GVG_047 - Sneed's Old Shredder
+cardScriptsRegistry.register('GVG_047', {
+  deathrattle: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller?.field?.length < 7) {
+      controller.field.push({ id: 'RANDOM_LEGENDARY_MINION' } as any);
+    }
+  },
+});
+
+// GVG_055 - Sneaky Devil
+cardScriptsRegistry.register('GVG_055', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    const opponent = controller?.opponent;
+    if (opponent?.field?.length > 0) {
+      const target = opponent.field[Math.floor(Math.random() * opponent.field.length)];
+      (target as any).atk = Math.max(0, ((target as any).atk || 0) - 2);
+    }
+  },
+});
+
+// GVG_056 - Floating Watcher
+cardScriptsRegistry.register('GVG_056', {
+  events: {
+    DAMAGE: (ctx: any) => {
+      if (ctx.event?.target === ctx.source?.controller?.hero) {
+        (ctx.source as any).atk = ((ctx.source as any).atk || 0) + 2;
+        (ctx.source as any).maxHealth = ((ctx.source as any).maxHealth || 0) + 2;
+      }
+    },
   },
 });
 
@@ -535,7 +595,9 @@ cardScriptsRegistry.register('GVG_007', {
   play: (ctx: any) => {
     const controller = ctx.source?.controller;
     for (let i = 0; i < 2 && controller?.hand?.length < 10; i++) {
-      // Draw cards - simplified
+      if (controller?.deck && controller.deck.length > 0) {
+        controller.hand.push(controller.deck.shift());
+      }
     }
   },
 });
@@ -544,7 +606,15 @@ cardScriptsRegistry.register('GVG_007', {
 cardScriptsRegistry.register('GVG_019', {
   events: {
     DEATH: (ctx: any) => {
-      // Draw when friendly murloc dies - simplified
+      const controller = ctx.source?.controller;
+      const target = ctx.event?.target;
+      if (target && (target as any).controller === controller && (target as any).race === 'MURLOC') {
+        for (let i = 0; i < 1 && controller?.hand?.length < 10; i++) {
+          if (controller?.deck && controller.deck.length > 0) {
+            controller.hand.push(controller.deck.shift());
+          }
+        }
+      }
     },
   },
 });
@@ -579,7 +649,12 @@ cardScriptsRegistry.register('GVG_022', {
 cardScriptsRegistry.register('GVG_024', {
   events: {
     DEATH: (ctx: any) => {
-      // Gain +2/+2 when friendly mech dies - simplified
+      const controller = ctx.source?.controller;
+      const target = ctx.event?.target;
+      if (target && (target as any).controller === controller && (target as any).race === 'MECH') {
+        (ctx.source as any).atk = ((ctx.source as any).atk || 0) + 2;
+        (ctx.source as any).maxHealth = ((ctx.source as any).maxHealth || 0) + 2;
+      }
     },
   },
 });
@@ -588,7 +663,13 @@ cardScriptsRegistry.register('GVG_024', {
 cardScriptsRegistry.register('GVG_036', {
   events: {
     PLAY: (ctx: any) => {
-      // Mill 3 cards when opponent plays card - simplified
+      const controller = ctx.source?.controller;
+      const opponent = controller?.opponent;
+      for (let i = 0; i < 3; i++) {
+        if (opponent?.deck && opponent.deck.length > 0) {
+          opponent.deck.shift();
+        }
+      }
     },
   },
 });
@@ -615,6 +696,34 @@ cardScriptsRegistry.register('GVG_037', {
 // GVG_038 - Flametongue Totem
 cardScriptsRegistry.register('GVG_038', {
   // Adjacent minions +2 Attack - aura effect
+});
+
+// GVG_039 - Siltfin Spiritwalker
+cardScriptsRegistry.register('GVG_039', {
+  events: {
+    DEATH: (ctx: any) => {
+      const controller = ctx.source?.controller;
+      const target = ctx.event?.target;
+      if (target && (target as any).controller === controller && (target as any).race === 'MURLOC') {
+        if (controller?.deck && controller.deck.length > 0 && controller?.hand?.length < 10) {
+          controller.hand.push(controller.deck.shift());
+        }
+      }
+    },
+  },
+});
+
+// GVG_053 - Whirling Zap-o-matic
+cardScriptsRegistry.register('GVG_053', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    const opponent = controller?.opponent;
+    const targets = opponent ? [opponent.hero, ...(opponent.field || [])] : [];
+    if (targets.length > 0) {
+      const idx = Math.floor(Math.random() * targets.length);
+      (targets[idx] as any).frozen = true;
+    }
+  },
 });
 
 // === Warlock ===
@@ -808,6 +917,32 @@ cardScriptsRegistry.register('GVG_051', {
   },
 });
 
+// GVG_052 - Scream
+cardScriptsRegistry.register('GVG_052', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    const opponent = controller?.opponent;
+    for (const minion of opponent?.field || []) {
+      (minion as any).health = ((minion as any).health || 0) - 2;
+    }
+  },
+  requirements: { 9: 1 },
+});
+
+// GVG_053 - Felfire Potion
+cardScriptsRegistry.register('GVG_053', {
+  play: (ctx: any) => {
+    if (ctx.target) {
+      (ctx.target as any).health = ((ctx.target as any).health || 0) - 2;
+    }
+    const controller = ctx.source?.controller;
+    if (controller?.hero) {
+      (controller.hero as any).health = ((controller.hero as any).health || 0) - 1;
+    }
+  },
+  requirements: { 48: 0 },
+});
+
 // GVG_108 - Iron Juggernaut
 cardScriptsRegistry.register('GVG_108', {
   play: (ctx: any) => {
@@ -821,11 +956,25 @@ cardScriptsRegistry.register('GVG_108', {
   },
 });
 
+// GVG_056t - Buried Mine
+cardScriptsRegistry.register('GVG_056t', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller?.hero) {
+      (controller.hero as any).health = ((controller.hero as any).health || 0) - 10;
+    }
+  },
+});
+
 // GVG_109 - Siege Engine
 cardScriptsRegistry.register('GVG_109', {
   events: {
     DAMAGE: (ctx: any) => {
-      // Gain attack when armor gained - simplified
+      const controller = ctx.source?.controller;
+      const target = ctx.event?.target;
+      if (target === controller?.hero) {
+        (ctx.source as any).atk = ((ctx.source as any).atk || 0) + 1;
+      }
     },
   },
 });
@@ -841,6 +990,16 @@ cardScriptsRegistry.register('GVG_111', {
         }
       }
     },
+  },
+});
+
+// GVG_112 - Clockwork Giant
+cardScriptsRegistry.register('GVG_112', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    const opponent = controller?.opponent;
+    const cardCount = opponent?.hand?.length || 0;
+    (ctx.source as any).cost = Math.max(0, 12 - cardCount);
   },
 });
 

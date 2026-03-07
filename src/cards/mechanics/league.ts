@@ -122,6 +122,7 @@ cardScriptsRegistry.register('LOE_023', {
   play: (ctx: any) => {
     const controller = ctx.source?.controller;
     if (controller?.hand?.length < 10) {
+      // Discover a 1-cost card
       controller.hand.push({ id: 'RANDOM_COST_1_CARD' } as any);
     }
   },
@@ -132,7 +133,27 @@ cardScriptsRegistry.register('LOE_029', {
   play: (ctx: any) => {
     const controller = ctx.source?.controller;
     if (controller?.hand?.length < 10) {
+      // Discover a 3-cost card
       controller.hand.push({ id: 'RANDOM_COST_3_CARD' } as any);
+    }
+  },
+});
+
+// LOE_038 - Naga Sea Witch
+cardScriptsRegistry.register('LOE_038', {
+  // Cards in hand cost 5 - simplified aura
+});
+
+// LOE_039 - Gorillabot A-3
+cardScriptsRegistry.register('LOE_039', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    const hasMech = (controller?.field || []).some(
+      (m: any) => m !== ctx.source && m.race === 'MECH'
+    );
+    if (hasMech && controller?.hand?.length < 10) {
+      // Discover a Mech
+      controller.hand.push({ id: 'RANDOM_MECH' } as any);
     }
   },
 });
@@ -172,7 +193,19 @@ cardScriptsRegistry.register('LOE_047', {
   play: (ctx: any) => {
     const controller = ctx.source?.controller;
     if (controller?.hand?.length < 10) {
+      // Discover a Beast
       controller.hand.push({ id: 'RANDOM_BEAST' } as any);
+    }
+  },
+});
+
+// LOE_115 - Raven Idol
+cardScriptsRegistry.register('LOE_115', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller?.hand?.length < 10) {
+      // Discover a minion or spell
+      controller.hand.push({ id: 'RANDOM_MINION' } as any);
     }
   },
 });
@@ -404,6 +437,28 @@ cardScriptsRegistry.register('LOE_002t', {
     }
   },
   requirements: { 48: 0 },
+});
+
+// LOE_003 - Ethereal Conjurer
+cardScriptsRegistry.register('LOE_003', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller?.hand?.length < 10) {
+      // Discover a Mage spell
+      controller.hand.push({ id: 'RANDOM_MAGE_SPELL' } as any);
+    }
+  },
+});
+
+// LOE_006 - Museum Curator
+cardScriptsRegistry.register('LOE_006', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller?.hand?.length < 10) {
+      // Discover a Deathrattle minion
+      controller.hand.push({ id: 'RANDOM_DEATHRATTLE_MINION' } as any);
+    }
+  },
 });
 
 // LOE_007 - Curse of Rafaam

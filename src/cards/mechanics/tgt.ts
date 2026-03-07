@@ -733,11 +733,16 @@ cardScriptsRegistry.register('AT_023', {
 cardScriptsRegistry.register('AT_024', {
   events: {
     HERO_POWER: (ctx: any) => {
-    const controller = ctx.source?.controller;
-    if (controller?.isCurrentPlayer) {
-      // Buff your Totems +1/+1 - simplified
-    }
-  },
+      const controller = ctx.source?.controller;
+      if (controller?.isCurrentPlayer && controller?.field) {
+        for (const minion of controller.field) {
+          if ((minion as any).type === 'TOTEM' && minion !== ctx.source) {
+            (minion as any).atk = ((minion as any).atk || 0) + 1;
+            (minion as any).maxHealth = ((minion as any).maxHealth || 0) + 1;
+          }
+        }
+      }
+    },
   },
 });
 
@@ -794,15 +799,38 @@ cardScriptsRegistry.register('AT_038', {
                      controller?.field?.some((m: any) => m.race === 'DRAGON');
 
     if (hasDragon) {
-      // Deal 3 damage to all minions - simplified
+      const controller = ctx.source?.controller;
+      const opponent = controller?.opponent;
+      for (const minion of [...(controller?.field || []), ...(opponent?.field || [])]) {
+        (minion as any).health = ((minion as any).health || 0) - 3;
+      }
     }
   },
 });
 
 // AT_039 - Charged Hammer
 cardScriptsRegistry.register('AT_039', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    if (controller?.hero) {
+      (controller.hero as any).spellPower = ((controller.hero as any).spellPower || 0) + 2;
+    }
+  },
   deathrattle: (ctx: any) => {
-    // Replace hero power - simplified
+    // Replace hero power - simplified (summons a new weapon)
+  },
+});
+
+// AT_040 - Tuskar's Flying Knife
+cardScriptsRegistry.register('AT_040', {
+  play: (ctx: any) => {
+    const controller = ctx.source?.controller;
+    const opponent = controller?.opponent;
+    const targets = opponent ? [opponent.hero, ...(opponent.field || [])] : [];
+    if (targets.length > 0) {
+      const idx = Math.floor(Math.random() * targets.length);
+      (targets[idx] as any).health = ((targets[idx] as any).health || 0) - 1;
+    }
   },
 });
 
@@ -837,7 +865,20 @@ cardScriptsRegistry.register('AT_023', {
     HERO_POWER: (ctx: any) => {
       const controller = ctx.source?.controller;
       if (controller?.isCurrentPlayer) {
-        // Destroy a random minion for each player - simplified
+        const opponent = controller?.opponent;
+
+        // Destroy random friendly and enemy minion
+        const friendlyMinions = controller?.field || [];
+        const enemyMinions = opponent?.field || [];
+
+        if (friendlyMinions.length > 0) {
+          const idx = Math.floor(Math.random() * friendlyMinions.length);
+          (friendlyMinions[idx] as any).destroyed = true;
+        }
+        if (enemyMinions.length > 0) {
+          const idx = Math.floor(Math.random() * enemyMinions.length);
+          (enemyMinions[idx] as any).destroyed = true;
+        }
       }
     },
   },
@@ -922,6 +963,31 @@ cardScriptsRegistry.register('AT_029', {
       const controller = ctx.source?.controller;
       if (ctx.event?.player === controller) {
         // Drawn minions cost (0) - simplified
+      }
+    },
+  },
+});
+
+// AT_030 - Wrathguard
+cardScriptsRegistry.register('AT_030', {
+  events: {
+    DAMAGE: (ctx: any) => {
+      const damage = ctx.event?.amount || 0;
+      const controller = ctx.source?.controller;
+      if (controller?.hero && damage > 0) {
+        (controller.hero as any).health = ((controller.hero as any).health || 0) - damage;
+      }
+    },
+  },
+});
+
+// AT_031 - Floating Watcher
+cardScriptsRegistry.register('AT_031', {
+  events: {
+    DAMAGE: (ctx: any) => {
+      if (ctx.event?.target === ctx.source?.controller?.hero) {
+        (ctx.source as any).atk = ((ctx.source as any).atk || 0) + 2;
+        (ctx.source as any).maxHealth = ((ctx.source as any).maxHealth || 0) + 2;
       }
     },
   },
