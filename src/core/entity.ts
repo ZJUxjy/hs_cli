@@ -26,13 +26,13 @@ export interface Slot {
 
 export interface CardData {
   scripts?: {
-    events?: GameEvent[];
+    events?: EntityGameEvent[];
     update?: UpdateScript[];
     [key: string]: unknown;
   };
 }
 
-export interface GameEvent {
+export interface EntityGameEvent {
   actions: Action[];
   once?: boolean;
 }
@@ -60,8 +60,8 @@ export class Entity {
   public ignoreScripts: boolean = false;
 
   public manager: Manager;
-  protected _events: GameEvent[] = [];
-  protected baseEvents: GameEvent[] = [];
+  protected _events: EntityGameEvent[] = [];
+  protected baseEvents: EntityGameEvent[] = [];
 
   constructor(protected data: CardData | null = null) {
     this.uuid = uuidv4();
@@ -79,7 +79,7 @@ export class Entity {
     return this.type > CardType.PLAYER;
   }
 
-  get events(): GameEvent[] {
+  get events(): EntityGameEvent[] {
     return [...this.baseEvents, ...this._events];
   }
 
@@ -98,7 +98,7 @@ export class Entity {
     return actions || [];
   }
 
-  triggerEvent(source: Entity, event: GameEvent, args: unknown[]): unknown[] {
+  triggerEvent(source: Entity, event: EntityGameEvent, args: unknown[]): unknown[] {
     const actions: Action[] = [];
     for (const action of event.actions) {
       if (typeof action === 'function') {

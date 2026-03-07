@@ -2,6 +2,8 @@
 export * from './core';
 export * from './utils';
 export * from './enums';
+export * from './targeting';
+export * from './events';
 
 // i18n exports
 export { I18n, t, getCardName, getCardDescription } from './i18n';

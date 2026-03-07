@@ -70,7 +70,42 @@ export class Card extends Entity {
     const controller = this.getController();
     if (!controller) return false;
     if ((controller as any).mana < this.cost) return false;
+
+    // Check targeting requirements using TargetValidator
+    const { TargetValidator } = require('../targeting/targetvalidator');
+    const game = (controller as any).game as import('./game').Game;
+    if (game) {
+      const playerReqCheck = TargetValidator.checkPlayerRequirements(this, controller);
+      if (!playerReqCheck.valid) return false;
+
+      const canPlayCheck = TargetValidator.canPlay(this, controller, game);
+      if (!canPlayCheck) return false;
+    }
+
     return true;
+  }
+
+  /**
+   * Check if a specific entity is a valid target for this card
+   */
+  canTarget(target: Entity): boolean {
+    const { TargetValidator } = require('../targeting/targetvalidator');
+    const result = TargetValidator.isValidTarget(this, target);
+    return result.valid;
+  }
+
+  /**
+   * Get all valid targets for this card
+   */
+  getValidTargets(): Entity[] {
+    const controller = this.getController();
+    if (!controller) return [];
+
+    const game = (controller as any).game as import('./game').Game;
+    if (!game) return [];
+
+    const { TargetValidator } = require('../targeting/targetvalidator');
+    return TargetValidator.getValidTargets(this, controller, game);
   }
 }
 

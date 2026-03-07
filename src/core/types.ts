@@ -1,5 +1,5 @@
 // Re-export all types from entity
-export type { Character, Action, GameEvent, CardData } from './entity';
+export type { Character, Action, EntityGameEvent, CardData } from './entity';
 
 // Card set enum (from Hearthstone)
 export const enum CardSet {

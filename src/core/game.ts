@@ -6,6 +6,8 @@ import { CardList } from '../utils/cardlist';
 import { Player } from './player';
 import { Card } from './card';
 import { GameStart, BeginTurn, EndTurn, Death, Action } from '../actions';
+import { EventManager } from '../events/eventmanager';
+import { GameEvent, EventPayload, EventHandler } from '../events/eventtypes';
 
 export interface GameConfig {
   players: Player[];
@@ -112,6 +114,7 @@ export class Game extends Entity {
   public skin: number = 0;
 
   public manager: GameManager;
+  public eventManager: EventManager;
   private _actionStack = 0;
 
   type = CardType.GAME;
@@ -121,6 +124,7 @@ export class Game extends Entity {
     this.players = config.players;
     this.random = new Random(config.seed);
     this.manager = new GameManager(this);
+    this.eventManager = new EventManager(this);
     for (const player of config.players) {
       player.game = this;
     }
@@ -230,12 +234,22 @@ export class Game extends Entity {
 
   beginTurn(player: Player): void {
     this.currentPlayer = player;
+    this.turn++;
+
+    // Trigger turn begin events
+    this.trigger(GameEvent.TURN_BEGIN, { player });
+    this.trigger(GameEvent.OWN_TURN_BEGIN, { player });
+
     this.queueActions(this, [new BeginTurn(player)]);
     this.manager.turn(player);
   }
 
   endTurn(): void {
     if (!this.currentPlayer) return;
+
+    // Trigger turn end events
+    this.trigger(GameEvent.TURN_END, { player: this.currentPlayer });
+    this.trigger(GameEvent.OWN_TURN_END, { player: this.currentPlayer });
 
     this.queueActions(this, [new EndTurn(this.currentPlayer)]);
     this.endTurnCleanup();
@@ -384,5 +398,23 @@ export class Game extends Entity {
       console.log(`  ${this.players[0].name}: ${playStateNames[this.players[0].playstate] || this.players[0].playstate}`);
       console.log(`  ${this.players[1].name}: ${playStateNames[this.players[1].playstate] || this.players[1].playstate}`);
     }
+  }
+
+  // ============== Event System ==============
+
+  trigger(event: GameEvent, payload: Partial<EventPayload> = {}): any[] {
+    return this.eventManager.trigger(event, payload);
+  }
+
+  on(event: GameEvent, handler: EventHandler, condition?: (payload: EventPayload) => boolean): number {
+    return this.eventManager.on(this, { event, handler, condition });
+  }
+
+  once(event: GameEvent, handler: EventHandler, condition?: (payload: EventPayload) => boolean): number {
+    return this.eventManager.once(this, { event, handler, condition });
+  }
+
+  off(listenerId: number): boolean {
+    return this.eventManager.off(listenerId);
   }
 }

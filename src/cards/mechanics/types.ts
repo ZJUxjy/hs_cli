@@ -53,11 +53,11 @@ export interface ActionContext {
   source: Entity;
   target?: Entity;
   game: any;
-  event?: GameEvent;
+  event?: CardGameEvent;
 }
 
-// Game event
-export interface GameEvent {
+// Card game event
+export interface CardGameEvent {
   type: EventType;
   source?: Entity;
   target?: Entity;
