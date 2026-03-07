@@ -2,25 +2,16 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
 
-// HERO_02bp
+// HERO_02bp - Totemic Call (Shaman Hero Power)
 cardScriptsRegistry.register('HERO_02bp', {
-  requirements: {
-    // TODO: add requirements
-  },
 });
 
-// NEW1_009
+// NEW1_009 - Siltfin Spiritwalker
 cardScriptsRegistry.register('NEW1_009', {
-  events: {
-    // TODO: implement events
-  },
 });
 
-// HERO_02bp2
+// HERO_02bp2 - Totemic Slam (Shaman Hero Power)
 cardScriptsRegistry.register('HERO_02bp2', {
-  requirements: {
-    // TODO: add requirements
-  },
 });
 
 // AT_132_SHAMANa

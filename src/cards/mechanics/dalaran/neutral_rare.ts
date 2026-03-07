@@ -35,10 +35,16 @@ cardScriptsRegistry.register('DAL_434', {
 // Battlecry: Open a portal that summons two 2/1 Demons
 cardScriptsRegistry.register('DAL_539', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
+    const source = ctx.source;
     // Open a portal that summons two 2/1 Demons
+    const { Summon } = require('../../../actions/summon');
+    const summon1 = new Summon(source, 'DAL_539t');
+    summon1.trigger(source);
+    const summon2 = new Summon(source, 'DAL_539t');
+    summon2.trigger(source);
   },
 });
 

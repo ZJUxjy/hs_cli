@@ -51,14 +51,17 @@ cardScriptsRegistry.register('CFM_697', {
   },
 });
 
-// CFM_310 - Corridor Creeper (Rare)
-// Deathrattle: Summon a 5/6 Dragon with Taunt
+// CFM_310 - Call in the Finishers - Battlecry: Summon four 1/1 Murlocs
 cardScriptsRegistry.register('CFM_310', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_NUM_MINION_SLOTS]: 1,
   },
   play: (ctx: ActionContext) => {
-    // Deathrattle: Summon a 5/6 Dragon with Taunt
+    const { Summon } = require('../../../actions/summon');
+    for (let i = 0; i < 4; i++) {
+      const summon = new Summon(ctx.source, 'CFM_310t');
+      summon.trigger(ctx.source);
+    }
   },
 });
 

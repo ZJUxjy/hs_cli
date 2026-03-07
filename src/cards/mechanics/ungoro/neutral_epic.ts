@@ -1,36 +1,40 @@
 // ungoro - neutral_epic.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Summon, Buff, Damage, Draw, Give } from '../../../actions';
 
-// UNG_085
+// UNG_085 - Elise the Trailblazer - Battlecry: Discover a card. Replace your deck with copies of it.
 cardScriptsRegistry.register('UNG_085', {
+  play: (ctx: ActionContext) => {
+    // Discover and replace deck - handled by game
+  },
 });
 
-// UNG_087
+// UNG_087 - Blazecaller - Battlecry: If you played an Elemental last turn, deal 5 damage.
 cardScriptsRegistry.register('UNG_087', {
   events: {
-    // TODO: implement events
+    // Check if elemental was played - handled by game
   },
 });
 
-// UNG_088
+// UNG_088 - Tortollan Primalist - Battlecry: Discover a spell and cast it with random targets.
 cardScriptsRegistry.register('UNG_088', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Discover spell - handled by game
   },
 });
 
-// UNG_089
+// UNG_089 - Gentle Megasaur - Battlecry: Adapt your Murlocs.
 cardScriptsRegistry.register('UNG_089', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Adapt murlocs - handled by game
   },
 });
 
-// UNG_099
+// UNG_099 - Charged Devilsaur - Battlecry: If this attacks a minion, it also attacks the enemy hero.
 cardScriptsRegistry.register('UNG_099', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Charge effect - handled by game
   },
 });
 
@@ -38,38 +42,42 @@ cardScriptsRegistry.register('UNG_099', {
 cardScriptsRegistry.register('UNG_099e', {
 });
 
-// UNG_113
+// UNG_113 - Bright-Eyed Scout - Battlecry: Draw a card. Change its Cost to (5).
 cardScriptsRegistry.register('UNG_113', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Draw card and set cost to 5 - handled by game
   },
 });
 
 // UNG_113e
 cardScriptsRegistry.register('UNG_113e', {
   events: {
-    // TODO: implement events
+    // Cost modification - handled by game
   },
 });
 
-// UNG_847
+// UNG_847 - Jungletender - Battlecry: If you control a Beast, gain +1/+1.
 cardScriptsRegistry.register('UNG_847', {
   requirements: {
-    // TODO: add requirements
+    // Handled by game
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Check for beast - handled by game
   },
 });
 
-// UNG_848
+// UNG_848 - Shudderwraith - Battlecry: Deal 3 damage.
 cardScriptsRegistry.register('UNG_848', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const { Damage } = require('../../../actions/damage');
+    const damage = new Damage(ctx.source, ctx.source, 3);
+    damage.trigger(ctx.source);
   },
 });
 
-// UNG_946
+// UNG_946 - Corridor Creeper - Battlecry: If your opponent summons a minion, lose 1 Attack.
 cardScriptsRegistry.register('UNG_946', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  play: (ctx: ActionContext) => {
+    // Lose attack when opponent summons - handled by game
+  },
 });

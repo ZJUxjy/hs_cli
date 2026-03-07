@@ -286,7 +286,20 @@ cardScriptsRegistry.register('NEW1_040', {
   },
 });
 
-// NEW1_041 - Scatter - Destroy a random enemy minion
+// NEW1_041 - Stampeding Kodo - Battlecry: Destroy a random enemy minion with 2 or less Attack
 cardScriptsRegistry.register('NEW1_041', {
-  events: { /* TODO */ },
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    const enemyField = opponent.field || [];
+
+    // Find minions with 2 or less attack
+    const weakMinions = enemyField.filter((minion: any) => (minion.atk || 0) <= 2);
+
+    if (weakMinions.length > 0) {
+      const randomTarget = weakMinions[Math.floor(Math.random() * weakMinions.length)];
+      (randomTarget as any).destroyed = true;
+    }
+  },
 });

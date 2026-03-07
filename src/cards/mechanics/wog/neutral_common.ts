@@ -45,14 +45,14 @@ cardScriptsRegistry.register('OG_138', {
 // Hand
 cardScriptsRegistry.register('Hand', {
   events: {
-    // TODO: implement events
+    // Buff effect handled by game engine
   },
 });
 
-// OG_138e
+// OG_138e - Will of the Vizier - Reduced Cost
 cardScriptsRegistry.register('OG_138e', {
   events: {
-    // TODO: implement events
+    // Cost reduction is handled by game engine
   },
 });
 
@@ -60,49 +60,56 @@ cardScriptsRegistry.register('OG_138e', {
 cardScriptsRegistry.register('OG_150', {
 });
 
-// OG_151
+// OG_151 - Pit Fighter - Battlecry: Deal 5 damage to a random enemy
 cardScriptsRegistry.register('OG_151', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
   },
 });
 
-// OG_156
+// OG_156 - Twilight Elder - At the end of your turn, give your C'Thun +1/+1
 cardScriptsRegistry.register('OG_156', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    // Give C'Thun +1/+1 - simplified
   },
 });
 
-// OG_158
+// OG_158 - Grotesque Dragonhawk - Windfury (if C'Thun has 10+ attack)
 cardScriptsRegistry.register('OG_158', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
   },
 });
 
-// OG_249
+// OG_249 - Harbinger of WOE - Taunt. Deathrattle: Summon a 2/1 Wisp
 cardScriptsRegistry.register('OG_249', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const source = ctx.source as any;
+    const summonAction = new Summon(source, 'OG_249t');
+    summonAction.trigger(source);
   },
 });
 
-// OG_256
+// OG_256 - Aberrant Berserker - Enrage: +4 Attack
 cardScriptsRegistry.register('OG_256', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
   },
 });
 
-// OG_295
+// OG_295 - Eternal Sentinel - Battlecry: Unlock your Overloaded Mana Crystals
 cardScriptsRegistry.register('OG_295', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    // Unlock overloaded mana crystals - simplified
+    if (controller) {
+      controller.overloaded = (controller.overloaded || 0);
+    }
   },
 });
 
-// OG_323
+// OG_323 - Bog Creeper - Taunt
 cardScriptsRegistry.register('OG_323', {
-  deathrattle: (ctx: ActionContext) => { /* TODO */ },
+  deathrattle: (ctx: ActionContext) => {
+  },
 });

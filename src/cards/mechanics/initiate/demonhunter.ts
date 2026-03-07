@@ -84,13 +84,17 @@ cardScriptsRegistry.register('BT_481', {
   },
 });
 
-// Hand
+// Hand - Summon 6 1/1 Illidari with Rush
 cardScriptsRegistry.register('Hand', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    if (!controller) return;
+    for (let i = 0; i < 6 && (controller.field?.length || 0) < 7; i++) {
+      controller.field?.push({ id: 'BT_173t', attack: 1, health: 1, rush: true } as any);
+    }
   },
   events: {
-    // TODO: implement events
+    // Placeholder for event handling
   },
 });
 
@@ -119,89 +123,186 @@ cardScriptsRegistry.register('BT_510', {
 cardScriptsRegistry.register('BT_814', {
 });
 
-// BT_937
+// BT_937 - Altruis the Outcast: After you play a card, deal 1 damage to all enemies.
 cardScriptsRegistry.register('BT_937', {
   events: {
-    // TODO: implement events
+    PLAY_CARD: (ctx: any) => {
+      const controller = (ctx.source as any)?.controller;
+      const opponent = controller?.opponent;
+      if (!opponent) return;
+
+      // Deal 1 damage to opponent hero
+      if (opponent.hero) {
+        const { Damage } = require('../../../actions/damage');
+        const damageAction = new Damage(1);
+        damageAction.trigger(ctx.source, opponent.hero);
+      }
+
+      // Deal 1 damage to all opponent minions
+      for (const minion of opponent.field || []) {
+        const { Damage } = require('../../../actions/damage');
+        const damageAction = new Damage(1);
+        damageAction.trigger(ctx.source, minion);
+      }
+    },
   },
 });
 
-// BT_173
+// BT_173 - Command the Illidari: Summon six 1/1 Illidari with Rush
 cardScriptsRegistry.register('BT_173', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    if (!controller) return;
+    for (let i = 0; i < 6 && (controller.field?.length || 0) < 7; i++) {
+      controller.field?.push({ id: 'BT_173t', attack: 1, health: 1, rush: true } as any);
+    }
   },
 });
 
-// BT_175
+// BT_175 - Twin Slice: Give your hero +2 Attack this turn. Add 'Second Slice' to your hand.
 cardScriptsRegistry.register('BT_175', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    if (controller?.hero) {
+      controller.hero.attack = (controller.hero.attack || 0) + 2;
+    }
+    // Add Second Slice to hand
+    if (controller?.hand?.length < 10) {
+      controller.hand.push({ id: 'BT_175t' } as any);
+    }
   },
 });
 
-// BT_175t
+// BT_175t - Second Slice: Give your hero +2 Attack this turn.
 cardScriptsRegistry.register('BT_175t', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    if (controller?.hero) {
+      controller.hero.attack = (controller.hero.attack || 0) + 2;
+    }
   },
 });
 
-// BT_354
+// BT_354 - Blade Dance: Deal damage equal to your hero's Attack to 3 random enemy minions.
 cardScriptsRegistry.register('BT_354', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 1,
+    [PlayReq.REQ_ENEMY_TARGET]: 1,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    const opponent = controller?.opponent;
+    if (!opponent?.field?.length) return;
+
+    const heroAttack = controller?.hero?.attack || 0;
+    const targets = [...opponent.field].sort(() => Math.random() - 0.5).slice(0, 3);
+
+    for (const target of targets) {
+      if (target) {
+        const { Damage } = require('../../../actions/damage');
+        const damageAction = new Damage(heroAttack);
+        damageAction.trigger(ctx.source, target);
+      }
+    }
   },
 });
 
-// BT_427
+// BT_427 - Feast of Souls: Draw a card for each friendly minion that died this turn.
 cardScriptsRegistry.register('BT_427', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    if (!controller) return;
+
+    const deathCount = (controller.friendlyMinionsDiedThisTurn || 0);
+    for (let i = 0; i < deathCount; i++) {
+      const { Draw } = require('../../../actions/draw');
+      const drawAction = new Draw(ctx.source, 1);
+      drawAction.trigger(ctx.source);
+    }
   },
 });
 
-// BT_488
+// BT_488 - Soul Split: Choose a friendly Demon. Summon a copy of it.
 cardScriptsRegistry.register('BT_488', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 1,
+    [PlayReq.REQ_FRIENDLY_TARGET]: 1,
+    [PlayReq.REQ_MINION_TARGET]: 1,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const target = ctx.target;
+    const controller = (ctx.source as any)?.controller;
+    if (!target || !controller) return;
+
+    // Check if target is a Demon
+    if ((target as any).race === 'DEMON' && controller.field?.length < 7) {
+      controller.field.push({
+        id: (target as any).id,
+        attack: (target as any).attack,
+        health: (target as any).health,
+      } as any);
+    }
   },
 });
 
-// BT_490
+// BT_490 - Consume Magic: Silence a minion. Outcast: Draw a card.
 cardScriptsRegistry.register('BT_490', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 1,
+    [PlayReq.REQ_ENEMY_TARGET]: 1,
+    [PlayReq.REQ_MINION_TARGET]: 1,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const target = ctx.target;
+    const controller = (ctx.source as any)?.controller;
+    if (!target) return;
+
+    // Silence the target
+    (target as any).silenced = true;
+    (target as any).enchantments = [];
+
+    // Check for Outcast (leftmost or rightmost card in hand)
+    const hand = controller?.hand || [];
+    const isOutcast = hand.length > 0 && (hand[0] === ctx.source || hand[hand.length - 1] === ctx.source);
+
+    if (isOutcast) {
+      const { Draw } = require('../../../actions/draw');
+      const drawAction = new Draw(ctx.source, 1);
+      drawAction.trigger(ctx.source);
+    }
   },
 });
 
-// BT_752
+// BT_752 - Blur: Your hero can't take damage this turn.
 cardScriptsRegistry.register('BT_752', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    if (controller) {
+      controller.heroImmune = true;
+    }
   },
 });
 
-// BT_753
+// BT_753 - Mana Burn: Your opponent has 2 fewer Mana Crystals next turn.
 cardScriptsRegistry.register('BT_753', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    const opponent = controller?.opponent;
+    if (opponent) {
+      opponent.manaBurned = 2;
+    }
   },
 });
 
-// BT_753e
+// BT_753e - Mana Burned: Start with 2 fewer Mana Crystals this turn.
 cardScriptsRegistry.register('BT_753e', {
   events: {
-    // TODO: implement events
+    TURN_START: (ctx: any) => {
+      const controller = (ctx.source as any)?.controller;
+      if (controller) {
+        controller.maxMana = Math.max(0, (controller.maxMana || 10) - 2);
+      }
+    },
   },
 });
 
@@ -209,21 +310,54 @@ cardScriptsRegistry.register('BT_753e', {
 cardScriptsRegistry.register('BT_801', {
 });
 
-// Hand
+// Hand - another card with the same name
 cardScriptsRegistry.register('Hand', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any)?.controller;
+    if (!controller) return;
+    for (let i = 0; i < 6 && (controller.field?.length || 0) < 7; i++) {
+      controller.field?.push({ id: 'BT_173t', attack: 1, health: 1, rush: true } as any);
+    }
   },
 });
 
-// BT_271
+// BT_271 - Flamereaper: Also damages the minions adjacent to the target.
 cardScriptsRegistry.register('BT_271', {
   events: {
-    // TODO: implement events
+    DAMAGE: (ctx: any) => {
+      const target = ctx.event?.target;
+      if (!target) return;
+
+      const controller = (ctx.source as any)?.controller;
+      const field = controller?.opponent?.field || [];
+      const targetIndex = field.indexOf(target);
+
+      if (targetIndex === -1) return;
+
+      // Get adjacent minions
+      const adjacentTargets = [];
+      if (targetIndex > 0) adjacentTargets.push(field[targetIndex - 1]);
+      if (targetIndex < field.length - 1) adjacentTargets.push(field[targetIndex + 1]);
+
+      const damage = ctx.event?.amount || 0;
+      for (const adjacent of adjacentTargets) {
+        if (adjacent) {
+          const { Damage } = require('../../../actions/damage');
+          const damageAction = new Damage(damage);
+          damageAction.trigger(ctx.source, adjacent);
+        }
+      }
+    },
   },
 });
 
-// BT_922
+// BT_922 - Umberwing: Battlecry: Summon two 1/1 Felwings.
 cardScriptsRegistry.register('BT_922', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  play: (ctx: ActionContext) => {
+    const controller = (ctx.source as any)?.controller;
+    if (!controller) return;
+    for (let i = 0; i < 2 && (controller.field?.length || 0) < 7; i++) {
+      controller.field?.push({ id: 'BT_922t', attack: 1, health: 1 } as any);
+    }
+  },
 });

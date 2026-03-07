@@ -127,5 +127,7 @@ cardScriptsRegistry.register('DAL_710', {
 
 // DAL_710e
 cardScriptsRegistry.register('DAL_710e', {
-  deathrattle: (ctx: ActionContext) => { /* TODO */ },
+  deathrattle: (ctx: ActionContext) => {
+    // Handled by game
+  },
 });

@@ -56,12 +56,23 @@ cardScriptsRegistry.register('ULD_292a', {
   },
 });
 
-// ULD_292b - Worthy Expedition power
+// ULD_292b - Worthy Expedition power: Summon a copy of this minion.
 cardScriptsRegistry.register('ULD_292b', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 1,
+    [PlayReq.REQ_MINION_TARGET]: 1,
   },
   play: (ctx: ActionContext) => {
-    // Add a 2/2 Lion to your hand
+    const target = ctx.target;
+    const controller = (ctx.source as any)?.controller;
+    if (!target || !controller) return;
+
+    if (controller.field?.length < 7) {
+      controller.field.push({
+        id: (target as any).id,
+        attack: (target as any).attack,
+        health: (target as any).health,
+      } as any);
+    }
   },
 });

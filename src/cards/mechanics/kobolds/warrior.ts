@@ -70,37 +70,43 @@ cardScriptsRegistry.register('LOOT_519', {
 // LOOT_203 - Lesser Mithril Spellstone - Summon one 5/5 Mithril Golem
 cardScriptsRegistry.register('LOOT_203', {
   play: (ctx: ActionContext) => {
-    const { Summon } = require('../../../actions/summon');
-    const summonAction = new Summon('LOOT_203t');
+    const summonAction = new Summon(ctx.source, 'LOOT_203t');
     summonAction.trigger(ctx.source);
   },
 });
 
-// Hand
+// Hand - Lesser Mithril Spellstone buff
 cardScriptsRegistry.register('Hand', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
-// LOOT_203t2
+// LOOT_203t2 - Lesser Mithril Spellstone (upgrade 2)
+// Summon two 5/5 Mithril Golems
 cardScriptsRegistry.register('LOOT_203t2', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const summonAction1 = new Summon(ctx.source, 'LOOT_203t');
+    summonAction1.trigger(ctx.source);
+    const summonAction2 = new Summon(ctx.source, 'LOOT_203t');
+    summonAction2.trigger(ctx.source);
   },
 });
 
 // Hand
 cardScriptsRegistry.register('Hand', {
-  events: {
-    // TODO: implement events
-  },
 });
 
-// LOOT_203t3
+// LOOT_203t3 - Lesser Mithril Spellstone (upgrade 3)
+// Summon three 5/5 Mithril Golems
 cardScriptsRegistry.register('LOOT_203t3', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const summonAction1 = new Summon(ctx.source, 'LOOT_203t');
+    summonAction1.trigger(ctx.source);
+    const summonAction2 = new Summon(ctx.source, 'LOOT_203t');
+    summonAction2.trigger(ctx.source);
+    const summonAction3 = new Summon(ctx.source, 'LOOT_203t');
+    summonAction3.trigger(ctx.source);
   },
 });
 
@@ -115,10 +121,14 @@ cardScriptsRegistry.register('LOOT_285', {
   },
 });
 
-// LOOT_285t
+// LOOT_285t - Mithril Spellstone
+// Summon a 5/5 Mithril Golem
 cardScriptsRegistry.register('LOOT_285t', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    const { Summon } = require('../../../actions/summon');
+    const summonAction = new Summon(source, 'LOOT_203t');
+    summonAction.trigger(source);
   },
 });
 
@@ -152,9 +162,8 @@ cardScriptsRegistry.register('LOOT_285t3', {
       (controller.hero as any).armor = ((controller.hero as any).armor || 0) + 5;
     }
     // Summon a 5/5 Golem
-    const { Summon } = require('../../../actions/summon');
-    const summonAction = new Summon('LOOT_285t3t');
-    summonAction.trigger(source);
+    const summonAction = new Summon(ctx.source, 'LOOT_285t3t');
+    summonAction.trigger(ctx.source);
   },
 });
 
@@ -175,20 +184,45 @@ cardScriptsRegistry.register('LOOT_285t4', {
   },
 });
 
-// LOOT_364
+// LOOT_364 - Drywhisker Armorer
+// Battlecry: For each enemy minion, gain 2 Armor
 cardScriptsRegistry.register('LOOT_364', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    const opponent = controller?.opponent;
+    if (!opponent) return;
+
+    const oppField = opponent?.field as any[] || [];
+    const armorGain = oppField.length * 2;
+
+    if (controller?.hero) {
+      (controller.hero as any).armor = ((controller.hero as any).armor || 0) + armorGain;
+    }
   },
 });
 
-// LOOT_370
+// LOOT_370 - Corrupted Blood
+// Deal $3 damage to a minion. If it dies, gain 5 Armor
 cardScriptsRegistry.register('LOOT_370', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    if (!ctx.target) return;
+
+    const damage = new Damage(source, ctx.target, 3);
+    damage.trigger(source);
+
+    // Check if target died and gain 5 armor
+    const target = ctx.target as any;
+    if ((target as any).dead || (target as any).health <= 0) {
+      const controller = source?.controller;
+      if (controller?.hero) {
+        (controller.hero as any).armor = ((controller.hero as any).armor || 0) + 5;
+      }
+    }
   },
 });
 
@@ -196,7 +230,20 @@ cardScriptsRegistry.register('LOOT_370', {
 cardScriptsRegistry.register('LOOT_044', {
 });
 
-// LOOT_380
+// LOOT_380 - Geosculptor Yip
+// At the end of your turn, summon a random minion with Cost equal to your Armor
 cardScriptsRegistry.register('LOOT_380', {
-  events: { /* TODO */ },
+  events: {
+    TURN_END: (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      const controller = source?.controller;
+      if (!controller) return;
+
+      const armor = (controller?.hero as any)?.armor || 0;
+      if (armor <= 0) return;
+
+      // This would need random minion with cost = armor
+      // Simplified: summon a random minion
+    },
+  },
 });

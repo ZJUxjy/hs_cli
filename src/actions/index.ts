@@ -13,3 +13,5 @@ export { GainArmor } from './gainarmor';
 export { Destroy } from './destroy';
 export { Silence } from './silence';
 export { ManaThisTurn, GainMana } from './mana';
+export { Bounce } from './bounce';
+export { Steal } from './steal';

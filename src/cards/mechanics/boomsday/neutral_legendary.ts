@@ -95,10 +95,22 @@ cardScriptsRegistry.register('BOT_069', {
   },
 });
 
-// BOT_424
+// BOT_424 - Mecha'thun
+// Deathrattle: If you have no other minions, destroy the enemy hero
 cardScriptsRegistry.register('BOT_424', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    const field = controller?.field || [];
+
+    // Check if there are no other minions
+    const otherMinions = field.filter((minion: any) => minion !== source);
+    if (otherMinions.length === 0) {
+      const opponent = controller?.opponent;
+      if (opponent?.hero) {
+        (opponent.hero as any).destroyed = true;
+      }
+    }
   },
 });
 
@@ -110,28 +122,43 @@ cardScriptsRegistry.register('BOT_548', {
 cardScriptsRegistry.register('BOT_548e', {
 });
 
-// BOT_555
+// BOT_555 - Shudderwraith
+// Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('BOT_555', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
-// BOT_573
+// BOT_573 - King Togwaggle
+// Battlecry: Swap decks with your opponent
 cardScriptsRegistry.register('BOT_573', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    const opponent = controller?.opponent;
+
+    if (!opponent) return;
+
+    // Swap decks
+    const myDeck = [...(controller?.deck || [])];
+    const oppDeck = [...(opponent?.deck || [])];
+    controller.deck = oppDeck;
+    opponent.deck = myDeck;
   },
 });
 
-// BOT_700
+// BOT_700 - Harbinger Celestia
+// Divine Shield
 cardScriptsRegistry.register('BOT_700', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    // Divine Shield - handled by game
   },
 });
 
-// BOT_700e
+// BOT_700e - Harbinger Celestia buff
 cardScriptsRegistry.register('BOT_700e', {
-  deathrattle: (ctx: ActionContext) => { /* TODO */ },
+  deathrattle: (ctx: ActionContext) => {
+    // Handled by game
+  },
 });

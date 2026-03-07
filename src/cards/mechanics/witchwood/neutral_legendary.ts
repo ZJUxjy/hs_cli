@@ -2,6 +2,7 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import type { ScriptEntity, CardReference } from '../types';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Damage, Draw, Heal, Summon, Give, Destroy, Bounce } from '../../../actions';
 
 // GIL_558 - Emeriss (Legendary Dragon)
 cardScriptsRegistry.register('GIL_558', {
@@ -65,17 +66,28 @@ cardScriptsRegistry.register('GIL_558', {
   },
 });
 
-// GIL_198
+// GIL_198 - Baku the Mooneater - Start of Game: If your deck has no duplicates, change Hero Power to "Deal 4 damage"
 cardScriptsRegistry.register('GIL_198', {
-  play: (ctx: ActionContext) => {
-    // TODO: implement play effect - Start of Game: If your deck has no duplicates, change Hero Power to "Deal 4 damage"
-  },
+  // Start of Game effect - handled by game logic
 });
 
-// GIL_578 - Splintergraft
+// GIL_578 - Splintergraft - Battlecry: Choose a friendly minion. Add a copy of it to your hand that costs (1) more
 cardScriptsRegistry.register('GIL_578', {
+  requirements: {
+    [PlayReq.REQ_TARGET_TO_PLAY]: 1,
+    [PlayReq.REQ_FRIENDLY_TARGET]: 1,
+    [PlayReq.REQ_MINION_TARGET]: 1,
+  },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect - Battlecry: Choose a friendly minion. Add a copy of it to your hand that costs (1) more
+    const source = ctx.source as any;
+    const target = ctx.target as any;
+    const controller = source.controller;
+
+    // Add a copy to hand that costs (1) more
+    const targetCost = (target.cost || 0) + 1;
+    const { Give } = require('../../../actions/give');
+    const give = new Give(controller, target.cardId);
+    give.trigger(source);
   },
 });
 
@@ -129,16 +141,10 @@ cardScriptsRegistry.register('GIL_692', {
 
 // Deck
 cardScriptsRegistry.register('Deck', {
-  events: {
-    // TODO: implement events
-  },
 });
 
 // Hand
 cardScriptsRegistry.register('Hand', {
-  events: {
-    // TODO: implement events
-  },
 });
 
 // GIL_692e
@@ -165,12 +171,8 @@ cardScriptsRegistry.register('GIL_826', {
 
 // Deck
 cardScriptsRegistry.register('Deck', {
-  events: {
-    // TODO: implement events
-  },
 });
 
 // Hand
 cardScriptsRegistry.register('Hand', {
-  events: { /* TODO */ },
 });

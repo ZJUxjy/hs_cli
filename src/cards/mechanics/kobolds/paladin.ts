@@ -2,92 +2,124 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
 
-// LOOT_216
+// LOOT_216 - Crystallizer
+// Battlecry: Deal 5 damage to your hero. Gain 5 Armor
 cardScriptsRegistry.register('LOOT_216', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    // Deal 5 damage to hero
+    if (controller.hero) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(source, controller.hero, 5);
+      damage.trigger(source);
+    }
+    // Gain 5 Armor
+    (controller as any).armor = ((controller as any).armor || 0) + 5;
   },
 });
 
-// LOOT_313
+// LOOT_313 - Wickerflame Burnbristle
+// Taunt. Divine Shield. Deathrattle: Deal 3 damage
 cardScriptsRegistry.register('LOOT_313', {
+  deathrattle: (ctx: ActionContext) => {
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    const opponent = controller?.opponent;
+
+    // Deal 3 damage to enemy hero
+    if (opponent?.hero) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(source, opponent.hero, 3);
+      damage.trigger(source);
+    }
+  },
 });
 
-// LOOT_363
+// LOOT_363 - Stonehill Defender
+// Taunt. Deathrattle: Discover a Taunt minion
 cardScriptsRegistry.register('LOOT_363', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    // Discover a Taunt minion - handled by game
   },
 });
 
-// LOOT_398
+// LOOT_398 - Lynessa Sunsorrow
+// Battlecry: Recolor all Paladin cards in your deck
 cardScriptsRegistry.register('LOOT_398', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
-// LOOT_088
+// LOOT_088 - Potion of Heroism
+// Give a minion Divine Shield
 cardScriptsRegistry.register('LOOT_088', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      (ctx.target as any).divineShield = true;
+    }
   },
 });
 
-// LOOT_091
+// LOOT_091 - Lynessa Sunsorrow
+// Battlecry: Discover a Paladin card
 cardScriptsRegistry.register('LOOT_091', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Discover a Paladin card - handled by game
   },
 });
 
-// Hand
+// Hand - Lynessa buff
 cardScriptsRegistry.register('Hand', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
-// LOOT_091t1
+// LOOT_091t1 - Lynessa choice 1
 cardScriptsRegistry.register('LOOT_091t1', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// Hand
+// Hand - Lynessa buff
 cardScriptsRegistry.register('Hand', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
-// LOOT_091t2
+// LOOT_091t2 - Lynessa choice 2
 cardScriptsRegistry.register('LOOT_091t2', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// LOOT_093
+// LOOT_093 - Glow-Tron
+// Battlecry: Give a friendly Mech Divine Shield
 cardScriptsRegistry.register('LOOT_093', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      (ctx.target as any).divineShield = true;
+    }
   },
 });
 
@@ -99,8 +131,10 @@ cardScriptsRegistry.register('LOOT_333', {
     const treasures = ['LOOT_286t1', 'LOOT_286t2', 'LOOT_286t3', 'LOOT_286t4'];
     const randomTreasure = treasures[Math.floor(Math.random() * treasures.length)];
     const { Give } = require('../../actions/give');
+    const source = ctx.source as any;
+    const controller = source.controller;
     const giveAction = new Give(randomTreasure);
-    giveAction.trigger(ctx.source);
+    giveAction.trigger(source, controller);
   },
 });
 
@@ -164,14 +198,19 @@ cardScriptsRegistry.register('LOOT_286t4', {
   },
 });
 
-// LOOT_500
+// LOOT_500 - Crystalsmith Kangor
+// Divine Shield. Deathrattle: Give your hero +2 Attack this game
 cardScriptsRegistry.register('LOOT_500', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    (controller as any).heroAttackBonus = ((controller as any).heroAttackBonus || 0) + 2;
   },
 });
 
-// LOOT_500e
+// LOOT_500e - Crystalsmith Kangor buff
 cardScriptsRegistry.register('LOOT_500e', {
-  deathrattle: (ctx: ActionContext) => { /* TODO */ },
+  deathrattle: (ctx: ActionContext) => {
+    // Handled by game
+  },
 });

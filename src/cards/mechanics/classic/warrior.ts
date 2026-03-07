@@ -316,10 +316,17 @@ cardScriptsRegistry.register('NEW1_036', {
   },
 });
 
-// NEW1_036e2
+// NEW1_036e2 - Commanding Shout - Your minions can't be reduced below 1 Health this turn
 cardScriptsRegistry.register('NEW1_036e2', {
   events: {
-    // TODO: implement events
+    'TURN_START': (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      const controller = source.controller;
+      // Mark all friendly minions as affected by Commanding Shout
+      for (const minion of (controller.field || [])) {
+        (minion as any).commandingShout = true;
+      }
+    },
   },
 });
 
@@ -327,7 +334,17 @@ cardScriptsRegistry.register('NEW1_036e2', {
 cardScriptsRegistry.register('EX1_084', {
 });
 
-// EX1_411
+// EX1_411 - Gorehowl - Attack gain +1 Attack each time this attacks a minion
 cardScriptsRegistry.register('EX1_411', {
-  events: { /* TODO */ },
+  events: {
+    'ATTACK': (ctx: ActionContext) => {
+      if (ctx.target) {
+        const target = ctx.target as any;
+        if ((target as any).type === 'minion') {
+          const source = ctx.source as any;
+          source.attack = (source.attack || 7) + 1;
+        }
+      }
+    },
+  },
 });

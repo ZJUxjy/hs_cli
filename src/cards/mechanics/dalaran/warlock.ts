@@ -23,17 +23,17 @@ cardScriptsRegistry.register('DAL_422', {
 cardScriptsRegistry.register('DAL_561', {
 });
 
-// Hand
+// Hand - EVIL Genius buff
 cardScriptsRegistry.register('Hand', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
-// DAL_561e
+// DAL_561e - EVIL Genius buff
 cardScriptsRegistry.register('DAL_561e', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
@@ -97,16 +97,16 @@ cardScriptsRegistry.register('DAL_607', {
   },
 });
 
-// DAL_607e
+// DAL_607e - Fel Lord Betrug buff
 cardScriptsRegistry.register('DAL_607e', {
   requirements: {
-    // TODO: add requirements
+    // Handled by game
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 

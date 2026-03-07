@@ -72,10 +72,13 @@ cardScriptsRegistry.register('EX1_100', {
   },
 });
 
-// EX1_110
+// EX1_110 - Cairne Bloodhoof - Taunt. Deathrattle: Summon Baine Bloodhoof (5/5)
 cardScriptsRegistry.register('EX1_110', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const { Summon } = require('../../../actions/summon');
+    // Baine Bloodhoof card ID
+    const summonAction = new Summon('EX1_110t');
+    summonAction.trigger(ctx.source);
   },
 });
 

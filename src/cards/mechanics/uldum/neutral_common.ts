@@ -79,14 +79,23 @@ cardScriptsRegistry.register('ULD_190', {
   },
 });
 
-// ULD_191 - Ramkahen Wildtamer (Rare)
-// Copy a random Beast in your deck
+// ULD_191 - Ramkahen Wildtamer (Rare): Copy a random Beast in your deck
 cardScriptsRegistry.register('ULD_191', {
-  requirements: {
-    // TODO: add requirements
-  },
   play: (ctx: ActionContext) => {
-    // Copy a random Beast in your deck
+    const controller = (ctx.source as any)?.controller;
+    if (!controller?.deck) return;
+
+    // Find all Beasts in deck
+    const beasts = controller.deck.filter((c: any) => c.race === 'BEAST');
+    if (beasts.length === 0) return;
+
+    // Copy a random Beast
+    const randomBeast = beasts[Math.floor(Math.random() * beasts.length)];
+    if (controller?.hand?.length < 10) {
+      controller.hand.push({
+        id: (randomBeast as any).id,
+      } as any);
+    }
   },
 });
 

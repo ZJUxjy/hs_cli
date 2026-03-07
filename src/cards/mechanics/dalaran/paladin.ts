@@ -38,10 +38,18 @@ cardScriptsRegistry.register('DAL_581', {
 // Battlecry: Deal 5 damage to your hero. Gain 5 Armor
 cardScriptsRegistry.register('DAL_141', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // Deal 5 damage to your hero, gain 5 Armor
+    const controller = (ctx.source as any).controller;
+    // Deal 5 damage to your hero
+    if (controller.hero) {
+      const { Damage } = require('../../../actions/damage');
+      const damage = new Damage(ctx.source, controller.hero, 5);
+      damage.trigger(ctx.source);
+    }
+    // Gain 5 Armor
+    (controller as any).armor = ((controller as any).armor || 0) + 5;
   },
 });
 
@@ -49,10 +57,16 @@ cardScriptsRegistry.register('DAL_141', {
 // Battlecry: Restore 8 Health
 cardScriptsRegistry.register('DAL_568', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // Restore 8 Health
+    const controller = (ctx.source as any).controller;
+    // Restore 8 Health to hero
+    if (controller.hero) {
+      const { Heal } = require('../../../actions/heal');
+      const heal = new Heal(ctx.source, controller.hero, 8);
+      heal.trigger(ctx.source);
+    }
   },
 });
 
@@ -73,10 +87,10 @@ cardScriptsRegistry.register('DAL_727', {
 // Battlecry: If your deck contains no duplicates, Discover a new Hero Power
 cardScriptsRegistry.register('DAL_731', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // If your deck contains no duplicates, Discover a new Hero Power
+    // If your deck contains no duplicates, Discover a new Hero Power - handled by game
   },
 });
 

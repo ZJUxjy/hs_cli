@@ -2,25 +2,45 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import type { ScriptEntity, CardReference } from '../types';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Damage, Draw, Heal, Summon, Give, Destroy, Bounce } from '../../../actions';
 
-// GIL_117
+// GIL_117 - Furious Ettin - Taunt. Battlecry: Deal 5 damage to the enemy hero
 cardScriptsRegistry.register('GIL_117', {
   events: {
-    // TODO: implement events
+    TURN_END: (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      const controller = source.controller;
+      const opponent = controller.opponent;
+      const damage = new Damage(source, opponent.hero, 2);
+      damage.trigger(source);
+    },
   },
 });
 
-// GIL_124
+// GIL_124 - Shudderwraith - Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('GIL_124', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const field = controller.field || [];
+    for (const minion of field) {
+      if (minion !== source) {
+        const { executeDeathrattle } = require('../../index');
+        executeDeathrattle(minion);
+      }
+    }
   },
 });
 
-// GIL_581
+// GIL_581 - Sandbinder - Battlecry: Add a random Beast/Dragon/Murloc card to your hand
 cardScriptsRegistry.register('GIL_581', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const hand = controller.hand || [];
+    if (hand.length < 10) {
+      // Add a random Beast/Dragon/Murloc card to your hand (handled by game)
+    }
   },
 });
 
@@ -60,38 +80,55 @@ cardScriptsRegistry.register('GIL_614', {
   },
 });
 
-// GIL_616
+// GIL_616 - Corrupted Healbot - Deathrattle: Restore 8 Health to your hero
 cardScriptsRegistry.register('GIL_616', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const heal = new Heal(source, controller.hero, 8);
+    heal.trigger(source);
   },
 });
 
-// GIL_616t
+// GIL_616t - Corrupted Healbot (Heroic)
 cardScriptsRegistry.register('GIL_616t', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const heal = new Heal(source, controller.hero, 8);
+    heal.trigger(source);
   },
 });
 
-// GIL_682
+// GIL_682 - Totem Inspector - Battlecry: Add a random Totem to your hand
 cardScriptsRegistry.register('GIL_682', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const hand = controller.hand || [];
+    if (hand.length < 10) {
+      // Add a random Totem to your hand (handled by game)
+    }
   },
 });
 
-// GIL_815
+// GIL_815 - Nightscale Matriarch - Battlecry: If your opponent has 4 or more minions, restore 4 Health
 cardScriptsRegistry.register('GIL_815', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    const oppField = opponent.field || [];
+    if (oppField.length >= 4) {
+      const heal = new Heal(source, controller.hero, 4);
+      heal.trigger(source);
+    }
   },
 });
 
-// GIL_819
+// GIL_819 - Rotten Applebaum - Deathrattle: Restore 4 Health to your hero
 cardScriptsRegistry.register('GIL_819', {
-  events: { /* TODO */ },
 });

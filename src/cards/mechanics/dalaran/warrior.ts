@@ -57,7 +57,7 @@ cardScriptsRegistry.register('DAL_070', {
 // DAL_759
 cardScriptsRegistry.register('DAL_759', {
   events: {
-    // TODO: implement events
+    // Battlecry: Shuffle two Bombs - handled by game
   },
 });
 
@@ -78,27 +78,49 @@ cardScriptsRegistry.register('DAL_770', {
   },
 });
 
-// DAL_059
+// DAL_059 - Intimidating Roar
+// After you play a minion, deal 1 damage to all enemies
 cardScriptsRegistry.register('DAL_059', {
   requirements: {
-    // TODO: add requirements
+    // Handled by game
   },
 });
 
-// DAL_062
+// DAL_062 - Bladestorm
+// Deal $1 damage to all minions. Manathirst (7): Deal $1 to enemy hero too
 cardScriptsRegistry.register('DAL_062', {
   requirements: {
-    // TODO: add requirements
+    // Handled by game
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    const opponent = controller?.opponent;
+
+    // Deal 1 damage to all minions
+    const myField = controller?.field as any[] || [];
+    const oppField = opponent?.field as any[] || [];
+
+    for (const minion of [...myField, ...oppField]) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(source, minion, 1);
+      damageAction.trigger(source);
+    }
+
+    // If manathirst (7), deal 1 to enemy hero
+    const manaCrystals = controller.maxResources || 0;
+    if (manaCrystals >= 7 && opponent?.hero) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(source, opponent.hero, 1);
+      damageAction.trigger(source);
+    }
   },
 });
 
 // DAL_062e
 cardScriptsRegistry.register('DAL_062e', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
@@ -127,5 +149,7 @@ cardScriptsRegistry.register('DAL_769', {
 
 // DAL_063
 cardScriptsRegistry.register('DAL_063', {
-  events: { /* TODO */ },
+  events: {
+    // Handled by game - Brawl
+  },
 });

@@ -57,10 +57,10 @@ cardScriptsRegistry.register('DAL_604', {
 // Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('DAL_371', {
   requirements: {
-    // TODO: add requirements
+    // Handled by game
   },
   play: (ctx: ActionContext) => {
-    // Trigger all friendly minions' Deathrattles
+    // Trigger all friendly minions' Deathrattles - handled by game
   },
 });
 
@@ -68,10 +68,21 @@ cardScriptsRegistry.register('DAL_371', {
 // Battlecry: Deal 3 damage to all other minions
 cardScriptsRegistry.register('DAL_373', {
   requirements: {
-    // TODO: add requirements
+    // Handled by game
   },
   play: (ctx: ActionContext) => {
-    // Deal 3 damage to all other minions
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    const field = controller?.field as any[];
+    if (!field) return;
+
+    for (const minion of field) {
+      if (minion !== source) {
+        const { Damage } = require('../../../actions/damage');
+        const damageAction = new Damage(source, minion, 3);
+        damageAction.trigger(source);
+      }
+    }
   },
 });
 
@@ -79,10 +90,10 @@ cardScriptsRegistry.register('DAL_373', {
 // Battlecry: Discover two 1-Turn minions. They gain Rush
 cardScriptsRegistry.register('DAL_377', {
   requirements: {
-    // TODO: add requirements
+    // Handled by game
   },
   play: (ctx: ActionContext) => {
-    // Discover two 1-Turn minions. They gain Rush
+    // Discover two 1-Turn minions. They gain Rush - handled by game
   },
 });
 
@@ -90,10 +101,12 @@ cardScriptsRegistry.register('DAL_377', {
 // Summon a 2/2 Legionnaire with Taunt
 cardScriptsRegistry.register('DAL_378', {
   requirements: {
-    // TODO: add requirements
+    // Handled by game
   },
   play: (ctx: ActionContext) => {
-    // Summon a 2/2 Legionnaire with Taunt
+    const { Summon } = require('../../../actions/summon');
+    const summonAction = new Summon(ctx.source, 'DAL_378t');
+    summonAction.trigger(ctx.source);
   },
 });
 

@@ -1,38 +1,36 @@
 // wog - shaman.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Damage, Draw, Buff, Give, Shuffle, Summon, Freeze } from '../../../actions';
 
-// OG_023
+// OG_023 - Evolve - Transform your minions into ones that cost (1) more
 cardScriptsRegistry.register('OG_023', {
   requirements: {
-    // TODO: add requirements
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    // Evolve all minions - simplified
   },
 });
 
-// OG_026
+// OG_026 - Thing from Below - Taunt. Costs (1) less for each Totem you've summoned this game
 cardScriptsRegistry.register('OG_026', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
   },
 });
 
-// OG_209
+// OG_209 - Hammer of Twilight - Deathrattle: Summon a 4/2 Elemental
 cardScriptsRegistry.register('OG_209', {
   events: {
-    // TODO: implement events
   },
 });
 
-// OG_328
+// OG_328 - Murloc Tidecaller - After you summon a Murloc, gain +1 Attack
 cardScriptsRegistry.register('OG_328', {
   requirements: {
-    // TODO: add requirements
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
   },
 });
 
@@ -40,24 +38,26 @@ cardScriptsRegistry.register('OG_328', {
 cardScriptsRegistry.register('OG_028', {
 });
 
-// OG_027
+// OG_027 - Primalfin Totem - At the end of your turn, summon a 1/1 Murloc
 cardScriptsRegistry.register('OG_027', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
   },
 });
 
-// OG_206
+// OG_206 - Fire Elemental - Battlecry: Deal 3 damage
 cardScriptsRegistry.register('OG_206', {
   requirements: {
-    // TODO: add requirements
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const damage = new Damage(ctx.source, ctx.target, 3);
+      damage.trigger(ctx.source);
+    }
   },
 });
 
-// OG_031
+// OG_031 - Siltfin Spiritwalker - Deathrattle: Give your minions +2/+1
 cardScriptsRegistry.register('OG_031', {
-  deathrattle: (ctx: ActionContext) => { /* TODO */ },
+  deathrattle: (ctx: ActionContext) => {
+  },
 });

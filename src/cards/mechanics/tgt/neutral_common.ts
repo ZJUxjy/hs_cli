@@ -45,10 +45,19 @@ cardScriptsRegistry.register('AT_090', {
 cardScriptsRegistry.register('AT_091', {
 });
 
-// AT_094
+// AT_094 - Shudderwraith - Battlecry: Deal 2 damage to all other minions
 cardScriptsRegistry.register('AT_094', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    const allMinions = [...(controller.field || []), ...(opponent.field || [])];
+    for (const minion of allMinions) {
+      if (minion !== source) {
+        const damage = new Damage(source, minion, 2);
+        damage.trigger(source);
+      }
+    }
   },
 });
 

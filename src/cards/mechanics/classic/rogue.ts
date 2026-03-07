@@ -235,10 +235,25 @@ cardScriptsRegistry.register('EX1_129', {
   },
 });
 
-// EX1_137 - Fan of Knives
+// EX1_137 - Fan of Knives - Deal $1 damage to all enemy minions. Draw a card
 cardScriptsRegistry.register('EX1_137', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    const enemyField = opponent.field || [];
+
+    // Deal 1 damage to all enemy minions
+    for (const minion of enemyField) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(1);
+      damageAction.trigger(source, minion);
+    }
+
+    // Draw a card
+    const { Draw } = require('../../../actions/draw');
+    const drawAction = new Draw(source);
+    drawAction.trigger(source);
   },
 });
 

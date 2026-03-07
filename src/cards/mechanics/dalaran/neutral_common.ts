@@ -119,7 +119,7 @@ cardScriptsRegistry.register('DAL_743', {
 // Battlecry: If you control a Secret, gain +1/+1
 cardScriptsRegistry.register('DAL_744', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
     // If you control a Secret, gain +1/+1

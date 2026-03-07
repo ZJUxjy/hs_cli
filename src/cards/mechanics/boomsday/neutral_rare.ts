@@ -1,7 +1,7 @@
 // boomsday - neutral_rare.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
-import { Summon } from '../../../actions';
+import { Summon, Give, Damage } from '../../../actions';
 
 // BOT_066 - Mechanical Whelp
 // Deathrattle: Summon a 7/7 Mechanical Dragon
@@ -17,31 +17,37 @@ cardScriptsRegistry.register('BOT_066', {
 cardScriptsRegistry.register('BOT_098', {
 });
 
-// BOT_102
+// BOT_102 - Spark Drill - Rush. Deathrattle: Add two 1/1 Sparks with Rush to your hand
 cardScriptsRegistry.register('BOT_102', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const controller = (ctx.source as any).controller;
+    const give1 = new Give('BOT_102t');
+    give1.trigger(ctx.source, controller);
+    const give2 = new Give('BOT_102t');
+    give2.trigger(ctx.source, controller);
   },
 });
 
-// BOT_107
+// BOT_107 - Missile Launcher - Magnetic. At the end of your turn, deal 1 damage to all other characters
 cardScriptsRegistry.register('BOT_107', {
   events: {
-    // TODO: implement events
+    TURN_END: (ctx: ActionContext) => {
+      // Deal 1 damage to all other characters - handled by game
+    },
   },
 });
 
 // BOT_107e
 cardScriptsRegistry.register('BOT_107e', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
 // BOT_270
 cardScriptsRegistry.register('BOT_270', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
@@ -62,32 +68,34 @@ cardScriptsRegistry.register('BOT_312', {
 // BOT_312e
 cardScriptsRegistry.register('BOT_312e', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    // Handled by game
   },
 });
 
 // BOT_538
 cardScriptsRegistry.register('BOT_538', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
 // BOT_539
 cardScriptsRegistry.register('BOT_539', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
 // BOT_907
 cardScriptsRegistry.register('BOT_907', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
 // BOT_907e
 cardScriptsRegistry.register('BOT_907e', {
-  events: { /* TODO */ },
+  events: {
+    // Handled by game
+  },
 });

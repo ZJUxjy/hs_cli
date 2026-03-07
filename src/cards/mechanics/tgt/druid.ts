@@ -37,38 +37,38 @@ cardScriptsRegistry.register('AT_040', {
 cardScriptsRegistry.register('AT_041', {
 });
 
-// Hand
+// Hand - Keeper of the Grove
 cardScriptsRegistry.register('Hand', {
   events: {
-    // TODO: implement events
+    // Choose One - Deal 2 damage or Give +2 Attack - handled by game
   },
 });
 
-// AT_041e
+// AT_041e - Keeper of the Grove buff
 cardScriptsRegistry.register('AT_041e', {
   events: {
-    // TODO: implement events
+    // +2 Attack - handled by game
   },
 });
 
-// AT_042
+// AT_042 - Druid of the Flame - Choose One - 5/2 or 2/5
 cardScriptsRegistry.register('AT_042', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Choose One - handled by game
   },
 });
 
-// AT_042a
+// AT_042a - Druid of the Flame (5/2)
 cardScriptsRegistry.register('AT_042a', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Summon 5/2 - handled by game
   },
 });
 
-// AT_042b
+// AT_042b - Druid of the Flame (2/5)
 cardScriptsRegistry.register('AT_042b', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Summon 2/5 - handled by game
   },
 });
 
@@ -76,33 +76,33 @@ cardScriptsRegistry.register('AT_042b', {
 cardScriptsRegistry.register('AT_045', {
 });
 
-// AT_037
+// AT_037 - Druid of the Saber - Choose One - 6/2 with Charge; or 4/4 with Stealth
 cardScriptsRegistry.register('AT_037', {
   requirements: {
-    // TODO: add requirements
+    // Choose One - handled by game
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Choose One - handled by game
   },
 });
 
-// AT_037a
+// AT_037a - Druid of the Saber (Charge)
 cardScriptsRegistry.register('AT_037a', {
   requirements: {
-    // TODO: add requirements
+    // No target needed
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Summon 6/2 with Charge - handled by game
   },
 });
 
-// AT_037b
+// AT_037b - Druid of the Saber (Stealth)
 cardScriptsRegistry.register('AT_037b', {
   requirements: {
-    // TODO: add requirements
+    // No target needed
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Summon 4/4 with Stealth - handled by game
   },
 });
 

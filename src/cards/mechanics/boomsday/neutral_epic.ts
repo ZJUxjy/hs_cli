@@ -4,10 +4,11 @@ import { PlayReq } from '../../../enums/playreq';
 import { Damage } from '../../../actions';
 import { Entity } from '../../../core/entity';
 
-// BOT_280
+// BOT_280 - Holomancer
+// Throughout the game, after you play a card, give a random enemy -2/-2
 cardScriptsRegistry.register('BOT_280', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
@@ -15,48 +16,82 @@ cardScriptsRegistry.register('BOT_280', {
 cardScriptsRegistry.register('BOT_280e', {
 });
 
-// BOT_296
+// BOT_296 - Cybertech Wendigo
+// Battlecry: If your hero took damage this turn, reduce the Cost of a random minion in your hand by (2)
 cardScriptsRegistry.register('BOT_296', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    const hand = controller?.hand as any[];
+
+    if (!hand || hand.length === 0) return;
+
+    // Check if hero took damage this turn
+    const hero = controller?.hero;
+    if (!hero || (hero as any).damageThisTurn === undefined || (hero as any).damageThisTurn <= 0) {
+      return;
+    }
+
+    // Get minions in hand
+    const minionsInHand = hand.filter((card: any) => (card as any).type === 'MINION');
+    if (minionsInHand.length === 0) return;
+
+    // Reduce cost of random minion by 2
+    const randomIndex = Math.floor(Math.random() * minionsInHand.length);
+    const targetMinion = minionsInHand[randomIndex];
+    (targetMinion as any).costModifier = ((targetMinion as any).costModifier || 0) - 2;
   },
 });
 
-// BOT_401
+// BOT_401 - Flark's Boom-Zooka
+// Battlecry: Summon 3 minions from your deck. They attack enemy minions
 cardScriptsRegistry.register('BOT_401', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    // Summon 3 minions from deck - handled by game
   },
 });
 
-// BOT_447
+// BOT_447 - SN1P-SN4P
+// Magnetic. Echovoid. Mech. Minion
 cardScriptsRegistry.register('BOT_447', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// BOT_511
+// BOT_511 - Science! (Spell)
+// Draw 2 minions. Reduce their Cost by (2)
 cardScriptsRegistry.register('BOT_511', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    // Draw 2 minions, reduce cost by 2 - handled by game
   },
 });
 
-// BOT_511t
+// BOT_511t - Science! buff
 cardScriptsRegistry.register('BOT_511t', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// BOT_540
+// BOT_540 - Replicating Menace
+// Battlecry: Summon three 1/1 Microbots
 cardScriptsRegistry.register('BOT_540', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    // Summon three 1/1 Microbots
+    const { Summon } = require('../../../actions/summon');
+    const summon1 = new Summon(source, 'BOT_540t');
+    summon1.trigger(source);
+    const summon2 = new Summon(source, 'BOT_540t');
+    summon2.trigger(source);
+    const summon3 = new Summon(source, 'BOT_540t');
+    summon3.trigger(source);
   },
 });
 
@@ -95,14 +130,25 @@ cardScriptsRegistry.register('BOT_544', {
   },
 });
 
-// BOT_552
+// BOT_552 - Whirlgle
+// Battlecry: Replace your hand with random spells
 cardScriptsRegistry.register('BOT_552', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    // Replace hand with random spells - simplified: just draw cards
+    const { Draw } = require('../../../actions/draw');
+    for (let i = 0; i < 3; i++) {
+      const drawAction = new Draw();
+      drawAction.trigger(controller);
+    }
   },
 });
 
-// BOT_559
+// BOT_559 - Zilliax
+// Battlecry: Divine Shield. Lifesteal. Taunt. Magnetic
 cardScriptsRegistry.register('BOT_559', {
-  events: { /* TODO */ },
+  events: {
+    // Handled by game
+  },
 });

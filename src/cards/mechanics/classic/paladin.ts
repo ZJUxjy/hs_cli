@@ -194,10 +194,17 @@ cardScriptsRegistry.register('EX1_363', {
   },
 });
 
-// EX1_363e2
+// EX1_363e2 - Blessing of Wisdom - When this minion attacks, the enemy player draws a card
 cardScriptsRegistry.register('EX1_363e2', {
   events: {
-    // TODO: implement events
+    'ATTACK': (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      const controller = source.controller;
+      const opponent = controller.opponent;
+      const { Draw } = require('../../../actions/draw');
+      const drawAction = new Draw(source);
+      drawAction.trigger(source, opponent);
+    },
   },
 });
 
@@ -292,21 +299,52 @@ cardScriptsRegistry.register('EX1_379', {
 cardScriptsRegistry.register('EX1_379e', {
 });
 
-// CS2_097
+// CS2_097 - Truesilver Champion - Whenever your hero attacks, restore #3 Health to it
 cardScriptsRegistry.register('CS2_097', {
   events: {
-    // TODO: implement events
+    'ATTACK': (ctx: ActionContext) => {
+      const source = ctx.source as any;
+      // Check if the source is the hero
+      if (source.isHero) {
+        const { Heal } = require('../../../actions/heal');
+        const healAction = new Heal(source, 3);
+        healAction.trigger(source);
+      }
+    },
   },
 });
 
-// EX1_366
+// EX1_366 - Sword of Justice - After you summon a minion, it gets +1/+1 and this weapon loses 1 Durability
 cardScriptsRegistry.register('EX1_366', {
   events: {
-    // TODO: implement events
+    'MINION_SUMMON': (ctx: ActionContext) => {
+      const target = ctx.target;
+      if (target && (target as any).controller === (ctx.source as any).controller) {
+        // Give +1/+1 to the summoned minion
+        (target as any).atk = ((target as any).atk || 0) + 1;
+        (target as any).health = ((target as any).health || 0) + 1;
+        (target as any).maxHealth = ((target as any).maxHealth || 0) + 1;
+        // Lose 1 durability
+        const weapon = ((ctx.source as any).controller.weapon);
+        if (weapon) {
+          weapon.durability = (weapon.durability || 1) - 1;
+          if (weapon.durability <= 0) {
+            (weapon as any).destroyed = true;
+          }
+        }
+      }
+    },
   },
 });
 
-// EX1_184
+// EX1_184 - Righteousness - Give your minions Divine Shield
 cardScriptsRegistry.register('EX1_184', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const field = controller.field || [];
+    for (const minion of field) {
+      (minion as any).divineShield = true;
+    }
+  },
 });

@@ -1,90 +1,102 @@
 // kobolds - neutral_legendary.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Summon, Damage, Draw, Heal } from '../../../actions';
 
-// LOOT_357
+// LOOT_357 - Shudderwraith
+// Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('LOOT_357', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// LOOT_357l
+// LOOT_357l - Shudderwraith buff
 cardScriptsRegistry.register('LOOT_357l', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    // Handled by game
   },
 });
 
-// LOOT_998h
+// LOOT_998h - The Lich King hero
 cardScriptsRegistry.register('LOOT_998h', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// LOOT_998j
+// LOOT_998j - Frostmourne
 cardScriptsRegistry.register('LOOT_998j', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// LOOT_998l
+// LOOT_998l - The Frozen Throne
 cardScriptsRegistry.register('LOOT_998l', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// LOOT_998le
+// LOOT_998le - Frostmourne buff
 cardScriptsRegistry.register('LOOT_998le', {
   events: {
-    // TODO: implement events
+    // Handled by game
   },
 });
 
-// LOOT_998k
+// LOOT_998k - Trap
 cardScriptsRegistry.register('LOOT_998k', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// LOOT_516
+// LOOT_516 - Charged Devilsaur
+// Charge
 cardScriptsRegistry.register('LOOT_516', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// LOOT_521
+// LOOT_521 - Shudderwraith
+// Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('LOOT_521', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 
-// LOOT_526
+// LOOT_526 - Corrupted Healbot
+// Deathrattle: Restore 8 Health to your hero
 cardScriptsRegistry.register('LOOT_526', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source;
+    const controller = (source as any).controller;
+    // Restore 8 health to hero
+    if (controller?.hero) {
+      const { Heal } = require('../../../actions/heal');
+      const heal = new Heal(source, controller.hero, 8);
+      heal.trigger(source);
+    }
   },
 });
 
-// LOOT_526t
+// LOOT_526t - Corrupted Healbot deathrattle
 cardScriptsRegistry.register('LOOT_526t', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    // Handled by game
   },
 });
 

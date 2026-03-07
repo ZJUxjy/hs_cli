@@ -470,7 +470,17 @@ cardScriptsRegistry.register('EX1_194', {
   },
 });
 
-// EX1_197
+// EX1_197 - Shadow Word: Ruin - Destroy all minions with 5 or more Attack
 cardScriptsRegistry.register('EX1_197', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    const allMinions = [...(controller.field || []), ...(opponent.field || [])];
+    for (const minion of allMinions) {
+      if ((minion.atk || 0) >= 5) {
+        (minion as any).destroyed = true;
+      }
+    }
+  },
 });

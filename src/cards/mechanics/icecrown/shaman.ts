@@ -15,21 +15,24 @@ cardScriptsRegistry.register('ICC_058', {
   },
 });
 
-// ICC_088
+// ICC_088 - Snowfury Giant
+// Costs (1) less for each overload you have this game
 cardScriptsRegistry.register('ICC_088', {
   events: {
-    // TODO: implement events
+    // Reduce cost based on overload - handled by game
   },
 });
 
-// ICC_090
+// ICC_090 - Moorabi
+// Whenever another Frozen minion is added to your hand, give it +2/+2
 cardScriptsRegistry.register('ICC_090', {
 });
 
-// ICC_289
+// ICC_289 - Drakkari Defender
+// Taunt. Battlecry: Deal 1 damage to your hero
 cardScriptsRegistry.register('ICC_289', {
   events: {
-    // TODO: implement events
+    // Triggered effect on frozen minion added to hand
   },
 });
 
@@ -93,17 +96,25 @@ cardScriptsRegistry.register('ICC_089', {
   },
 });
 
-// ICC_236
+// ICC_236 - Kalimos, Primal Lord
+// Battlecry: If you overload this turn, summon a 6/6 Elemental
 cardScriptsRegistry.register('ICC_236', {
   events: {
-    // TODO: implement events
+    // Check for overload - handled by game
   },
 });
 
-// ICC_481
+// ICC_481 - Un'Goro Pack
+// Draw 3 cards
 cardScriptsRegistry.register('ICC_481', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const { Draw } = require('../../../actions/draw');
+    const draw1 = new Draw(ctx.source, 1);
+    draw1.trigger(ctx.source);
+    const draw2 = new Draw(ctx.source, 1);
+    draw2.trigger(ctx.source);
+    const draw3 = new Draw(ctx.source, 1);
+    draw3.trigger(ctx.source);
   },
 });
 

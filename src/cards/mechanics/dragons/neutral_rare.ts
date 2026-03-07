@@ -1,6 +1,7 @@
 // dragons - neutral_rare.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Draw, Damage, Heal, Give, Shuffle, Summon, Destroy, Morph } from '../../../actions';
 import type { Entity } from '../../../core/entity';
 
 // DRG_055 - Dragon Breeder (Rare)
@@ -115,7 +116,7 @@ cardScriptsRegistry.register('DRG_077', {
   },
 });
 
-// DRG_078
+// DRG_078 - Evasive Dragonling
+// Can't be targeted by spells or Hero Powers
 cardScriptsRegistry.register('DRG_078', {
-  events: { /* TODO */ },
 });

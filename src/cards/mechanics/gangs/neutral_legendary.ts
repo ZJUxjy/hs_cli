@@ -2,6 +2,7 @@
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
 import type { Entity } from '../../../core/entity';
+import { Buff, Damage, Draw, Heal, Summon, Give, Destroy } from '../../../actions';
 
 // CFM_341 - Patches the Pirate (Legendary)
 // Charge. Battlecry: If your deck contains no duplicates, add Patches to your hand
@@ -89,10 +90,18 @@ cardScriptsRegistry.register('CFM_672', {
 // Taunt. Battlecry: Destroy a random enemy minion
 cardScriptsRegistry.register('CFM_685', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // Destroy a random enemy minion
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    const enemyField = opponent.field || [];
+    if (enemyField.length > 0) {
+      const target = enemyField[Math.floor(Math.random() * enemyField.length)];
+      const destroy = new Destroy();
+      destroy.trigger(source, target);
+    }
   },
 });
 

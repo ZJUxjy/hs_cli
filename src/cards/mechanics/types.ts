@@ -30,13 +30,23 @@ export type EventType =
   | 'DRAW'
   | 'DISCARD'
   | 'ATTACK'
+  | 'AFTER_ATTACK'
+  | 'AFTER_MINION_PLAY'
   | 'SECRET_REVEALED'
   | 'SPELL_PLAY'
   | 'MINION_SUMMON'
   | 'HERO_POWER'
   | 'PLAY_CARD'
   | 'DRAW_CARD'
-  | 'HEAL';
+  | 'HEAL'
+  | 'INSPIRE'
+  | 'PLAY_SPELL'
+  | 'FREEZE'
+  | 'SILENCE'
+  | 'BOARD_DAMAGE'
+  | 'SUMMON'
+  | 'SPELL'
+  | 'ARMOR_GAIN';
 
 // Action context - passed to script functions
 export interface ActionContext {

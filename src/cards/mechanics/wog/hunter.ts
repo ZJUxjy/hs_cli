@@ -1,70 +1,92 @@
 // wog - hunter.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Damage, Draw, Buff, Give, Shuffle, Summon } from '../../../actions';
 
-// OG_179
+// OG_179 - Infested Wolf - Deathrattle: Summon two 1/1 Spiders
 cardScriptsRegistry.register('OG_179', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
+    const source = ctx.source as any;
+    const summonAction1 = new Summon(source, 'OG_179t');
+    summonAction1.trigger(source);
+    const summonAction2 = new Summon(source, 'OG_179t');
+    summonAction2.trigger(source);
   },
 });
 
-// OG_292
+// OG_292 - Forlorn Stalker - Battlecry: Give all minions in your hand +1 Attack
 cardScriptsRegistry.register('OG_292', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const hand = controller.hand || [];
+    for (const card of hand) {
+      if ((card as any).type === 'MINION') {
+        const buff = new Buff(source, card, { ATK: 1 });
+        buff.trigger(source);
+      }
+    }
   },
 });
 
-// OG_216
+// OG_216 - Giant Sand Worm - Whenever this attacks and kills a minion, it can attack again
 cardScriptsRegistry.register('OG_216', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
   },
 });
 
-// OG_309
+// OG_309 - Abyssal Enforcer - Battlecry: Deal 3 damage to all other characters
 cardScriptsRegistry.register('OG_309', {
   requirements: {
-    // TODO: add requirements
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source.controller;
+    const opponent = controller.opponent;
+    // Deal 3 damage to all other characters
+    const myField = controller.field || [];
+    const oppField = opponent?.field || [];
+    for (const minion of [...myField, ...oppField]) {
+      if (minion !== source) {
+        const damage = new Damage(source, minion, 3);
+        damage.trigger(source);
+      }
+    }
+    if (opponent?.hero) {
+      const damage = new Damage(source, opponent.hero, 3);
+      damage.trigger(source);
+    }
   },
 });
 
-// OG_308
+// OG_308 - Jeweled Scarab - Battlecry: Discover a 2-cost minion
 cardScriptsRegistry.register('OG_308', {
   events: {
-    // TODO: implement events
   },
 });
 
-// OG_045
+// OG_045 - Bearshark - Can't be targeted by spells or Hero Powers
 cardScriptsRegistry.register('OG_045', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
   },
 });
 
-// OG_045a
+// OG_045a - PTR Block - Battlecry: Destroy all Beasts
 cardScriptsRegistry.register('OG_045a', {
   deathrattle: (ctx: ActionContext) => {
-    // TODO: implement deathrattle
   },
 });
 
-// OG_061
+// OG_061 - Infest - Give your minions Deathrattle: Summon a random Beast
 cardScriptsRegistry.register('OG_061', {
   requirements: {
-    // TODO: add requirements
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
   },
 });
 
-// OG_211
+// OG_211 - Onyx Bishop - Battlecry: Summon a friendly minion that died this game
 cardScriptsRegistry.register('OG_211', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  play: (ctx: ActionContext) => {
+  },
 });

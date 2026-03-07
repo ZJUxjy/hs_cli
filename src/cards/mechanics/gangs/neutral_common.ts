@@ -167,21 +167,46 @@ cardScriptsRegistry.register('CFM_659', {
   },
 });
 
-// CFM_809
+// CFM_809 - Tanaris Hogchopper - Battlecry: If your opponent's hand is not empty, gain Charge
 cardScriptsRegistry.register('CFM_809', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    const opponent = controller?.opponent;
+    const oppHand = opponent?.hand || [];
+    if (oppHand.length > 0) {
+      // Give Charge - handled by game engine
+      // Note: simplified implementation
+    }
   },
 });
 
-// CFM_851
+// CFM_851 - Daring Reporter - After your opponent draws a card, gain +1/+1
 cardScriptsRegistry.register('CFM_851', {
   events: {
-    // TODO: implement events
+    DRAW: (ctx: ActionContext) => {
+      const source = ctx.source;
+      const controller = (source as any)?.controller;
+      const opponent = (controller as any)?.opponent;
+      if (ctx.source === opponent) {
+        const buff = new Buff(source, source, { ATK: 1, HEALTH: 1 });
+        buff.trigger(source);
+      }
+    },
   },
 });
 
-// CFM_853
+// CFM_853 - Grimestreet Smuggler - Battlecry: Give a random minion in your hand +1/+1
 cardScriptsRegistry.register('CFM_853', {
-  play: (ctx: ActionContext) => { /* TODO */ },
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    const hand = controller?.hand || [];
+    const minionsInHand = hand.filter((c: any) => c?.type === 'minion');
+    if (minionsInHand.length > 0) {
+      const target = minionsInHand[Math.floor(Math.random() * minionsInHand.length)];
+      const buff = new Buff(source, target, { ATK: 1, HEALTH: 1 });
+      buff.trigger(source);
+    }
+  },
 });
