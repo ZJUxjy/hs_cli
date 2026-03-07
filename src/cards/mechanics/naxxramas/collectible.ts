@@ -61,7 +61,7 @@ cardScriptsRegistry.register('FP1_005', {
       const source = ctx.source as Entity;
       const controller = (source as any).controller;
       if (controller?.isCurrentPlayer) {
-        const buff = new Buff(source, source, { ATK: 1, HP: 1 });
+        const buff = new Buff(source, source, { ATK: 1, HEALTH: 1 });
         buff.trigger(source);
       }
     },
@@ -143,7 +143,7 @@ cardScriptsRegistry.register('FP1_013', {
 cardScriptsRegistry.register('FP1_014', {
   deathrattle: (ctx: ActionContext) => {
     const source = ctx.source as Entity;
-    const controller = source.controller as any;
+    const controller = (source as any).controller as any;
     if (controller?.feugenDied && controller?.field?.length < 7) {
       const summon = new Summon(source, 'FP1_014t');
       summon.trigger(source);
@@ -156,7 +156,7 @@ cardScriptsRegistry.register('FP1_014', {
 cardScriptsRegistry.register('FP1_015', {
   deathrattle: (ctx: ActionContext) => {
     const source = ctx.source as Entity;
-    const controller = source.controller as any;
+    const controller = (source as any).controller as any;
     if (controller?.stalaggDied && controller?.field?.length < 7) {
       const summon = new Summon(source, 'FP1_014t');
       summon.trigger(source);
@@ -204,7 +204,7 @@ cardScriptsRegistry.register('FP1_023', {
     const friendlyMinions = controller?.field?.filter((m: any) => m !== source) || [];
     if (friendlyMinions.length > 0) {
       const target = friendlyMinions[Math.floor(Math.random() * friendlyMinions.length)];
-      const buff = new Buff(source, target, { HP: 3 });
+      const buff = new Buff(source, target, { HEALTH: 3 });
       buff.trigger(source);
     }
   },
@@ -246,7 +246,7 @@ cardScriptsRegistry.register('FP1_027', {
       const source = ctx.source as Entity;
       const controller = (source as any).controller;
       if (controller?.isCurrentPlayer) {
-        const heal = new Heal(source, source, source.health);
+        const heal = new Heal(source, source, (source as any).health);
         heal.trigger(source);
       }
     },
@@ -259,8 +259,8 @@ cardScriptsRegistry.register('FP1_028', {
     MINION_SUMMON: (ctx: ActionContext) => {
       const source = ctx.source as Entity;
       const controller = (source as any).controller;
-      if (ctx.event?.source?.controller === controller && ctx.event?.card !== source) {
-        if ((ctx.event.card as any).deathrattle) {
+      if (ctx.event && (ctx.event.source as any)?.controller === controller && ctx.event.source !== source) {
+        if ((ctx.event.source as any).deathrattle) {
           const buff = new Buff(source, source, { ATK: 1 });
           buff.trigger(source);
         }
@@ -339,9 +339,10 @@ cardScriptsRegistry.register('FP1_018', {
       const target = ctx.event?.target;
       // When friendly minion dies, add 2 copies to hand
       if (target && controller?.hand?.length < 9) {
-        const give1 = new Give(target.id);
+        const targetId = (target as any).id;
+        const give1 = new Give(targetId);
         give1.trigger(source, controller);
-        const give2 = new Give(target.id);
+        const give2 = new Give(targetId);
         give2.trigger(source, controller);
       }
     },
@@ -360,7 +361,7 @@ cardScriptsRegistry.register('FP1_020', {
         const otherMinions = controller.field.filter((m: any) => m !== source);
         if (otherMinions.length > 0) {
           const buffTarget = otherMinions[Math.floor(Math.random() * otherMinions.length)];
-          const buff = new Buff(source, buffTarget, { ATK: 3, HP: 2 });
+          const buff = new Buff(source, buffTarget, { ATK: 3, HEALTH: 2 });
           buff.trigger(source);
         }
       }

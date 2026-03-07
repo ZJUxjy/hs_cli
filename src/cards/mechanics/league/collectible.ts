@@ -214,7 +214,7 @@ cardScriptsRegistry.register('LOE_053', {
     AFTER_MINION_PLAY: (ctx: ActionContext) => {
       const source = ctx.source as Entity;
       const controller = (source as any).controller;
-      if (ctx.event?.source?.controller === controller) {
+      if ((ctx.event?.source as any)?.controller === controller) {
         // Battlecry - handled by game
       }
     },

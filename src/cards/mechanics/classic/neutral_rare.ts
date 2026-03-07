@@ -130,8 +130,8 @@ cardScriptsRegistry.register('EX1_080', {
 cardScriptsRegistry.register('EX1_085', {
   play: (ctx: ActionContext) => {
     if (ctx.target) {
-      const bounce = new Bounce(ctx.target);
-      bounce.trigger(ctx.source);
+      const bounce = new Bounce();
+      bounce.trigger(ctx.source, ctx.target);
     }
   },
 });
@@ -211,8 +211,8 @@ cardScriptsRegistry.register('EX1_584', {
     if (enemyMinions.length > 0) {
       const randomIndex = Math.floor(Math.random() * enemyMinions.length);
       const target = enemyMinions[randomIndex];
-      const destroy = new Destroy('EX1_584');
-      destroy.trigger(ctx.source);
+      const destroy = new Destroy();
+      destroy.trigger(ctx.source, target);
     }
   },
 });

@@ -227,7 +227,7 @@ cardScriptsRegistry.register('NAX8_03t', {
       const source = ctx.source as Entity;
       const controller = (source as any).controller;
       if (controller?.isCurrentPlayer) {
-        const buff = new Buff(source, source, { ATK: 1, HP: 1 });
+        const buff = new Buff(source, source, { ATK: 1, HEALTH: 1 });
         buff.trigger(source);
       }
     },
@@ -368,8 +368,8 @@ cardScriptsRegistry.register('NAX4_05', {
     const source = ctx.source as Entity;
     const target = ctx.target;
     if (target) {
-      const destroy = new Destroy(target);
-      destroy.trigger(source);
+      const destroy = new Destroy();
+      destroy.trigger(source, target);
     }
   },
 });
@@ -417,10 +417,10 @@ cardScriptsRegistry.register('NAX6_04', {
     const source = ctx.source as Entity;
     const target = ctx.target;
     if (target) {
-      const buff = new Buff(source, source, { ATK: 2, HP: 2 });
+      const buff = new Buff(source, source, { ATK: 2, HEALTH: 2 });
       buff.trigger(source);
-      const destroy = new Destroy(target);
-      destroy.trigger(source);
+      const destroy = new Destroy();
+      destroy.trigger(source, target);
     }
   },
 });

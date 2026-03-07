@@ -67,8 +67,8 @@ cardScriptsRegistry.register('GVG_050', {
       if ((minion as any).health < (minion as any).maxHealth) damagedCount++;
     }
     for (let i = 0; i < damagedCount; i++) {
-      const drawAction = new Draw();
-      drawAction.trigger(source, controller);
+      const drawAction = new Draw(source, 1);
+      drawAction.trigger(source);
     }
   },
 });

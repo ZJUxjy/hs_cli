@@ -11,7 +11,7 @@ cardScriptsRegistry.register('AT_070', {
 cardScriptsRegistry.register('AT_122', {
   requirements: {
     [PlayReq.REQ_MINION_TARGET]: 0,
-    [PlayReq.REQ_TARGET_WITH_RACE]: 15, // DEMON
+    [PlayReq.REQ_TARGET_IS_RACE]: 15, // DEMON
     [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {

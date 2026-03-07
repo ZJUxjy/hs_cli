@@ -62,6 +62,9 @@ export interface GameEvent {
   source?: Entity;
   target?: Entity;
   value?: number;
+  card?: Entity;
+  turnPlayer?: Player;
+  player?: Player;
 }
 
 // Script function type

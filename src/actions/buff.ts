@@ -8,6 +8,7 @@ export interface BuffActionParams {
   taunt?: boolean;
   divineShield?: boolean;
   stealth?: boolean;
+  immune?: boolean;
 }
 
 export class Buff extends Action {
@@ -54,6 +55,11 @@ export class Buff extends Action {
     // Apply stealth
     if (this.params.stealth) {
       targetAny.stealthed = true;
+    }
+
+    // Apply immune
+    if (this.params.immune) {
+      targetAny.immune = true;
     }
 
     return [target];

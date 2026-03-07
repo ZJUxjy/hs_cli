@@ -1,7 +1,7 @@
 // league - adventure.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
-import { Summon, Buff, Damage, Heal, Draw, Give, Destroy, Shuffle } from '../../../actions';
+import { Summon, Buff, Damage, Heal, Draw, Give, Destroy, Shuffle, Morph } from '../../../actions';
 import type { Entity } from '../../../core/entity';
 
 // LOEA02_02 - Djinn's Intuition - Draw a card, give opponent a random wish
@@ -126,7 +126,7 @@ cardScriptsRegistry.register('LOEA01_02h', {
       const source = ctx.source as Entity;
       const controller = (source as any).controller;
       const event = ctx.event;
-      if (event?.card?.cardId === 'LOEA01_11h') {
+      if ((event?.card as any)?.cardId === 'LOEA01_11h' && event?.card) {
         const buff = new Buff(source, event.card, { ATK: 3, HEALTH: 3 });
         buff.trigger(source);
       }
@@ -887,7 +887,7 @@ cardScriptsRegistry.register('LOEA16_19', {
         const field = controller?.field || [];
         if (field.length > 0) {
           const randomMinion = field[Math.floor(Math.random() * field.length)];
-          const buff = new Buff(source, randomMinion, { buff: 'LOEA16_20e' }); // immune buff
+          const buff = new Buff(source, randomMinion, { immune: true }); // immune buff
           buff.trigger(source);
         }
       }
@@ -917,8 +917,8 @@ cardScriptsRegistry.register('LOEA16_22', {
       const event = ctx.event;
       if (event?.turnPlayer === controller && opponent?.field && opponent.field.length > 0) {
         const randomMinion = opponent.field[Math.floor(Math.random() * opponent.field.length)];
-        const morph = new Morph();
-        morph.trigger(source, randomMinion, 'LOEA06_02t');
+        const morph = new Morph('LOEA06_02t');
+        morph.trigger(source, randomMinion);
       }
     },
   },
@@ -934,8 +934,8 @@ cardScriptsRegistry.register('LOEA16_22H', {
       const event = ctx.event;
       if (event?.turnPlayer === controller && opponent?.field && opponent.field.length > 0) {
         const randomMinion = opponent.field[Math.floor(Math.random() * opponent.field.length)];
-        const morph = new Morph();
-        morph.trigger(source, randomMinion, 'LOEA06_02t');
+        const morph = new Morph('LOEA06_02t');
+        morph.trigger(source, randomMinion);
       }
     },
   },

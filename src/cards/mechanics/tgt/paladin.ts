@@ -70,9 +70,9 @@ cardScriptsRegistry.register('AT_077', {
   play: (ctx: ActionContext) => {
     const source = ctx.source as any;
     const controller = source.controller;
-    const drawAction1 = new Draw();
-    drawAction1.trigger(source, controller);
-    const drawAction2 = new Draw();
-    drawAction2.trigger(source, controller);
+    const drawAction1 = new Draw(source);
+    drawAction1.trigger(source);
+    const drawAction2 = new Draw(source);
+    drawAction2.trigger(source);
   },
 });

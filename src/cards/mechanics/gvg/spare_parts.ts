@@ -29,7 +29,7 @@ cardScriptsRegistry.register('PART_002', {
     if (ctx.target) {
       const source = ctx.source as any;
       const controller = source.controller;
-      const cardId = ctx.target.id;
+      const cardId = (ctx.target as any).id;
       const giveAction = new Give(cardId);
       giveAction.trigger(source, controller);
     }
