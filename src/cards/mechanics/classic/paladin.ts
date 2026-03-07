@@ -201,37 +201,70 @@ cardScriptsRegistry.register('EX1_363e2', {
   },
 });
 
-// EX1_365
+// EX1_365 - Holy Wrath - Deal 5 damage. Draw a card
 cardScriptsRegistry.register('EX1_365', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(5);
+      damageAction.trigger(ctx.source, ctx.target);
+    }
+    const { Draw } = require('../../../actions/draw');
+    const drawAction = new Draw(ctx.source);
+    drawAction.trigger(ctx.source);
   },
 });
 
-// EX1_371
+// EX1_371 - Hand of Protection - Give a minion Divine Shield
 cardScriptsRegistry.register('EX1_371', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    if (ctx.target) {
+      const target = ctx.target as any;
+      target.divineShield = true;
+    }
   },
 });
 
-// EX1_384
+// EX1_384 - Avenging Wrath - Deal 6 damage randomly split among enemy characters
 cardScriptsRegistry.register('EX1_384', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const targets: any[] = [...(opponent.field || [])];
+    if (opponent.hero) targets.push(opponent.hero);
+
+    // Deal 1 damage 6 times randomly
+    for (let i = 0; i < 6; i++) {
+      if (targets.length === 0) break;
+      const randomIndex = Math.floor(Math.random() * targets.length);
+      const target = targets[randomIndex];
+      const { Damage } = require('../../../actions/damage');
+      const damageAction = new Damage(1);
+      damageAction.trigger(ctx.source, target);
+      // Remove if destroyed
+      if ((target as any).destroyed) {
+        targets.splice(randomIndex, 1);
+      }
+    }
   },
 });
 
-// EX1_619
+// EX1_619 - Equality - Change the Health of all minions to 1
 cardScriptsRegistry.register('EX1_619', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const opponent = controller.opponent;
+    const allMinions = [...(controller.field || []), ...(opponent.field || [])];
+    for (const minion of allMinions) {
+      (minion as any).health = 1;
+      (minion as any).maxHealth = 1;
+    }
   },
 });
 
