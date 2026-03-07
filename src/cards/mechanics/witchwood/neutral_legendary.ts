@@ -79,6 +79,25 @@ cardScriptsRegistry.register('GIL_578', {
   },
 });
 
+// GIL_587 - Morgl the Oracle
+cardScriptsRegistry.register('GIL_587', {
+  play: (ctx: ActionContext) => {
+    // Battlecry: Discover a Murloc
+    const source = ctx.source as ScriptEntity;
+    const controller = source.controller;
+    if (controller && controller.hand && controller.hand.length < 10) {
+      // Simplified: add a random murloc card to hand
+      const murlocCards = [
+        'EX1_103', 'EX1_507', 'EX1_508', 'EX1_509', 'EX1_583', 'CS2_168',
+        'CS2_173', 'NEW1_017', 'EX1_103', 'EX1_507', 'EX1_509',
+      ];
+      const randomMurloc = murlocCards[Math.floor(Math.random() * murlocCards.length)];
+      const cardRef: CardReference = { id: randomMurloc };
+      controller.hand.push(cardRef as any);
+    }
+  },
+});
+
 // GIL_620 - Nightmare
 cardScriptsRegistry.register('GIL_620', {
   events: {

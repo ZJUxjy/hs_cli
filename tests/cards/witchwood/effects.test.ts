@@ -41,10 +41,10 @@ describe('Witchwood - Core Card Effects', () => {
     });
   });
 
-  // GIL_553 - Vex Crow (Epic)
-  describe('GIL_553 Vex Crow', () => {
+  // GIL_664 - Vex Crow (Epic)
+  describe('GIL_664 Vex Crow', () => {
     test('should be registered with battlecry effect', () => {
-      const script = cardScriptsRegistry.get('GIL_553');
+      const script = cardScriptsRegistry.get('GIL_664');
       expect(script).toBeDefined();
       expect(script?.play).toBeDefined();
     });

@@ -89,6 +89,7 @@ cardScriptsRegistry.register('CS2_023', {
 
 // CS2_024 - Frost Nova - Freeze all enemy minions
 cardScriptsRegistry.register('CS2_024', {
+  requirements: {},
   play: (ctx: ActionContext) => {
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
@@ -129,10 +130,16 @@ cardScriptsRegistry.register('CS2_026', {
 
 // CS2_027 - Mirror Entity - Secret: When your opponent plays a minion, summon a copy of it
 cardScriptsRegistry.register('CS2_027', {
+  play: (ctx: ActionContext) => {
+    // Secret effect: handled by game logic when opponent plays a minion
+  },
 });
 
 // CS2_028 - Ice Block - Secret: When your hero takes lethal damage, prevent it
 cardScriptsRegistry.register('CS2_028', {
+  play: (ctx: ActionContext) => {
+    // Secret effect: handled by game logic when hero takes lethal damage
+  },
 });
 
 // CS2_029 - Vaporize - Secret: When your opponent plays a minion, destroy it
@@ -199,6 +206,9 @@ cardScriptsRegistry.register('EX1_277', {
 
 // EX1_279 - Blizzard - Deal 2 damage to all enemy minions and Freeze them
 cardScriptsRegistry.register('EX1_279', {
+  requirements: {
+    [PlayReq.REQ_MINIMUM_ENEMY_MINIONS]: 1,
+  },
   play: (ctx: ActionContext) => {
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
