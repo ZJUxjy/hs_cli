@@ -6,7 +6,7 @@ import { PlayReq } from '../../../enums/playreq';
 cardScriptsRegistry.register('EX1_398', {
   play: (ctx: ActionContext) => {
     // Summon a 4/2 weapon
-    const { Summon } = require('../actions/summon');
+    const { Summon } = require('../../../actions/summon');
     const summonAction = new Summon('EX1_398t');
     summonAction.trigger(ctx.source);
   },
@@ -47,7 +47,7 @@ cardScriptsRegistry.register('EX1_603', {
       const target1 = enemyMinions[idx1];
       const target2 = enemyMinions[idx2];
 
-      const { Damage } = require('../actions/damage');
+      const { Damage } = require('../../../actions/damage');
       const damage1 = new Damage(4);
       damage1.trigger(ctx.source, target1);
       const damage2 = new Damage(4);
@@ -99,7 +99,7 @@ cardScriptsRegistry.register('CS2_104', {
   },
   play: (ctx: ActionContext) => {
     // Deal 4 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(4);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -114,7 +114,7 @@ cardScriptsRegistry.register('CS2_105', {
     // Deal 1 damage for each armor
     const controller = (ctx.source as any).controller;
     const armor = controller.hero?.armor || 0;
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(armor);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -127,7 +127,7 @@ cardScriptsRegistry.register('CS2_108', {
   },
   play: (ctx: ActionContext) => {
     // Give target +2 Attack and Charge
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('CS2_108e', { ATK: 2 });
     buffAction.trigger(ctx.source, ctx.target!);
   },

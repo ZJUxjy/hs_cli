@@ -11,7 +11,7 @@ cardScriptsRegistry.register('EX1_165', {
 cardScriptsRegistry.register('EX1_165a', {
   play: (ctx: ActionContext) => {
     // Transform into 7/6 cat with Charge
-    const { Morph } = require('../actions/morph');
+    const { Morph } = require('../../../actions/morph');
     const morphAction = new Morph('EX1_165t1');
     morphAction.trigger(ctx.source, ctx.source);
   },
@@ -24,7 +24,7 @@ cardScriptsRegistry.register('EX1_165b', {
   },
   play: (ctx: ActionContext) => {
     // Transform into 4/9 bear with Taunt
-    const { Morph } = require('../actions/morph');
+    const { Morph } = require('../../../actions/morph');
     const morphAction = new Morph('EX1_165t2');
     morphAction.trigger(ctx.source, ctx.source);
   },
@@ -39,7 +39,7 @@ cardScriptsRegistry.register('EX1_166', {
 cardScriptsRegistry.register('EX1_166a', {
   play: (ctx: ActionContext) => {
     // Transform into 7/6 flame
-    const { Morph } = require('../actions/morph');
+    const { Morph } = require('../../../actions/morph');
     const morphAction = new Morph('EX1_166t');
     morphAction.trigger(ctx.source, ctx.source);
   },
@@ -52,7 +52,7 @@ cardScriptsRegistry.register('EX1_166b', {
   },
   play: (ctx: ActionContext) => {
     // Transform into 7/6 flame
-    const { Morph } = require('../actions/morph');
+    const { Morph } = require('../../../actions/morph');
     const morphAction = new Morph('EX1_166t');
     morphAction.trigger(ctx.source, ctx.source);
   },
@@ -66,7 +66,7 @@ cardScriptsRegistry.register('EX1_178', {
 // EX1_178a - Fury Tiger's (+4 Attack)
 cardScriptsRegistry.register('EX1_178a', {
   play: (ctx: ActionContext) => {
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_178e', { ATK: 4 });
     buffAction.trigger(ctx.source, ctx.source);
   },
@@ -75,7 +75,7 @@ cardScriptsRegistry.register('EX1_178a', {
 // EX1_178b - Strengthen (WOTOG) (+4 Health)
 cardScriptsRegistry.register('EX1_178b', {
   play: (ctx: ActionContext) => {
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_178e2', { HEALTH: 4 });
     buffAction.trigger(ctx.source, ctx.source);
   },
@@ -89,7 +89,7 @@ cardScriptsRegistry.register('EX1_573', {
 // EX1_573a - Ancient of War (WOTOG)
 cardScriptsRegistry.register('EX1_573a', {
   play: (ctx: ActionContext) => {
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_573ae', { HEALTH: 5, ATK: 5 });
     buffAction.trigger(ctx.source, ctx.source);
   },
@@ -101,11 +101,11 @@ cardScriptsRegistry.register('EX1_573b', {
     [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_573be', { HEALTH: 5 });
     buffAction.trigger(ctx.source, ctx.source);
     // Restore 5 Health to target
-    const { Heal } = require('../actions/heal');
+    const { Heal } = require('../../../actions/heal');
     const healAction = new Heal(5);
     healAction.trigger(ctx.source, ctx.target!);
   },
@@ -117,7 +117,7 @@ cardScriptsRegistry.register('NEW1_008', {
     [PlayReq.REQ_MINION_TARGET]: 0,
   },
   play: (ctx: ActionContext) => {
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('NEW1_008e', { HEALTH: 2 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -127,7 +127,7 @@ cardScriptsRegistry.register('NEW1_008', {
 cardScriptsRegistry.register('NEW1_008a', {
   play: (ctx: ActionContext) => {
     // Grant Taunt to target
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('CS2_101e', { TAUNT: 1 });
     buffAction.trigger(ctx.source, ctx.source);
   },
@@ -140,7 +140,7 @@ cardScriptsRegistry.register('NEW1_008b', {
   },
   play: (ctx: ActionContext) => {
     // Grant Taunt to target
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('CS2_101e', { TAUNT: 1 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -155,7 +155,7 @@ cardScriptsRegistry.register('CS2_005', {
       controller.hero.armor = (controller.hero.armor || 0) + 2;
     }
     // Deal 2 damage to the enemy hero
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(2);
     const opponent = controller.opponent;
     damageAction.trigger(ctx.source, opponent.hero);
@@ -169,7 +169,7 @@ cardScriptsRegistry.register('CS2_007', {
   },
   play: (ctx: ActionContext) => {
     // Restore 8 Health to target
-    const { Heal } = require('../actions/heal');
+    const { Heal } = require('../../../actions/heal');
     const healAction = new Heal(8);
     healAction.trigger(ctx.source, ctx.target!);
   },
@@ -182,7 +182,7 @@ cardScriptsRegistry.register('CS2_008', {
   },
   play: (ctx: ActionContext) => {
     // Deal 2 damage to target
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(2);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -195,7 +195,7 @@ cardScriptsRegistry.register('CS2_009', {
   },
   play: (ctx: ActionContext) => {
     // Give Taunt and +2/+3 to target minion
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('CS2_009e', { ATK: 2, HEALTH: 3, TAUNT: 1 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -210,7 +210,7 @@ cardScriptsRegistry.register('CS2_011', {
     // Deal damage equal to Attack to target
     const target = ctx.target as any;
     const attack = target.attack || 0;
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(attack);
     damageAction.trigger(ctx.source, target);
   },
@@ -227,7 +227,7 @@ cardScriptsRegistry.register('CS2_012', {
     const opponent = controller.opponent;
 
     // Deal 4 damage to enemy hero
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damage4 = new Damage(4);
     damage4.trigger(ctx.source, opponent.hero);
 
@@ -247,7 +247,7 @@ cardScriptsRegistry.register('CS2_013', {
   },
   play: (ctx: ActionContext) => {
     // Deal 5 damage to target
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(5);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -273,7 +273,7 @@ cardScriptsRegistry.register('EX1_154a', {
   },
   play: (ctx: ActionContext) => {
     // Give target Taunt
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('CS2_101e', { TAUNT: 1 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -283,7 +283,7 @@ cardScriptsRegistry.register('EX1_154a', {
 cardScriptsRegistry.register('EX1_154b', {
   play: (ctx: ActionContext) => {
     // Gain +2 Attack this turn
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_154be', { ATK: 2 });
     buffAction.trigger(ctx.source, ctx.source);
   },
@@ -301,7 +301,7 @@ cardScriptsRegistry.register('EX1_155a', {
   },
   play: (ctx: ActionContext) => {
     // Give target +2/+1
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_155ae', { ATK: 2, HEALTH: 1 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -314,7 +314,7 @@ cardScriptsRegistry.register('EX1_155b', {
     const controller = (ctx.source as any).controller;
     const friendlyMinions = (controller.field || []).filter((m: any) => m !== ctx.source);
     for (const minion of friendlyMinions) {
-      const { Buff } = require('../actions/buff');
+      const { Buff } = require('../../../actions/buff');
       const buffAction = new Buff('EX1_155be', { ATK: 2, HEALTH: 1 });
       buffAction.trigger(ctx.source, minion);
     }
@@ -328,7 +328,7 @@ cardScriptsRegistry.register('EX1_158', {
     const controller = (ctx.source as any).controller;
     const friendlyMinions = controller.field || [];
     for (const minion of friendlyMinions) {
-      const { Buff } = require('../actions/buff');
+      const { Buff } = require('../../../actions/buff');
       const buffAction = new Buff('EX1_158e');
       buffAction.trigger(ctx.source, minion);
     }
@@ -339,7 +339,7 @@ cardScriptsRegistry.register('EX1_158', {
 cardScriptsRegistry.register('EX1_158e', {
   deathrattle: (ctx: ActionContext) => {
     // Summon a 2/2 Sapling
-    const { Summon } = require('../actions/summon');
+    const { Summon } = require('../../../actions/summon');
     const summonAction = new Summon('EX1_158t');
     summonAction.trigger(ctx.source);
   },
@@ -357,7 +357,7 @@ cardScriptsRegistry.register('EX1_160a', {
   },
   play: (ctx: ActionContext) => {
     // Give target +5/+5
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_160ae', { ATK: 5, HEALTH: 5 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -367,7 +367,7 @@ cardScriptsRegistry.register('EX1_160a', {
 cardScriptsRegistry.register('EX1_160b', {
   play: (ctx: ActionContext) => {
     // Gain +5 Attack
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_160be', { ATK: 5 });
     buffAction.trigger(ctx.source, ctx.source);
   },
@@ -388,7 +388,7 @@ cardScriptsRegistry.register('EX1_161a', {
   },
   play: (ctx: ActionContext) => {
     // Deal 2 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(2);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -421,7 +421,7 @@ cardScriptsRegistry.register('EX1_164', {
 cardScriptsRegistry.register('EX1_164a', {
   play: (ctx: ActionContext) => {
     // Deal 2 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(2);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -431,7 +431,7 @@ cardScriptsRegistry.register('EX1_164a', {
 cardScriptsRegistry.register('EX1_164b', {
   play: (ctx: ActionContext) => {
     // Deal 2 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(2);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -441,7 +441,7 @@ cardScriptsRegistry.register('EX1_164b', {
 cardScriptsRegistry.register('EX1_169', {
   play: (ctx: ActionContext) => {
     // Summon two 2/2 Treants
-    const { Summon } = require('../actions/summon');
+    const { Summon } = require('../../../actions/summon');
     const summonAction1 = new Summon('EX1_169t');
     summonAction1.trigger(ctx.source);
     const summonAction2 = new Summon('EX1_169t');
@@ -464,7 +464,7 @@ cardScriptsRegistry.register('EX1_173a', {
   },
   play: (ctx: ActionContext) => {
     // Deal 5 damage to a minion
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(5);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -478,7 +478,7 @@ cardScriptsRegistry.register('EX1_173b', {
     const opponent = controller.opponent;
     const enemyMinions = opponent.field || [];
     for (const minion of enemyMinions) {
-      const { Damage } = require('../actions/damage');
+      const { Damage } = require('../../../actions/damage');
       const damageAction = new Damage(2);
       damageAction.trigger(ctx.source, minion);
     }
@@ -494,7 +494,7 @@ cardScriptsRegistry.register('EX1_570', {
       controller.hero.armor = (controller.hero.armor || 0) + 4;
     }
     // Gain 4 Attack this turn
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_570e', { ATK: 4 });
     buffAction.trigger(ctx.source, ctx.source);
   },
@@ -507,7 +507,7 @@ cardScriptsRegistry.register('EX1_571', {
   },
   play: (ctx: ActionContext) => {
     // Summon 2/2 Treants with Taunt
-    const { Summon } = require('../actions/summon');
+    const { Summon } = require('../../../actions/summon');
     const summonAction = new Summon('EX1_571t');
     summonAction.trigger(ctx.source);
   },
@@ -522,7 +522,7 @@ cardScriptsRegistry.register('EX1_578', {
 cardScriptsRegistry.register('EX1_578a', {
   play: (ctx: ActionContext) => {
     // Transform into 2/3 spider
-    const { Morph } = require('../actions/morph');
+    const { Morph } = require('../../../actions/morph');
     const morphAction = new Morph('EX1_578t');
     morphAction.trigger(ctx.source, ctx.source);
   },
@@ -535,7 +535,7 @@ cardScriptsRegistry.register('EX1_578b', {
   },
   play: (ctx: ActionContext) => {
     // Transform target into 1/1 spider
-    const { Morph } = require('../actions/morph');
+    const { Morph } = require('../../../actions/morph');
     const morphAction = new Morph('EX1_578t2');
     morphAction.trigger(ctx.source, ctx.target!);
   },
@@ -550,7 +550,7 @@ cardScriptsRegistry.register('NEW1_007', {
 cardScriptsRegistry.register('NEW1_007a', {
   play: (ctx: ActionContext) => {
     // Gain +5 Health and Taunt
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('NEW1_007ae', { HEALTH: 5, TAUNT: 1 });
     buffAction.trigger(ctx.source, ctx.source);
   },
@@ -563,7 +563,7 @@ cardScriptsRegistry.register('NEW1_007b', {
   },
   play: (ctx: ActionContext) => {
     // Transform into 5/4 with Rush
-    const { Morph } = require('../actions/morph');
+    const { Morph } = require('../../../actions/morph');
     const morphAction = new Morph('NEW1_007t');
     morphAction.trigger(ctx.source, ctx.target!);
   },
@@ -576,7 +576,7 @@ cardScriptsRegistry.register('EX1_183', {
   },
   play: (ctx: ActionContext) => {
     // Give target minion +2/+8 and Taunt
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_183e', { ATK: 2, HEALTH: 8, TAUNT: 1 });
     buffAction.trigger(ctx.source, ctx.target!);
   },

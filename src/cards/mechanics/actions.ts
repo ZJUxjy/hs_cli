@@ -23,7 +23,7 @@ export function dealDamage(amount: number | ((ctx: ActionContext) => number)): S
     const damage = typeof amount === 'function' ? amount(context) : amount;
     if (context.target) {
       // Call damage action from actions module
-      const { Damage } = require('../actions/damage');
+      const { Damage } = require('../../actions/damage');
       const damageAction = new Damage(damage);
       damageAction.trigger(context.source, context.target);
     }
@@ -35,7 +35,7 @@ export function heal(amount: number | ((ctx: ActionContext) => number)): ScriptF
   return (context: ActionContext) => {
     const healAmount = typeof amount === 'function' ? amount(context) : amount;
     if (context.target) {
-      const { Heal } = require('../actions/heal');
+      const { Heal } = require('../../actions/heal');
       const healAction = new Heal(healAmount);
       healAction.trigger(context.source, context.target);
     }
@@ -45,7 +45,7 @@ export function heal(amount: number | ((ctx: ActionContext) => number)): ScriptF
 // Helper for drawing cards
 export function drawCard(cardId?: string): ScriptFunction {
   return (context: ActionContext) => {
-    const { Draw } = require('../actions/draw');
+    const { Draw } = require('../../actions/draw');
     const drawAction = new Draw(context.source, 1, cardId as any);
     drawAction.trigger(context.source);
   };
@@ -54,7 +54,7 @@ export function drawCard(cardId?: string): ScriptFunction {
 // Helper for summoning minions
 export function summonMinion(cardId: string): ScriptFunction {
   return (context: ActionContext) => {
-    const { Summon } = require('../actions/summon');
+    const { Summon } = require('../../actions/summon');
     const summonAction = new Summon(cardId);
     summonAction.trigger(context.source);
   };
@@ -74,7 +74,7 @@ export function destroy(target: Entity | ((ctx: ActionContext) => Entity | null)
 // Helper for adding buffs
 export function addBuff(buffId: string, attackBonus: number = 0, healthBonus: number = 0): ScriptFunction {
   return (context: ActionContext) => {
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../actions/buff');
     const buffAction = new Buff(buffId, { ATK: attackBonus, HEALTH: healthBonus });
     buffAction.trigger(context.source, context.target || context.source);
   };
@@ -94,7 +94,7 @@ export function morph(cardId: string): ScriptFunction {
   return (context: ActionContext) => {
     if (context.target) {
       // Transform target into new minion
-      const { Morph } = require('../actions/morph');
+      const { Morph } = require('../../actions/morph');
       const morphAction = new Morph(cardId);
       morphAction.trigger(context.source, context.target);
     }
@@ -106,7 +106,7 @@ export function giveOpponent(cardId: string): ScriptFunction {
   return (context: ActionContext) => {
     const controller = (context.source as any).controller;
     const opponent = controller.opponent;
-    const { Give } = require('../actions/give');
+    const { Give } = require('../../actions/give');
     const giveAction = new Give(cardId);
     giveAction.trigger(context.source, opponent);
   };
@@ -115,7 +115,7 @@ export function giveOpponent(cardId: string): ScriptFunction {
 // Shuffle into deck
 export function shuffleIntoDeck(cardId: string): ScriptFunction {
   return (context: ActionContext) => {
-    const { Shuffle } = require('../actions/shuffle');
+    const { Shuffle } = require('../../actions/shuffle');
     const shuffleAction = new Shuffle(cardId);
     shuffleAction.trigger(context.source);
   };

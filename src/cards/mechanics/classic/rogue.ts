@@ -13,7 +13,7 @@ cardScriptsRegistry.register('EX1_134', {
   },
   play: (ctx: ActionContext) => {
     // Deal 4 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(4);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -25,7 +25,7 @@ cardScriptsRegistry.register('EX1_613', {
     // Deal 3 damage to enemy hero
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(3);
     damageAction.trigger(ctx.source, opponent.hero);
   },
@@ -41,13 +41,13 @@ cardScriptsRegistry.register('NEW1_005', {
     // Deal 1 damage to enemy minions
     const enemyMinions = opponent.field || [];
     for (const minion of enemyMinions) {
-      const { Damage } = require('../actions/damage');
+      const { Damage } = require('../../../actions/damage');
       const damageAction = new Damage(1);
       damageAction.trigger(ctx.source, minion);
     }
 
     // Draw a card
-    const { Draw } = require('../actions/draw');
+    const { Draw } = require('../../../actions/draw');
     const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
   },
@@ -59,7 +59,7 @@ cardScriptsRegistry.register('NEW1_014', {
     // Deal 2 damage to enemy hero, return this to your hand next turn
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(2);
     damageAction.trigger(ctx.source, opponent.hero);
   },
@@ -76,12 +76,12 @@ cardScriptsRegistry.register('CS2_072', {
   },
   play: (ctx: ActionContext) => {
     // Deal 1 damage, draw a card
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(1);
     damageAction.trigger(ctx.source, ctx.target!);
 
     // Draw a card
-    const { Draw } = require('../actions/draw');
+    const { Draw } = require('../../../actions/draw');
     const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
   },
@@ -94,7 +94,7 @@ cardScriptsRegistry.register('CS2_073', {
   },
   play: (ctx: ActionContext) => {
     // Deal 1 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(1);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -107,7 +107,7 @@ cardScriptsRegistry.register('CS2_074', {
   },
   play: (ctx: ActionContext) => {
     // Deal 1 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(1);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -117,7 +117,7 @@ cardScriptsRegistry.register('CS2_074', {
 cardScriptsRegistry.register('CS2_075', {
   play: (ctx: ActionContext) => {
     // Draw 4 cards
-    const { Draw } = require('../actions/draw');
+    const { Draw } = require('../../../actions/draw');
     const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
     drawAction.trigger(ctx.source);
@@ -156,7 +156,7 @@ cardScriptsRegistry.register('CS2_077', {
     // Deal 2 damage to undamaged minion
     const target = ctx.target as any;
     if ((target.damage || 0) === 0) {
-      const { Damage } = require('../actions/damage');
+      const { Damage } = require('../../../actions/damage');
       const damageAction = new Damage(2);
       damageAction.trigger(ctx.source, target);
     }
@@ -188,7 +188,7 @@ cardScriptsRegistry.register('EX1_124', {
   },
   play: (ctx: ActionContext) => {
     // Deal 2 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(2);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -201,7 +201,7 @@ cardScriptsRegistry.register('EX1_126', {
   },
   play: (ctx: ActionContext) => {
     // Give target +2/+2
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_126e', { ATK: 2, HEALTH: 2 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -211,7 +211,7 @@ cardScriptsRegistry.register('EX1_126', {
 cardScriptsRegistry.register('EX1_128', {
   play: (ctx: ActionContext) => {
     // Draw a card
-    const { Draw } = require('../actions/draw');
+    const { Draw } = require('../../../actions/draw');
     const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
   },
@@ -228,7 +228,7 @@ cardScriptsRegistry.register('EX1_129', {
     const controller = (ctx.source as any).controller;
     const friendlyMinions = (controller.field || []).filter((m: any) => m !== ctx.source);
     for (const minion of friendlyMinions) {
-      const { Buff } = require('../actions/buff');
+      const { Buff } = require('../../../actions/buff');
       const buffAction = new Buff('EX1_129e', { ATK: 1, HEALTH: 1 });
       buffAction.trigger(ctx.source, minion);
     }

@@ -9,7 +9,7 @@ cardScriptsRegistry.register('CS2_088', {
   },
   play: (ctx: ActionContext) => {
     // Give +4/+4 to target minion
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('CS2_088e', { ATK: 4, HEALTH: 4 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -22,7 +22,7 @@ cardScriptsRegistry.register('EX1_362', {
   },
   play: (ctx: ActionContext) => {
     // Give +1/+2 to target minion
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_362e', { ATK: 1, HEALTH: 2 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -35,7 +35,7 @@ cardScriptsRegistry.register('EX1_382', {
   },
   play: (ctx: ActionContext) => {
     // Give Divine Shield to target minion
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_382e', { DIVINE_SHIELD: 1 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -64,7 +64,7 @@ cardScriptsRegistry.register('CS2_087', {
   },
   play: (ctx: ActionContext) => {
     // Restore 6 Health to target
-    const { Heal } = require('../actions/heal');
+    const { Heal } = require('../../../actions/heal');
     const healAction = new Heal(6);
     healAction.trigger(ctx.source, ctx.target!);
   },
@@ -77,7 +77,7 @@ cardScriptsRegistry.register('CS2_089', {
   },
   play: (ctx: ActionContext) => {
     // Deal 1 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(1);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -90,7 +90,7 @@ cardScriptsRegistry.register('CS2_092', {
   },
   play: (ctx: ActionContext) => {
     // Give +3 Attack to target minion
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('CS2_092e', { ATK: 3 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -104,7 +104,7 @@ cardScriptsRegistry.register('CS2_093', {
   play: (ctx: ActionContext) => {
     // Deal damage equal to card's cost
     const cardCost = (ctx.source as any).cost || 0;
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(cardCost);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -118,7 +118,7 @@ cardScriptsRegistry.register('CS2_094', {
     const opponent = controller.opponent;
 
     // Deal 2 damage to enemy hero
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageHero = new Damage(2);
     damageHero.trigger(ctx.source, opponent.hero);
 
@@ -138,7 +138,7 @@ cardScriptsRegistry.register('EX1_349', {
   },
   play: (ctx: ActionContext) => {
     // Deal 3 damage
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(3);
     damageAction.trigger(ctx.source, ctx.target!);
   },
@@ -151,7 +151,7 @@ cardScriptsRegistry.register('EX1_354', {
   },
   play: (ctx: ActionContext) => {
     // Give +4/+4 to target, but it loses Taunt
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_354e', { ATK: 4, HEALTH: 4 });
     buffAction.trigger(ctx.source, ctx.target!);
   },
@@ -164,7 +164,7 @@ cardScriptsRegistry.register('EX1_355', {
   },
   play: (ctx: ActionContext) => {
     // Give +4/+4 to target minion
-    const { Buff } = require('../actions/buff');
+    const { Buff } = require('../../../actions/buff');
     const buffAction = new Buff('EX1_355e', { ATK: 4, HEALTH: 4 });
     buffAction.trigger(ctx.source, ctx.target!);
   },

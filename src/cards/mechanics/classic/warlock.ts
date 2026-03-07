@@ -17,7 +17,7 @@ cardScriptsRegistry.register('CS2_064', {
     const opponent = controller.opponent;
 
     // Damage to enemy hero
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageHero = new Damage(3);
     damageHero.trigger(ctx.source, opponent.hero);
 
@@ -46,7 +46,7 @@ cardScriptsRegistry.register('EX1_301', {
   play: (ctx: ActionContext) => {
     // Put two random Demons from your deck into your hand
     // In this implementation, just draw cards
-    const { Draw } = require('../actions/draw');
+    const { Draw } = require('../../../actions/draw');
     const drawAction = new Draw(ctx.source, 1);
     drawAction.trigger(ctx.source);
     drawAction.trigger(ctx.source);
@@ -59,7 +59,7 @@ cardScriptsRegistry.register('EX1_304', {
     // Deal 3 damage to enemy hero
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(3);
     damageAction.trigger(ctx.source, opponent.hero);
   },
@@ -88,7 +88,7 @@ cardScriptsRegistry.register('EX1_310', {
   },
   play: (ctx: ActionContext) => {
     // Deal 4 damage, discard a random card
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
     const damageAction = new Damage(4);
     damageAction.trigger(ctx.source, ctx.target!);
 
@@ -114,7 +114,7 @@ cardScriptsRegistry.register('EX1_313', {
 
     // Heal hero
     const controller = (ctx.source as any).controller;
-    const { Heal } = require('../actions/heal');
+    const { Heal } = require('../../../actions/heal');
     const healAction = new Heal(3);
     healAction.trigger(ctx.source, controller.hero);
   },
@@ -144,7 +144,7 @@ cardScriptsRegistry.register('EX1_323', {
     const controller = (ctx.source as any).controller;
     const opponent = controller.opponent;
 
-    const { Damage } = require('../actions/damage');
+    const { Damage } = require('../../../actions/damage');
 
     // Damage to enemy hero
     const damageHero = new Damage(1);
