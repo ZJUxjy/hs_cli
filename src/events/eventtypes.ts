@@ -100,6 +100,12 @@ export enum GameEvent {
   // Misc
   IDLE = 'IDLE',
   BOARD_POSITION = 'BOARD_POSITION',
+
+  // Mechanic events
+  MAGNETIZE = 'MAGNETIZE',
+  AWAKEN = 'AWAKEN',
+  FRENZY = 'FRENZY',
+  HONORABLE_KILL = 'HONORABLE_KILL',
 }
 
 /**

@@ -291,6 +291,14 @@ export class Minion extends PlayableCard {
 
 export class Spell extends PlayableCard {
   // Spell logic
+
+  /**
+   * Called when the spell is played/cast
+   * Override this method to add custom spell behavior
+   */
+  onPlay(): void {
+    // Base implementation - can be overridden
+  }
 }
 
 export class Weapon extends PlayableCard {

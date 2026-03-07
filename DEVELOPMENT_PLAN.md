@@ -304,13 +304,237 @@ class TheMarshQueen {
 **目标**：实现复杂机制关键词
 
 **任务清单**：
-- [ ] `Recruit` - 从牌库召唤
-- [ ] `Tradeable` - 可交易
-- [ ] `Infuse` - 注能（X）
-- [ ] `Manathirst` - 渴望法力
-- [ ] `Combo` - 连击（已有标记，需完善逻辑）
-- [ ] `Outcast` - 流放
-- [ ] `Corrupt` - 腐蚀
+- [x] `Recruit` - 从牌库召唤
+- [x] `Tradeable` - 可交易
+- [x] `Infuse` - 注能（X）
+- [x] `Manathirst` - 渴望法力
+- [x] `Combo` - 连击（已有标记，需完善逻辑）
+- [x] `Outcast` - 流放
+- [x] `Corrupt` - 腐蚀
+
+---
+
+## 阶段3.5：扩展机制（P2）
+
+### 3.5.1 Twinspell (双生法术)
+
+**目标**：实现双生法术机制
+
+**任务清单**：
+- [ ] `Twinspell` 类继承自 `Spell`
+- [ ] 施法时复制法术到手牌（标记为已复制）
+- [ ] 复制的法术无法再复制
+- [ ] 支持法术计数（如任务进度）
+
+**验收标准**：
+```typescript
+// 双生法术：将一张该法术的复制置入你的手牌
+class TwinspellCard extends Spell {
+  twinspell = true;
+
+  play() {
+    super.play();
+    if (!this.twinspellTriggered) {
+      this.addTwinspellCopy();
+    }
+  }
+}
+```
+
+---
+
+### 3.5.2 Spellburst (法术迸发)
+
+**目标**：实现法术迸发机制
+
+**任务清单**：
+- [ ] `Spellburst` 触发器
+- [ ] 施法后检测有法术迸发的随从
+- [ ] 触发一次后失效（除非重新获得）
+- [ ] 与法术目标的联动
+
+**验收标准**：
+```typescript
+// 法术迸发：当你施放法术后，触发效果
+class SpellburstMinion extends Minion {
+  spellburst = true;
+
+  onSpellburst(spell: Spell) {
+    // 触发效果
+    this.buff(this, { ATK: 1 });
+    this.spellburst = false; // 消耗掉
+  }
+}
+```
+
+---
+
+### 3.5.3 Frenzy (暴怒)
+
+**目标**：实现暴怒机制
+
+**任务清单**：
+- [ ] `Frenzy` 触发器
+- [ ] 受伤但未死亡时触发
+- [ ] 每个随从只能触发一次
+- [ ] 与伤害结算的时机处理
+
+**验收标准**：
+```typescript
+// 暴怒：当该随从受到伤害并存活时，触发效果
+class FrenzyMinion extends Minion {
+  frenzy = () => new Damage(ENEMY_MINIONS, 1);
+
+  onDamageTaken(amount: number) {
+    super.onDamageTaken(amount);
+    if (this.frenzy && !this.frenzyTriggered && this.health > 0) {
+      this.frenzyTriggered = true;
+      this.frenzy().trigger(this);
+    }
+  }
+}
+```
+
+---
+
+### 3.5.4 Honorable Kill (荣誉消灭)
+
+**目标**：实现荣誉消灭机制
+
+**任务清单**：
+- [ ] 伤害结算时检测是否"恰好消灭"
+- [ ] 触发荣誉消灭效果
+- [ ] 支持攻击和法术两种来源
+- [ ] 与超杀的区分（Overkill已移除，Honorable Kill替代）
+
+**验收标准**：
+```typescript
+// 荣誉消灭：如果这张牌恰好消灭目标，触发效果
+class HonorableKillCard extends Card {
+  honorableKill = () => new Draw(SELF, 1);
+
+  onDamageDealt(target: Entity, amount: number) {
+    const targetHealth = (target as any).health;
+    if (amount === targetHealth && this.honorableKill) {
+      this.honorableKill().trigger(this);
+    }
+  }
+}
+```
+
+---
+
+### 3.5.5 Magnetic (磁力)
+
+**目标**：实现磁力机制
+
+**任务清单**：
+- [ ] `Magnetic` 关键词标记
+- [ ] 手牌中可指定合体目标
+- [ ] 合体时合并属性（攻击/生命）
+- [ ] 合体时合并关键词（嘲讽/圣盾等）
+- [ ] 合体后保留受伤状态
+- [ ] 磁力随从也可以独立召唤
+
+**验收标准**：
+```typescript
+// 磁力：可以合体到机械随从上
+class MagneticMinion extends Minion {
+  magnetic = true;
+  race = Race.MECH;
+
+  merge(target: Minion) {
+    // 合并攻击和生命
+    target._attack += this._attack;
+    target._maxHealth += this._maxHealth;
+    // 合并关键词
+    if (this.taunt) target.taunt = true;
+    if (this.divineShield) target.divineShield = true;
+    // ...
+  }
+}
+```
+
+---
+
+### 3.5.6 Dormant (休眠) 完善
+
+**目标**：完善休眠机制
+
+**任务清单**：
+- [x] `dormant` 状态标记（已存在）
+- [ ] `Awaken` 机制（唤醒条件）
+- [ ] 回合数唤醒（如"2回合后唤醒"）
+- [ ] 事件唤醒（如"当你施放法术后唤醒"）
+- [ ] 休眠时无法被选中/攻击
+- [ ] 唤醒时触发效果
+
+**验收标准**：
+```typescript
+// 休眠：无法行动，N回合后唤醒
+class DormantMinion extends Minion {
+  dormant = true;
+  awakenTurns = 2;
+
+  onTurnBegin() {
+    if (this.dormant) {
+      this.awakenTurns--;
+      if (this.awakenTurns <= 0) {
+        this.awaken();
+      }
+    }
+  }
+
+  awaken() {
+    this.dormant = false;
+    console.log(`${this.id} 已唤醒！`);
+    // 触发唤醒效果
+  }
+}
+```
+
+---
+
+### 3.5.7 Inspire (激励) 完善
+
+**目标**：完善激励机制
+
+**任务清单**：
+- [x] `HERO_POWER` 事件（已存在）
+- [ ] `Inspire` 触发器基类
+- [ ] 使用英雄技能后触发
+- [ ] 激励效果可以叠加
+- [ ] 与回合内多次使用的联动
+
+**验收标准**：
+```typescript
+// 激励：当你使用英雄技能时，触发效果
+class InspireMinion extends Minion {
+  inspire = () => new Buff(SELF, { ATK: 1 });
+
+  setupEvents() {
+    this.on(GameEvent.HERO_POWER, () => {
+      if (this.inspire) {
+        this.inspire().trigger(this);
+      }
+    });
+  }
+}
+```
+
+---
+
+### 3.5.8 优先级矩阵（扩展）
+
+| 功能 | 复杂度 | 影响 | 优先级 |
+|------|--------|------|--------|
+| Magnetic | 高 | 中 | P2 |
+| Spellburst | 中 | 中 | P2 |
+| Frenzy | 中 | 中 | P2 |
+| Honorable Kill | 中 | 低 | P2 |
+| Dormant完善 | 中 | 中 | P2 |
+| Inspire完善 | 低 | 低 | P2 |
+| Twinspell | 低 | 低 | P2 |
 
 ---
 

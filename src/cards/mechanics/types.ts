@@ -46,7 +46,12 @@ export type EventType =
   | 'BOARD_DAMAGE'
   | 'SUMMON'
   | 'SPELL'
-  | 'ARMOR_GAIN';
+  | 'ARMOR_GAIN'
+  | 'FRENZY'
+  | 'HONORABLE_KILL'
+  | 'MAGNETIZE'
+  | 'AWAKEN'
+  | 'DORMANT';
 
 // Action context - passed to script functions
 export interface ActionContext {
@@ -86,12 +91,24 @@ export interface CardScript {
   combo?: ScriptFunction;
   // Inspire - when hero power is used
   inspire?: ScriptFunction;
+  // Frenzy - when this minion takes damage and survives
+  frenzy?: ScriptFunction;
+  // Honorable Kill - when this minion exactly kills a target
+  honorableKill?: ScriptFunction;
   // Overload
   overload?: number;
   // Choose one - choices for choice cards
   choose?: string[];
   // Targeting requirements
   requirements?: Record<string, number>;
+  // Magnetic - can merge with Mech minions
+  magnetic?: boolean;
+  // Dormant - starts dormant with awaken condition
+  dormant?: {
+    turns?: number;
+    event?: EventType;
+    onAwaken?: ScriptFunction;
+  };
   // Additional properties
   [key: string]: unknown;
 }
