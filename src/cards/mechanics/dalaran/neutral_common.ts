@@ -1,15 +1,16 @@
 // dalaran - neutral_common.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Draw, Damage, Heal, Give, Shuffle, Summon, Destroy } from '../../../actions';
 
 // DAL_077 - Mana Addict (Rare)
 // After you cast a spell, gain +2 Attack this turn
 cardScriptsRegistry.register('DAL_077', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // After you cast a spell, gain +2 Attack this turn
+    // After you cast a spell, gain +2 Attack this turn - handled by game
   },
 });
 
@@ -17,10 +18,15 @@ cardScriptsRegistry.register('DAL_077', {
 // Battlecry: If you control a Secret, gain +1/+1
 cardScriptsRegistry.register('DAL_078', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // If you control a Secret, gain +1/+1
+    const controller = (ctx.source as any).controller;
+    const secrets = controller.secrets || [];
+    if (secrets.length > 0) {
+      const buff = new Buff(ctx.source, ctx.source, { ATK: 1, HEALTH: 1 });
+      buff.trigger(ctx.source);
+    }
   },
 });
 
@@ -28,7 +34,7 @@ cardScriptsRegistry.register('DAL_078', {
 // Battlecry: Trigger all friendly minions' Deathrattles
 cardScriptsRegistry.register('DAL_086', {
   play: (ctx: ActionContext) => {
-    // Trigger all friendly minions' Deathrattles
+    // Trigger all friendly minions' Deathrattles - handled by game
   },
 });
 
