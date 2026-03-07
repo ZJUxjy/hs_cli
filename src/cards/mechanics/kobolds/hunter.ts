@@ -9,17 +9,47 @@ cardScriptsRegistry.register('LOOT_078', {
   },
 });
 
-// LOOT_511
+// LOOT_511 - Kathrena Winterwisp - Battlecry and Deathrattle: Recruit a Beast
 cardScriptsRegistry.register('LOOT_511', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const deck = controller.deck || [];
+    const beasts = deck.filter((c: any) => (c as any).race === 'beast');
+
+    if (beasts.length > 0) {
+      const randomIndex = Math.floor(Math.random() * beasts.length);
+      const randomBeast = beasts[randomIndex];
+      const { Summon } = require('../../../actions/summon');
+      const summonAction = new Summon(randomBeast);
+      summonAction.trigger(ctx.source);
+    }
+  },
+  deathrattle: (ctx: ActionContext) => {
+    const controller = (ctx.source as any).controller;
+    const deck = controller.deck || [];
+    const beasts = deck.filter((c: any) => (c as any).race === 'beast');
+
+    if (beasts.length > 0) {
+      const randomIndex = Math.floor(Math.random() * beasts.length);
+      const randomBeast = beasts[randomIndex];
+      const { Summon } = require('../../../actions/summon');
+      const summonAction = new Summon(randomBeast);
+      summonAction.trigger(ctx.source);
+    }
   },
 });
 
-// LOOT_520
+// LOOT_520 - Seeping Oozeling - Battlecry: Gain the Deathrattle of a random minion in your deck
 cardScriptsRegistry.register('LOOT_520', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const controller = (ctx.source as any).controller;
+    const deck = controller.deck || [];
+    const minions = deck.filter((c: any) => c.type === 'minion');
+
+    if (minions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * minions.length);
+      // Copy deathrattle effect from random minion
+    }
   },
 });
 
