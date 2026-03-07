@@ -1,6 +1,7 @@
 // tgt - priest.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Give } from '../../../actions';
 
 // AT_011 - Spawn of Shadows - Inspire: Deal 4 damage to your hero
 cardScriptsRegistry.register('AT_011', {
@@ -49,7 +50,7 @@ cardScriptsRegistry.register('AT_013', {
     if (ctx.target) {
       const source = ctx.source as any;
       const controller = source.controller;
-      const cardId = ctx.target.id;
+      const cardId = (ctx.target as any).id;
       const giveAction = new Give(cardId);
       giveAction.trigger(source, controller);
     }

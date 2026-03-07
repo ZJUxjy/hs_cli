@@ -1,6 +1,7 @@
 // tgt - paladin.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Draw } from '../../../actions';
 
 // AT_075 - Warhorse Trainer - Your Silver Hand Recruits have +1/+1
 cardScriptsRegistry.register('AT_075', {

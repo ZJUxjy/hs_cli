@@ -1,6 +1,7 @@
 // tgt - warrior.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Damage, Buff } from '../../../actions';
 
 // AT_066 - Orgrimmar Aspirant - Inspire: Give your weapon +1 Attack
 cardScriptsRegistry.register('AT_066', {
@@ -16,7 +17,7 @@ cardScriptsRegistry.register('AT_067', {
 // AT_069 - Disarm - Destroy a weapon. Give the enemy hero +2 Armor
 cardScriptsRegistry.register('AT_069', {
   requirements: {
-    [PlayReq.REQ_WEAPON_TARGET]: 0,
+    [PlayReq.REQ_WEAPON_EQUIPPED]: 0,
     [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {

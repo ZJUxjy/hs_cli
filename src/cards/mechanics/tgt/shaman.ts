@@ -1,6 +1,7 @@
 // tgt - shaman.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Buff, Damage } from '../../../actions';
 
 // AT_046 - Totem Golem - Deathrattle: Summon a 1/1 Boulderfist
 cardScriptsRegistry.register('AT_046', {

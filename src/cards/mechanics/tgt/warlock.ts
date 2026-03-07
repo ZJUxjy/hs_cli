@@ -1,6 +1,7 @@
 // tgt - warlock.py
 import { cardScriptsRegistry, ActionContext } from '../../index';
 import { PlayReq } from '../../../enums/playreq';
+import { Give } from '../../../actions';
 
 // AT_019 - Dreadsteed - Deathrattle: Return to your hand
 cardScriptsRegistry.register('AT_019', {

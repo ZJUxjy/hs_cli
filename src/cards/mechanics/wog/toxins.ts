@@ -53,7 +53,7 @@ cardScriptsRegistry.register('OG_080de', {
   events: {
     TURN_END: (ctx: ActionContext) => {
       const source = ctx.source as any;
-      if (source.controller === ctx.source.controller) {
+      if (source.controller === (ctx.source as any).controller) {
         source.stealthed = false;
       }
     },

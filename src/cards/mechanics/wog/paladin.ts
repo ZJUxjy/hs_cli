@@ -90,11 +90,11 @@ cardScriptsRegistry.register('OG_222', {
     const field = controller.field || [];
     const idx = field.indexOf(source);
     if (idx > 0) {
-      const buff = new Buff(source, field[idx - 1], { TAUNT: 1 });
+      const buff = new Buff(source, field[idx - 1], { taunt: true });
       buff.trigger(source);
     }
     if (idx < field.length - 1) {
-      const buff = new Buff(source, field[idx + 1], { TAUNT: 1 });
+      const buff = new Buff(source, field[idx + 1], { taunt: true });
       buff.trigger(source);
     }
   },

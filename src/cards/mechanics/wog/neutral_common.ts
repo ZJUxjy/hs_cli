@@ -30,7 +30,7 @@ cardScriptsRegistry.register('OG_286', {
   events: {
     MINION_SUMMON: (ctx: ActionContext) => {
       const controller = (ctx.source as any).controller;
-      if (ctx.source.controller === controller) {
+      if ((ctx.source as any).controller === controller) {
         const buff = new Buff(ctx.source, ctx.source, { ATK: 1 });
         buff.trigger(ctx.source);
       }

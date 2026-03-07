@@ -101,7 +101,7 @@ cardScriptsRegistry.register('OG_276', {
 // OG_314 - Blood To Ichor - Deal $1 damage to a minion. If it survives, summon a 2/2 Slime.
 cardScriptsRegistry.register('OG_314', {
   requirements: {
-    [PlayReq.REQ_TARGET_TO_PLAY]: true,
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
     const source = ctx.source as any;
