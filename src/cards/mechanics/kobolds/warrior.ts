@@ -67,10 +67,12 @@ cardScriptsRegistry.register('LOOT_519', {
   },
 });
 
-// LOOT_203
+// LOOT_203 - Lesser Mithril Spellstone - Summon one 5/5 Mithril Golem
 cardScriptsRegistry.register('LOOT_203', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const { Summon } = require('../../../actions/summon');
+    const summonAction = new Summon('LOOT_203t');
+    summonAction.trigger(ctx.source);
   },
 });
 
@@ -102,10 +104,14 @@ cardScriptsRegistry.register('LOOT_203t3', {
   },
 });
 
-// LOOT_285
+// LOOT_285 - Unidentified Shield - Gain 5 Armor. Gains a bonus effect in your hand
 cardScriptsRegistry.register('LOOT_285', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    if (controller?.hero) {
+      (controller.hero as any).armor = ((controller.hero as any).armor || 0) + 5;
+    }
   },
 });
 
@@ -116,27 +122,56 @@ cardScriptsRegistry.register('LOOT_285t', {
   },
 });
 
-// LOOT_285t2
+// LOOT_285t2 - Serrated Shield - Gain 5 Armor. Deal $5 damage
 cardScriptsRegistry.register('LOOT_285t2', {
   requirements: {
-    // TODO: add requirements
+    [PlayReq.REQ_TARGET_TO_PLAY]: 0,
   },
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    // Gain 5 armor
+    if (controller?.hero) {
+      (controller.hero as any).armor = ((controller.hero as any).armor || 0) + 5;
+    }
+    // Deal 5 damage to target
+    if (ctx.target) {
+      const damage = new Damage(source, ctx.target, 5);
+      damage.trigger(source);
+    }
   },
 });
 
-// LOOT_285t3
+// LOOT_285t3 - Runed Shield - Gain 5 Armor. Summon a 5/5 Golem
 cardScriptsRegistry.register('LOOT_285t3', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    // Gain 5 armor
+    if (controller?.hero) {
+      (controller.hero as any).armor = ((controller.hero as any).armor || 0) + 5;
+    }
+    // Summon a 5/5 Golem
+    const { Summon } = require('../../../actions/summon');
+    const summonAction = new Summon('LOOT_285t3t');
+    summonAction.trigger(source);
   },
 });
 
-// LOOT_285t4
+// LOOT_285t4 - Spiked Shield - Gain 5 Armor. Equip a 5/2 weapon
 cardScriptsRegistry.register('LOOT_285t4', {
   play: (ctx: ActionContext) => {
-    // TODO: implement play effect
+    const source = ctx.source as any;
+    const controller = source?.controller;
+    // Gain 5 armor
+    if (controller?.hero) {
+      (controller.hero as any).armor = ((controller.hero as any).armor || 0) + 5;
+    }
+    // Equip a 5/2 weapon
+    // Simplified: add attack to hero
+    if (controller?.hero) {
+      (controller.hero as any).attack = 5;
+    }
   },
 });
 

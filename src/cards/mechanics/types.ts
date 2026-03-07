@@ -33,7 +33,10 @@ export type EventType =
   | 'SECRET_REVEALED'
   | 'SPELL_PLAY'
   | 'MINION_SUMMON'
-  | 'HERO_POWER';
+  | 'HERO_POWER'
+  | 'PLAY_CARD'
+  | 'DRAW_CARD'
+  | 'HEAL';
 
 // Action context - passed to script functions
 export interface ActionContext {
