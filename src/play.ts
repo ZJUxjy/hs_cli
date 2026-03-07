@@ -67,34 +67,34 @@ function showGameState(): void {
   console.log(`\n${player1.name} (${player1.firstPlayer ? 'First' : 'Second'})`);
   if (player1.hero) {
     const hero = player1.hero as any;
-    console.log(`  Hero: ${hero.id} - HP: ${hero.health - (hero.damage || 0)}/${hero.health}`);
+    console.log(`  Hero: ${hero.name} (${hero.id}) - HP: ${hero.health - (hero.damage || 0)}/${hero.health}`);
   }
   console.log(`  Deck: ${player1.deck.length} cards`);
   console.log(`  Hand: ${player1.hand.length} cards`);
   player1.hand.forEach((card, i) => {
-    console.log(`    [${i}] ${card.id} (Cost: ${card.cost})`);
+    console.log(`    [${i}] ${card.id} - ${card.name} (Cost: ${card.cost})`);
   });
   console.log(`  Field: ${player1.field.length} minions`);
   player1.field.forEach((minion, i) => {
     const m = minion as any;
-    console.log(`    [${i}] ${minion.id} ${m.attack}/${m.health - (m.damage || 0)}`);
+    console.log(`    [${i}] ${minion.id} - ${minion.name} ${m.attack}/${m.health - (m.damage || 0)}`);
   });
 
   // Show Player 2 info
   console.log(`\n${player2.name} (${player2.firstPlayer ? 'First' : 'Second'})`);
   if (player2.hero) {
     const hero = player2.hero as any;
-    console.log(`  Hero: ${hero.id} - HP: ${hero.health - (hero.damage || 0)}/${hero.health}`);
+    console.log(`  Hero: ${hero.name} (${hero.id}) - HP: ${hero.health - (hero.damage || 0)}/${hero.health}`);
   }
   console.log(`  Deck: ${player2.deck.length} cards`);
   console.log(`  Hand: ${player2.hand.length} cards`);
   player2.hand.forEach((card, i) => {
-    console.log(`    [${i}] ${card.id} (Cost: ${card.cost})`);
+    console.log(`    [${i}] ${card.id} - ${card.name} (Cost: ${card.cost})`);
   });
   console.log(`  Field: ${player2.field.length} minions`);
   player2.field.forEach((minion, i) => {
     const m = minion as any;
-    console.log(`    [${i}] ${minion.id} ${m.attack}/${m.health - (m.damage || 0)}`);
+    console.log(`    [${i}] ${minion.id} - ${minion.name} ${m.attack}/${m.health - (m.damage || 0)}`);
   });
 
   console.log('\n' + '='.repeat(50));
