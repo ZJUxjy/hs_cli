@@ -14,10 +14,10 @@ export default defineConfig({
     sourcemap: true,
   },
   server: {
+    host: '127.0.0.1',
     port: 3000,
     open: true,
   },
-  // Ensure TypeScript files are processed
   esbuild: {
     loader: 'tsx',
     include: /src\/.*\.[tj]sx?$/,

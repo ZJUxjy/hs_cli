@@ -71,6 +71,3 @@ Verification:
 - UI shows real game data from engine
 
 Next: Task 2.1 - 打通无目标出牌命令
-
-
-

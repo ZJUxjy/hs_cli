@@ -2,12 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createGameController, GameController } from '../engine-bridge';
 import type { UIGameState } from '../types';
 
-const App: React.FC = () => {
+export const App: React.FC = () => {
   const [controller] = useState<GameController>(() => createGameController());
   const [gameState, setGameState] = useState<UIGameState | null>(null);
 
   useEffect(() => {
-    // Subscribe to game state changes
     const unsubscribe = controller.subscribe(setGameState);
     return unsubscribe;
   }, [controller]);
@@ -28,7 +27,6 @@ const App: React.FC = () => {
     controller.dispatch({ type: 'PLAY_CARD', handIndex });
   }, [controller]);
 
-  // Don't render until we have game state
   if (!gameState) {
     return (
       <div className="loading">
@@ -56,7 +54,6 @@ const App: React.FC = () => {
         </div>
 
         <div className="board">
-          {/* Opponent Area */}
           <div className="opponent-area">
             <div className="player-info opponent-info">
               <span className="player-name">{opponent.name}</span>
@@ -90,7 +87,7 @@ const App: React.FC = () => {
               {opponent.field.length === 0 ? (
                 <p className="placeholder">No minions</p>
               ) : (
-                opponent.field.map((minion, i) => (
+                opponent.field.map((minion) => (
                   <div key={minion.uiId} className="minion opponent-minion">
                     <span className="minion-name">{minion.name}</span>
                     <div className="minion-stats">
@@ -105,13 +102,12 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Player Area */}
           <div className="player-area">
             <div className="field player-field">
               {localPlayer.field.length === 0 ? (
                 <p className="placeholder">No minions</p>
               ) : (
-                localPlayer.field.map((minion, i) => (
+                localPlayer.field.map((minion) => (
                   <div key={minion.uiId} className="minion player-minion">
                     <span className="minion-name">{minion.name}</span>
                     <div className="minion-stats">
@@ -186,7 +182,6 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Game Over Overlay */}
         {mode === 'game_over' && (
           <div className="game-over-overlay">
             <div className="game-over-content">
