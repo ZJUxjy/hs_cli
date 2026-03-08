@@ -13,6 +13,63 @@ import { serializeGameState } from './serializeGameState';
 import type { UIGameState, UICommand, CommandResult } from '../types';
 import { Play } from '../../actions/play';
 import { Attack } from '../../actions/attack';
+import { MAGE_DECK, WARRIOR_DECK, HEROES } from './decks';
+import { DEMO_CARDS, CARD_NAMES } from '../../cards/demoCards';
+import { I18n } from '../../i18n';
+
+// Track if cards are loaded
+let cardsLoaded = false;
+
+/**
+ * Initialize card loader - must be called before creating games
+ * Uses demo cards for fast loading
+ */
+export function initializeCardLoader(_xmlContent?: string): void {
+  if (cardsLoaded) {
+    console.log('[CardLoader] Already initialized');
+    return;
+  }
+
+  console.log('[CardLoader] Starting initialization...');
+
+  try {
+    // Set up I18n first
+    I18n.setLocale('enUS');
+
+    // Create locale data with card names
+    const localeData = {
+      locale: 'enUS' as const,
+      cardNames: { ...CARD_NAMES },
+      cardDescriptions: {} as Record<string, string>,
+      gameTexts: {} as Record<string, string>,
+      errorMessages: {} as Record<string, string>,
+      logMessages: {} as Record<string, string>,
+    };
+
+    I18n.loadLocale(localeData);
+    console.log(`[CardLoader] I18n loaded with ${Object.keys(CARD_NAMES).length} card names`);
+
+    // Load demo cards into CardLoader
+    console.log('[CardLoader] Loading demo cards...');
+    CardLoader.registerAll(DEMO_CARDS);
+
+    // Verify cards are loaded
+    const testCard = CardLoader.get('CS2_168');
+    console.log(`[CardLoader] Test card CS2_168:`, testCard ? `FOUND (${testCard.type})` : 'NOT FOUND');
+
+    cardsLoaded = true;
+    console.log(`[CardLoader] Initialization complete`);
+  } catch (error) {
+    console.error('[CardLoader] Failed to load cards:', error);
+  }
+}
+
+/**
+ * Check if cards are loaded
+ */
+export function areCardsLoaded(): boolean {
+  return cardsLoaded;
+}
 
 export interface GameController {
   /** Get the current game state as a UI snapshot */
@@ -50,17 +107,12 @@ interface GameControllerConfig {
   localPlayerId?: string;
 }
 
-const DEFAULT_DECK = [
-  'CS2_168', 'CS2_168', 'CS2_171', 'CS2_171', 'CS1_042', 'CS1_042',
-  'CS2_121', 'CS2_121', 'CS2_122', 'CS2_122', 'CS2_124', 'CS2_124',
-  'CS2_142', 'CS2_142', 'CS2_141', 'CS2_141', 'CS2_147', 'CS2_147',
-  'CS2_131', 'CS2_131', 'CS2_125', 'CS2_125', 'CS2_187', 'CS2_187',
-  'CS2_189', 'CS2_189', 'CS2_203', 'CS2_203', 'CS2_119', 'CS2_119',
-];
+const DEFAULT_DECK = MAGE_DECK;
+const DEFAULT_P2_DECK = WARRIOR_DECK;
 
 const DEFAULT_HEROES: Record<string, string> = {
-  'Player 1': 'HERO_08', // Jaina (Mage)
-  'Player 2': 'HERO_01', // Garrosh (Warrior)
+  'Jaina': HEROES.MAGE,
+  'Garrosh': HEROES.WARRIOR,
 };
 
 /**
@@ -68,11 +120,11 @@ const DEFAULT_HEROES: Record<string, string> = {
  */
 export function createGameController(config?: Partial<GameControllerConfig>): GameController {
   const player1Deck = config?.player1Deck || DEFAULT_DECK;
-  const player2Deck = config?.player2Deck || DEFAULT_DECK;
-  const player1Name = config?.player1Name || 'Player 1';
-  const player2Name = config?.player2Name || 'Player 2';
-  const player1Hero = config?.player1Hero || DEFAULT_HEROES[player1Name] || 'HERO_08';
-  const player2Hero = config?.player2Hero || DEFAULT_HEROES[player2Name] || 'HERO_01';
+  const player2Deck = config?.player2Deck || DEFAULT_P2_DECK;
+  const player1Name = config?.player1Name || 'Jaina';
+  const player2Name = config?.player2Name || 'Garrosh';
+  const player1Hero = config?.player1Hero || DEFAULT_HEROES[player1Name] || HEROES.MAGE;
+  const player2Hero = config?.player2Hero || DEFAULT_HEROES[player2Name] || HEROES.WARRIOR;
   const seed = config?.seed || Date.now();
   const localPlayerId = config?.localPlayerId || player1Name;
 
@@ -92,12 +144,20 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
   // Subscribers
   const subscribers = new Set<(state: UIGameState) => void>();
 
+  // Pending target state (for targeting UI)
+  let pendingTargetState: UIPendingTarget | undefined = undefined;
+
   // Notify all subscribers
   const notifySubscribers = () => {
     const state = serializeGameState(game, localPlayerId);
+    // Include pending target if set
+    const fullState = {
+      ...state,
+      pendingTarget: pendingTargetState,
+    };
     subscribers.forEach(listener => {
       try {
-        listener(state);
+        listener(fullState);
       } catch (error) {
         console.error('[GameController] Error in subscriber:', error);
       }
@@ -111,6 +171,7 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
    * Dispatch a UI command
    */
   const dispatch = (command: UICommand): CommandResult => {
+    console.log(`[GameController] Dispatch received: ${command.type}`);
     try {
       switch (command.type) {
         case 'PLAY_CARD':
@@ -148,42 +209,69 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
    * Handle PLAY_CARD command
    */
   const handlePlayCard = (command: { handIndex: number; targetId?: string }): CommandResult => {
+    console.log(`[GameController] handlePlayCard called - handIndex: ${command.handIndex}`);
     const currentPlayer = game.currentPlayer;
+    console.log(`[GameController] currentPlayer: ${currentPlayer?.name}, localPlayerId: ${localPlayerId}`);
+
     if (!currentPlayer) {
       return { success: false, error: 'No current player' };
     }
 
-    const card = currentPlayer.hand.at(command.handIndex);
+    const handArray = (currentPlayer.hand as any).toArray ? (currentPlayer.hand as any).toArray() : Array.from(currentPlayer.hand as any);
+    console.log(`[GameController] Hand size: ${handArray.length}`);
+
+    const card = handArray[command.handIndex];
     if (!card) {
       return { success: false, error: `No card at hand index ${command.handIndex}` };
     }
 
+    console.log(`[GameController] Card: ${card.name}, cost: ${card.cost}, zone: ${card.zone}`);
+    console.log(`[GameController] Player mana: ${currentPlayer.mana}/${currentPlayer.maxMana}`);
+
     // Check if card is playable
-    if (!card.isPlayable()) {
+    const isPlayable = card.isPlayable();
+    console.log(`[GameController] isPlayable: ${isPlayable}`);
+
+    if (!isPlayable) {
       return { success: false, error: 'Card is not playable' };
     }
 
-    // Check if card needs a target
-    const validTargets = card.getValidTargets();
-    const needsTarget = validTargets.length > 0;
+    // Check if card REQUIRES a target (has targeting requirements like REQ_TARGET_TO_PLAY)
+    const requirements = (card as any).requirements as Record<number, number> | undefined;
+    const hasTargetingRequirement = requirements && (
+      requirements[1] !== undefined ||  // REQ_TARGET_TO_PLAY = 1
+      requirements[22] !== undefined || // REQ_TARGET_IF_AVAILABLE = 22
+      requirements[67] !== undefined    // REQ_TARGET_FOR_COMBO = 67
+    );
 
-    if (needsTarget && !command.targetId) {
-      // Return pending target state
-      const state = serializeGameState(game, localPlayerId);
-      return {
-        success: false,
-        error: 'Card requires a target',
-        state: {
-          ...state,
-          pendingTarget: {
-            sourceCardId: card.id,
-            sourceCardUiId: `card_${card.uuid?.slice(0, 8)}_${command.handIndex}`,
-            validTargetIds: validTargets.map((t: any) => t.uuid || t.id),
-            prompt: `Select a target for ${card.name}`,
-          },
-        },
-      };
+    if (hasTargetingRequirement && !command.targetId) {
+      // Get valid targets for targeting UI
+      const validTargets = card.getValidTargets();
+
+      if (validTargets.length === 0) {
+        // Card requires target but none available - still allow playing (game will handle it)
+        console.log(`[GameController] Card requires target but none available`);
+      } else {
+        // Use short UUID prefix for matching (UI IDs are like "hero_abc123" or "minion_abc123_0")
+        const validTargetUuids = validTargets.map((t: any) => (t.uuid || t.id)?.slice(0, 8));
+
+        // Set pending target state and notify subscribers
+        pendingTargetState = {
+          sourceCardId: card.id,
+          sourceCardUiId: `card_${card.uuid?.slice(0, 8)}_${command.handIndex}`,
+          validTargetIds: validTargetUuids,
+          prompt: `Select a target for ${card.name}`,
+        };
+        notifySubscribers();
+        return {
+          success: false,
+          error: 'Card requires a target',
+        };
+      }
     }
+
+    // Clear pending target state
+    pendingTargetState = undefined;
 
     // Find target entity if specified
     let target: any = undefined;
@@ -227,9 +315,107 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
    * Handle END_TURN command
    */
   const handleEndTurn = (_command: {}): CommandResult => {
+    console.log(`[GameController] handleEndTurn called`);
+    console.log(`[GameController] Current player before endTurn: ${game.currentPlayer?.name}`);
+    console.log(`[GameController] localPlayerId: ${localPlayerId}`);
+
     game.endTurn();
     notifySubscribers();
+
+    // If it's now opponent's turn, run AI after a delay
+    const current = game.currentPlayer;
+    console.log(`[GameController] Current player after endTurn: ${current?.name}`);
+
+    if (current && current.name !== localPlayerId) {
+      console.log(`[AI] Scheduling AI for ${current.name} in 1500ms`);
+      setTimeout(() => {
+        console.log(`[AI] Timeout fired, running AI...`);
+        runOpponentAI();
+      }, 1500);
+    } else {
+      console.log(`[AI] Not scheduling AI - current: ${current?.name}, local: ${localPlayerId}`);
+    }
+
     return { success: true, state: serializeGameState(game, localPlayerId) };
+  };
+
+  /**
+   * Simple AI for opponent - plays cards and attacks
+   */
+  const runOpponentAI = () => {
+    const opponent = game.currentPlayer;
+    if (!opponent || opponent.name === localPlayerId) {
+      console.log(`[AI] Not opponent's turn, skipping`);
+      return;
+    }
+
+    console.log(`[AI] ${opponent.name}'s turn - thinking...`);
+    console.log(`[AI] Hand size: ${opponent.hand.length}, Field size: ${opponent.field.length}`);
+
+    let actionCount = 0;
+    const maxActions = 5; // Prevent infinite loops
+
+    const doNextAction = () => {
+      if (actionCount >= maxActions) {
+        console.log(`[AI] Max actions reached, ending turn`);
+        game.endTurn();
+        notifySubscribers();
+        return;
+      }
+
+      if (game.currentPlayer?.name !== opponent.name) {
+        console.log(`[AI] Turn changed, stopping AI`);
+        return;
+      }
+
+      // Try to play a card from hand
+      const handArray = (opponent.hand as any).toArray ? (opponent.hand as any).toArray() : Array.from(opponent.hand as any);
+      for (let i = 0; i < handArray.length; i++) {
+        const card = handArray[i];
+        if (card && typeof card.isPlayable === 'function' && card.isPlayable()) {
+          console.log(`[AI] Playing card: ${card.name || card.id}`);
+          try {
+            const playAction = new Play(opponent, card, undefined);
+            game.queueActions(opponent, [playAction]);
+            actionCount++;
+            notifySubscribers();
+            setTimeout(doNextAction, 1000);
+            return;
+          } catch (e) {
+            console.error(`[AI] Error playing card:`, e);
+          }
+        }
+      }
+
+      // Try to attack with minions
+      const fieldArray = (opponent.field as any).toArray ? (opponent.field as any).toArray() : Array.from(opponent.field as any);
+      const localPlayerObj = game.players.find((p: any) => p.name === localPlayerId);
+      const targetHero = localPlayerObj?.hero;
+
+      for (const minion of fieldArray) {
+        const canAttack = !(minion as any).sleeping && (minion as any).attack > 0;
+        if (canAttack && targetHero) {
+          console.log(`[AI] Attacking hero with: ${(minion as any).name || (minion as any).id}`);
+          try {
+            const attackAction = new Attack(minion as any, targetHero);
+            game.queueActions(minion as any, [attackAction]);
+            actionCount++;
+            notifySubscribers();
+            setTimeout(doNextAction, 1000);
+            return;
+          } catch (e) {
+            console.error(`[AI] Error attacking:`, e);
+          }
+        }
+      }
+
+      // Nothing else to do
+      console.log(`[AI] No more actions, ending turn`);
+      game.endTurn();
+      notifySubscribers();
+    };
+
+    setTimeout(doNextAction, 500);
   };
 
   /**
@@ -261,16 +447,18 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
    * Handle CANCEL_TARGET command
    */
   const handleCancelTarget = (_command: {}): CommandResult => {
+    // Clear pending target state
+    pendingTargetState = undefined;
     notifySubscribers();
-    return { success: true, state: serializeGameState(game, localPlayerId) };
+    return { success: true };
   };
 
   /**
    * Reset the game with new decks (extracted function)
    */
   const doReset = (newPlayer1Deck?: string[], newPlayer2Deck?: string[]) => {
-    const p1Deck = newPlayer1Deck || player1Deck;
-    const p2Deck = newPlayer2Deck || player2Deck;
+    const p1Deck = newPlayer1Deck || DEFAULT_DECK;
+    const p2Deck = newPlayer2Deck || DEFAULT_P2_DECK;
 
     const newPlayer1 = new Player(player1Name, p1Deck);
     const newPlayer2 = new Player(player2Name, p2Deck);
@@ -296,25 +484,34 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
   };
 
   /**
-   * Find an entity by ID
+   * Find an entity by ID (supports full uuid, short uuid, or uiId format)
    */
   const findEntityById = (id: string): any => {
+    // Extract short UUID if id is in uiId format (e.g., "hero_abc123" or "minion_abc123_0")
+    const shortUuid = id.includes('_') ? id.split('_')[1] : id;
+
     for (const player of game.players) {
       // Check hero
-      if (player.hero && ((player.hero as any).uuid === id || (player.hero as any).id === id)) {
+      const heroUuid = (player.hero as any)?.uuid;
+      const heroId = (player.hero as any)?.id;
+      if (player.hero && (heroUuid === id || heroId === id || heroUuid?.startsWith(shortUuid))) {
         return player.hero;
       }
 
       // Check field minions
       for (const minion of player.field) {
-        if ((minion as any).uuid === id || (minion as any).id === id) {
+        const minionUuid = (minion as any).uuid;
+        const minionId = (minion as any).id;
+        if (minionUuid === id || minionId === id || minionUuid?.startsWith(shortUuid)) {
           return minion;
         }
       }
 
       // Check hand cards
       for (const card of player.hand) {
-        if ((card as any).uuid === id || (card as any).id === id) {
+        const cardUuid = (card as any).uuid;
+        const cardId = (card as any).id;
+        if (cardUuid === id || cardId === id || cardUuid?.startsWith(shortUuid)) {
           return card;
         }
       }

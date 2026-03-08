@@ -110,6 +110,22 @@ export class CardLoader {
   private static cards: Map<string, CardDefinition> = new Map();
 
   /**
+   * Register a single card definition
+   */
+  static register(definition: CardDefinition): void {
+    this.cards.set(definition.id, definition);
+  }
+
+  /**
+   * Register multiple card definitions
+   */
+  static registerAll(definitions: CardDefinition[]): void {
+    for (const def of definitions) {
+      this.cards.set(def.id, def);
+    }
+  }
+
+  /**
    * Load cards from XML file and initialize i18n
    */
   static loadFromXml(xmlPath: string, locale: string = 'enUS'): void {

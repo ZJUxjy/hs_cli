@@ -1,6 +1,8 @@
 import { CardType, CardClass, Rarity, Race, Zone } from '../enums';
 import { I18n } from '../i18n';
 import { Entity } from './entity';
+import { TargetValidator } from '../targeting/targetvalidator';
+import { Buff } from './buff';
 
 export interface CardDefinition {
   id: string;
@@ -72,7 +74,6 @@ export class Card extends Entity {
     if ((controller as any).mana < this.cost) return false;
 
     // Check targeting requirements using TargetValidator
-    const { TargetValidator } = require('../targeting/targetvalidator');
     const game = (controller as any).game as import('./game').Game;
     if (game) {
       const playerReqCheck = TargetValidator.checkPlayerRequirements(this, controller);
@@ -89,7 +90,6 @@ export class Card extends Entity {
    * Check if a specific entity is a valid target for this card
    */
   canTarget(target: Entity): boolean {
-    const { TargetValidator } = require('../targeting/targetvalidator');
     const result = TargetValidator.isValidTarget(this, target);
     return result.valid;
   }
@@ -104,7 +104,6 @@ export class Card extends Entity {
     const game = (controller as any).game as import('./game').Game;
     if (!game) return [];
 
-    const { TargetValidator } = require('../targeting/targetvalidator');
     return TargetValidator.getValidTargets(this, controller, game);
   }
 }
@@ -250,9 +249,8 @@ export class Minion extends PlayableCard {
   }
 
   // Buff methods
-  buff(source: Entity, idOrBuff: string | import('./buff').Buff, data?: import('./buff').BuffData): import('./buff').Buff {
-    const { Buff } = require('./buff');
-    let buff: import('./buff').Buff;
+  buff(source: Entity, idOrBuff: string | Buff, data?: import('./buff').BuffData): Buff {
+    let buff: Buff;
 
     if (typeof idOrBuff === 'string') {
       buff = new Buff(source, this as any, idOrBuff, data || {});
@@ -367,9 +365,8 @@ export class Weapon extends PlayableCard {
   }
 
   // Buff methods
-  buff(source: Entity, idOrBuff: string | import('./buff').Buff, data?: import('./buff').BuffData): import('./buff').Buff {
-    const { Buff } = require('./buff');
-    let buff: import('./buff').Buff;
+  buff(source: Entity, idOrBuff: string | Buff, data?: import('./buff').BuffData): Buff {
+    let buff: Buff;
 
     if (typeof idOrBuff === 'string') {
       buff = new Buff(source, this as any, idOrBuff, data || {});
@@ -429,6 +426,26 @@ export class Secret extends Card {
 
 // Forward declaration for Player (circular dependency)
 export class Player extends Entity {}
+
+/**
+ * Factory function to create the correct card type based on definition
+ */
+export function createCard(definition: CardDefinition): PlayableCard {
+  switch (definition.type) {
+    case CardType.MINION:
+      return new Minion(definition);
+    case CardType.SPELL:
+      return new Spell(definition);
+    case CardType.WEAPON:
+      return new Weapon(definition);
+    case CardType.HERO:
+      return new Hero(definition);
+    case CardType.HERO_POWER:
+      return new HeroPower(definition);
+    default:
+      return new PlayableCard(definition);
+  }
+}
 
 // Re-export enums
 export { CardType, CardClass, Rarity, Race, Zone };

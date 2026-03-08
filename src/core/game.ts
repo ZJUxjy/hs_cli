@@ -206,10 +206,10 @@ export class Game extends Entity {
     this.step = Step.BEGIN_DRAW;
     (this as any).zone = Zone.PLAY;
 
-    const [first, second] = this.pickFirstPlayer();
-    this.player1 = first;
+    // Player 1 is always first player (no random shuffle for web demo)
+    this.player1 = this.players[0];
     this.player1.firstPlayer = true;
-    this.player2 = second;
+    this.player2 = this.players[1];
     this.player2.firstPlayer = false;
 
     this.player1.opponent = this.player2;

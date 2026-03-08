@@ -1,7 +1,7 @@
 import { CardType, PlayState, Zone } from '../enums';
 import { Entity } from './entity';
 import { CardList } from '../utils/cardlist';
-import { Card, PlayableCard, Minion, Hero, HeroPower, Secret } from './card';
+import { Card, PlayableCard, Minion, Hero, HeroPower, Secret, createCard } from './card';
 import type { Game } from './game';
 import { Draw, Fatigue, Give } from '../actions';
 import { CardLoader } from '../cards/loader';
@@ -114,21 +114,34 @@ export class Player extends Entity {
     this.graveyard = new CardList();
     this.secrets = new CardList();
 
-    // Summon hero if specified
+    // Create hero if specified (NOT summoned to field!)
     if (this.startingHero) {
-      this.summon(this.startingHero);
+      const heroDef = CardLoader.get(this.startingHero);
+      if (heroDef) {
+        this.hero = new Hero(heroDef);
+        (this.hero as any).controller = this;
+        (this.hero as any).zone = Zone.PLAY;
+        console.log(`[Player] ${this.name} created hero: ${this.hero.name}`);
+      } else {
+        console.warn(`[Player] Hero not found: ${this.startingHero}`);
+      }
     }
 
     // Create deck from card IDs
+    let loadedCount = 0;
     for (const cardId of this.startingDeck) {
       const cardDef = CardLoader.get(cardId);
       if (cardDef) {
-        const card = new PlayableCard(cardDef);
+        const card = createCard(cardDef);
         (card as any).controller = this;
         (card as any).zone = Zone.DECK;
         this.deck.push(card);
+        loadedCount++;
+      } else {
+        console.warn(`[Player] Card not found: ${cardId}`);
       }
     }
+    console.log(`[Player] ${this.name} loaded ${loadedCount}/${this.startingDeck.length} cards`);
 
     // Shuffle deck
     this.shuffleDeck();
@@ -179,7 +192,7 @@ export class Player extends Entity {
       return undefined;
     }
 
-    const card = new PlayableCard(cardDef);
+    const card = createCard(cardDef);
     (card as any).controller = this;
 
     if (this.hand.length < 10) {
@@ -263,7 +276,7 @@ export class Player extends Entity {
 
   card(id: string, source?: Entity, parent?: Entity, zone: Zone = Zone.SETASIDE): PlayableCard {
     const cardDef = CardLoader.get(id);
-    const card = new PlayableCard(cardDef || { id, type: CardType.INVALID, cardClass: 0, cost: 0 });
+    const card = createCard(cardDef || { id, type: CardType.INVALID, cardClass: 0, cost: 0 });
     (card as any).controller = this;
     (card as any).zone = zone;
 

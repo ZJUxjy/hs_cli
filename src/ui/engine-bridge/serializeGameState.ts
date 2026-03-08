@@ -16,7 +16,7 @@ import type {
   UIHeroState,
   UIActionLogEntry,
 } from '../types/ui-state';
-import { CardType } from '../../enums';
+import { CardType, PlayState } from '../../enums';
 
 /**
  * Generate a unique UI ID for an entity
@@ -103,7 +103,13 @@ function canMinionAttack(minion: any): boolean {
 /**
  * Serialize a hero
  */
-function serializeHero(hero: any): UIHeroState {
+function serializeHero(hero: any, player?: any): UIHeroState {
+  const weapon = player?.weapon;
+  const attack = weapon?.attack ?? 0;
+  const hasWeapon = weapon != null;
+  // Hero can attack if has weapon and weapon has durability
+  const canAttack = hasWeapon && (weapon?.durability ?? 0) > 0;
+
   return {
     uiId: generateUiId(hero, 'hero'),
     id: hero.id || 'unknown',
@@ -112,7 +118,8 @@ function serializeHero(hero: any): UIHeroState {
     maxHealth: hero.health ?? 30,
     damage: hero.damage ?? 0,
     armor: hero.armor ?? 0,
-    canAttack: false, // TODO: Check for weapon
+    attack,
+    canAttack,
   };
 }
 
@@ -215,6 +222,8 @@ export function serializeGameState(
   const currentPlayerId = gameAny.currentPlayer?.name || player1.name;
   const isLocalPlayerTurn = currentPlayerId === localPlayer.name;
 
+  console.log(`[Serialize] currentPlayerId: ${currentPlayerId}, localPlayer.name: ${localPlayer.name}, isLocalPlayerTurn: ${isLocalPlayerTurn}`);
+
   // Determine game mode
   const mode = gameAny.ended ? 'game_over' : 'playing';
 
@@ -235,8 +244,6 @@ export function serializeGameState(
  * Get the winner's ID from a completed game
  */
 function getWinnerId(gameAny: any): string | undefined {
-  const { PlayState } = require('../../enums');
-
   for (const player of gameAny.players || []) {
     if (player.playstate === PlayState.WON) {
       return player.name;

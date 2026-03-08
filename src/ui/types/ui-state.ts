@@ -63,6 +63,8 @@ export interface UIHeroState {
   maxHealth: number;
   damage: number;
   armor: number;
+  /** Attack value (from weapon) */
+  attack: number;
   /** Whether the hero can attack (e.g., with a weapon) */
   canAttack: boolean;
 }
