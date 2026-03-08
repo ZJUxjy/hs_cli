@@ -37,3 +37,24 @@ Completed:
 
 Next: Task 1.1 - Implement `serializeGameState(game)`
 
+### Task 1.1: 实现 serializeGameState ✅
+
+Completed:
+- Created `src/ui/engine-bridge/serializeGameState.ts`
+- Serializes Game to UI-friendly read-only snapshot
+- Added 10 tests for state serialization
+
+### Task 1.2: 实现 createGameController ✅
+
+Completed:
+- Created `src/ui/engine-bridge/createGameController.ts`
+- Provides stable API for UI: getState(), dispatch(), subscribe(), reset()
+- Created `src/ui/engine-bridge/index.ts` for exports
+- Added 9 tests for controller
+
+Verification:
+- All 399 tests pass (372 original + 27 new)
+
+Next: Task 1.3 - 实现只读棋盘页面
+
+
