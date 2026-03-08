@@ -10,6 +10,8 @@ import { CardType } from '../enums';
  * Selector function type - for simple function-based selectors
  */
 export type SelectorFn = (source: Entity, game: Game) => Entity[];
+export type CallableSelector = Selector & SelectorFn;
+export type SelectorLike = Selector | SelectorFn;
 
 /**
  * Evaluation context for selectors
@@ -19,40 +21,87 @@ export interface SelectorContext {
   source: Entity;
 }
 
+function toContext(source: Entity, game: Game): SelectorContext {
+  return { game, source };
+}
+
+export function evaluateSelector(selector: SelectorLike, source: Entity, game: Game): Entity[] {
+  if (typeof selector === 'function') {
+    return selector(source, game);
+  }
+  return selector.eval(toContext(source, game));
+}
+
+function makeCallableSelector<T extends Selector>(selector: T): CallableSelector {
+  const callable = ((source: Entity, game: Game) => selector.eval(toContext(source, game))) as CallableSelector;
+  Object.setPrototypeOf(callable, Object.getPrototypeOf(selector));
+  callable.eval = (context: SelectorContext) => selector.eval(context);
+  return callable;
+}
+
 /**
  * Base Selector class
  */
 export abstract class Selector {
   abstract eval(context: SelectorContext): Entity[];
 
-  or(other: Selector): Selector {
-    return new OrSelector(this, other);
+  or(other: Selector): CallableSelector {
+    return makeCallableSelector(new OrSelector(this, other));
   }
 
-  and(other: Selector): Selector {
-    return new AndSelector(this, other);
+  and(other: Selector): CallableSelector {
+    return makeCallableSelector(new AndSelector(this, other));
   }
 
-  exclude(other: Selector): Selector {
-    return new ExcludeSelector(this, other);
+  exclude(other: Selector): CallableSelector {
+    return makeCallableSelector(new ExcludeSelector(this, other));
   }
 
-  filter(predicate: (entity: Entity) => boolean): Selector {
-    return new FilterSelector(this, predicate);
+  filter(predicate: (entity: Entity) => boolean): CallableSelector {
+    return makeCallableSelector(new FilterSelector(this, predicate));
   }
 
-  random(count: number = 1): Selector {
-    return new RandomSelector(this, count);
+  random(count: number = 1): CallableSelector {
+    return makeCallableSelector(new RandomSelector(this, count));
   }
 
-  first(count: number = 1): Selector {
-    return new FirstSelector(this, count);
+  first(count: number = 1): CallableSelector {
+    return makeCallableSelector(new FirstSelector(this, count));
   }
 }
 
 // Helper functions
-function getController(entity: Entity): Player | undefined {
-  return (entity as any).controller || (entity as any).getController?.();
+function getController(entity: Entity, game?: Game): Player | undefined {
+  const explicitController = (entity as any).controller || (entity as any).getController?.();
+  if (explicitController) {
+    return explicitController;
+  }
+
+  if ((entity as any).type === CardType.PLAYER) {
+    return entity as unknown as Player;
+  }
+
+  if (!game) {
+    return undefined;
+  }
+
+  for (const player of game.players) {
+    if (
+      player === entity ||
+      player.hero === entity ||
+      player.heroPower === entity ||
+      player.weapon === entity ||
+      player.field.includes(entity as any) ||
+      player.hand.includes(entity as any) ||
+      player.deck.includes(entity as any) ||
+      player.secrets.includes(entity as any) ||
+      player.graveyard.includes(entity as any)
+    ) {
+      return player;
+    }
+  }
+
+  return undefined;
 }
 
 function isMinion(entity: Entity): boolean {
@@ -100,10 +149,10 @@ export class FriendlySelector extends Selector {
   }
 
   eval(context: SelectorContext): Entity[] {
-    const controller = getController(context.source);
+    const controller = getController(context.source, context.game);
     if (!controller) return [];
     const candidates = this.inner ? this.inner.eval(context) : context.game.entities.toArray() as Entity[];
-    return candidates.filter(e => getController(e) === controller);
+    return candidates.filter(e => getController(e, context.game) === controller);
   }
 }
 
@@ -114,10 +163,10 @@ export class EnemySelector extends Selector {
   }
 
   eval(context: SelectorContext): Entity[] {
-    const controller = getController(context.source);
+    const controller = getController(context.source, context.game);
     if (!controller || !controller.opponent) return [];
     const candidates = this.inner ? this.inner.eval(context) : context.game.entities.toArray() as Entity[];
-    return candidates.filter(e => getController(e) === controller.opponent);
+    return candidates.filter(e => getController(e, context.game) === controller.opponent);
   }
 }
 
@@ -252,26 +301,27 @@ export function hasTaunt(entity: Entity): boolean {
 }
 
 // Predefined selectors
-export const SELF = new SelfSelector();
-export const TARGET = new TargetSelector();
-export const OWNER = new OwnerSelector();
-export const ALL_ENTITIES = new AllEntitiesSelector();
-export const ALL_MINIONS = new MinionsSelector();
-export const ALL_HEROES = new HeroesSelector();
-export const ALL_CHARACTERS = new CharactersSelector();
-export const FIELD = new FieldSelector();
-export const FRIENDLY = new FriendlySelector();
-export const ENEMY = new EnemySelector();
-export const FRIENDLY_MINIONS = new FriendlySelector(ALL_MINIONS);
-export const ENEMY_MINIONS = new EnemySelector(ALL_MINIONS);
-export const FRIENDLY_HERO = new FriendlySelector(ALL_HEROES);
-export const ENEMY_HERO = new EnemySelector(ALL_HEROES);
-export const FRIENDLY_CHARACTERS = new FriendlySelector(ALL_CHARACTERS);
-export const ENEMY_CHARACTERS = new EnemySelector(ALL_CHARACTERS);
+export const SELF = makeCallableSelector(new SelfSelector());
+export const TARGET = makeCallableSelector(new TargetSelector());
+export const OWNER = makeCallableSelector(new OwnerSelector());
+export const ALL_ENTITIES = makeCallableSelector(new AllEntitiesSelector());
+export const ALL_MINIONS = makeCallableSelector(new MinionsSelector());
+export const ALL_HEROES = makeCallableSelector(new HeroesSelector());
+export const ALL_CHARACTERS = makeCallableSelector(new CharactersSelector());
+export const FIELD = makeCallableSelector(new FieldSelector());
+export const FRIENDLY = makeCallableSelector(new FriendlySelector());
+export const ENEMY = makeCallableSelector(new EnemySelector());
+export const FRIENDLY_MINIONS = makeCallableSelector(new FriendlySelector(ALL_MINIONS));
+export const ENEMY_MINIONS = makeCallableSelector(new EnemySelector(ALL_MINIONS));
+export const FRIENDLY_HERO = makeCallableSelector(new FriendlySelector(ALL_HEROES));
+export const ENEMY_HERO = makeCallableSelector(new EnemySelector(ALL_HEROES));
+export const FRIENDLY_CHARACTERS = makeCallableSelector(new FriendlySelector(ALL_CHARACTERS));
+export const ENEMY_CHARACTERS = makeCallableSelector(new EnemySelector(ALL_CHARACTERS));
 export const DAMAGED_MINIONS = ALL_MINIONS.filter(isDamaged);
 export const FROZEN_MINIONS = ALL_MINIONS.filter(isFrozen);
 export const MINIONS_WITH_TAUNT = ALL_MINIONS.filter(hasTaunt);
 export const MINIONS_WITH_DIVINE_SHIELD = ALL_MINIONS.filter(hasDivineShield);
+export const TAUNT = MINIONS_WITH_TAUNT;
 
 // Helper functions
 export function RANDOM(selector: Selector): Selector {

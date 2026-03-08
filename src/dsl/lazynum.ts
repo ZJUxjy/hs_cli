@@ -1,31 +1,32 @@
 import type { Entity } from '../core/entity';
 import type { Game } from '../core/game';
-import type { SelectorFn } from './selector';
+import { evaluateSelector } from './selector';
+import type { SelectorLike } from './selector';
 
 export abstract class LazyValue<T> {
   abstract evaluate(source: Entity, game: Game): T;
 }
 
 export class Count extends LazyValue<number> {
-  constructor(private selector: SelectorFn) {
+  constructor(private selector: SelectorLike) {
     super();
   }
 
   evaluate(source: Entity, game: Game): number {
-    return this.selector(source, game).length;
+    return evaluateSelector(this.selector, source, game).length;
   }
 }
 
 export class Attr extends LazyValue<number> {
   constructor(
-    private selector: SelectorFn,
+    private selector: SelectorLike,
     private attr: string
   ) {
     super();
   }
 
   evaluate(source: Entity, game: Game): number {
-    const entities = this.selector(source, game);
+    const entities = evaluateSelector(this.selector, source, game);
     return entities.reduce((sum: number, e: Entity) => sum + ((e as any)[this.attr] || 0), 0);
   }
 }
@@ -52,15 +53,15 @@ export class Const<T> extends LazyValue<T> {
 
 export class Joust extends LazyValue<number> {
   constructor(
-    private selector1: SelectorFn,
-    private selector2: SelectorFn
+    private selector1: SelectorLike,
+    private selector2: SelectorLike
   ) {
     super();
   }
 
   evaluate(source: Entity, game: Game): number {
-    const entities1 = this.selector1(source, game);
-    const entities2 = this.selector2(source, game);
+    const entities1 = evaluateSelector(this.selector1, source, game);
+    const entities2 = evaluateSelector(this.selector2, source, game);
     const gameAny = game as any;
     const random = gameAny.random;
 
