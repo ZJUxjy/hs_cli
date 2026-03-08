@@ -57,4 +57,20 @@ Verification:
 
 Next: Task 1.3 - 实现只读棋盘页面
 
+### Task 1.3: 只读棋盘页面 ✅
+
+Completed:
+- Connected App.tsx to createGameController
+- Display real game state (heroes, hand, field, mana)
+- Add playable card highlighting
+- Add game over overlay
+- Update CSS with complete game board styling
+
+Verification:
+- All 399 tests pass
+- UI shows real game data from engine
+
+Next: Task 2.1 - 打通无目标出牌命令
+
+
 

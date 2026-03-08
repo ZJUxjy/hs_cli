@@ -14,9 +14,13 @@
   --color-text: #f0e6d2;
   --color-text-muted: #8b8070;
   --color-health: #ff4444;
+  --color-attack: #ffcc00;
   --color-mana: #4488ff;
+  --color-armor: #55cc55;
   --color-card-bg: #3a3028;
   --color-card-border: #5a4a38;
+  --color-playable: #4a90d9;
+  --color-unplayable: #666;
 }
 
 body {
@@ -33,6 +37,15 @@ body {
   grid-template-rows: auto 1fr;
   min-height: 100vh;
   gap: 0;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
 }
 
 /* Header */
@@ -78,7 +91,16 @@ body {
 }
 
 .status-bar span {
-  color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.your-turn {
+  color: #55cc55;
+  font-weight: bold;
+}
+
+.opponent-turn {
+  color: #ff6666;
 }
 
 /* Board Layout */
@@ -86,12 +108,49 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   background: var(--color-board);
   border-radius: 12px;
   padding: 16px;
   border: 2px solid var(--color-card-border);
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Player/Opponent Areas */
+.opponent-area,
+.player-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.player-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.mana-crystals {
+  display: flex;
+  gap: 4px;
+}
+
+.mana {
+  color: var(--color-mana);
+  font-weight: bold;
+}
+
+.deck-count {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
 /* Hero Areas */
@@ -120,6 +179,16 @@ body {
   font-size: 1.1rem;
 }
 
+.armor {
+  background: var(--color-armor);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-left: 4px;
+}
+
 /* Hand Areas */
 .hand {
   display: flex;
@@ -128,28 +197,30 @@ body {
   padding: 8px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .opponent-hand {
-  justify-content: center;
+  min-height: 60px;
 }
 
 .player-hand {
-  justify-content: center;
+  min-height: 120px;
 }
 
 /* Cards */
 .card {
-  width: 80px;
-  height: 100px;
+  width: 100px;
+  height: 140px;
   background: var(--color-card-bg);
   border: 2px solid var(--color-card-border);
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: var(--color-text-muted);
+  padding: 8px;
+  position: relative;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -160,25 +231,86 @@ body {
 
 .card-back {
   background: linear-gradient(135deg, #2a241c 0%, #1a1410 100%);
-}
-
-/* Battlefield */
-.battlefield {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-}
-
-.minions {
-  display: flex;
   justify-content: center;
+  font-size: 2rem;
+  color: var(--color-text-muted);
+}
+
+.card-cost {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: var(--color-mana);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.card-name {
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 24px;
+  word-wrap: break-word;
+  max-width: 90%;
+}
+
+.card-stats {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.card-stats .attack {
+  background: var(--color-attack);
+  color: #333;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.card-stats .health {
+  background: var(--color-health);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.player-card {
+  cursor: pointer;
+}
+
+.player-card.playable {
+  border-color: var(--color-playable);
+  box-shadow: 0 0 8px rgba(74, 144, 217, 0.5);
+}
+
+.player-card.playable:hover {
+  box-shadow: 0 0 16px rgba(74, 144, 217, 0.8);
+}
+
+.player-card.unplayable {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Field Areas */
+.field {
+  display: flex;
   gap: 8px;
   min-height: 80px;
   padding: 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  justify-content: center;
 }
 
 .placeholder {
@@ -188,20 +320,66 @@ body {
   padding: 20px;
 }
 
-/* Player/Opponent Areas */
-.opponent-area,
-.player-area {
+/* Minions */
+.minion {
+  width: 80px;
+  height: 100px;
+  background: linear-gradient(180deg, #4a4038 0%, #3a3028 100%);
+  border: 2px solid var(--color-card-border);
+  border-radius: 8px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  padding: 4px;
+  position: relative;
 }
 
-.opponent-area {
-  flex-direction: row-reverse;
+.minion-name {
+  font-size: 0.65rem;
+  text-align: center;
+  max-width: 90%;
+  margin-bottom: 4px;
 }
 
-.player-area {
-  flex-direction: row;
+.minion-stats {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.minion-stats .attack {
+  background: var(--color-attack);
+  color: #333;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.minion-stats .health {
+  background: var(--color-health);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.minion .keyword {
+  font-size: 0.6rem;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-top: 2px;
+}
+
+.minion .taunt {
+  background: #8b4513;
+  color: white;
+}
+
+.minion .divine-shield {
+  background: #ffd700;
+  color: #333;
 }
 
 /* Controls */
@@ -222,13 +400,18 @@ body {
   transition: transform 0.1s, box-shadow 0.1s;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.btn:active {
+.btn:active:not(:disabled) {
   transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-primary {
@@ -236,7 +419,7 @@ body {
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: linear-gradient(180deg, #5aa0e9 0%, #3a70b9 100%);
 }
 
@@ -245,8 +428,41 @@ body {
   color: white;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: linear-gradient(180deg, #9b5050 0%, #7b3030 100%);
+}
+
+/* Game Over Overlay */
+.game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.game-over-content {
+  background: linear-gradient(180deg, #3a3028 0%, #2a241c 100%);
+  padding: 40px 60px;
+  border-radius: 16px;
+  border: 2px solid var(--color-primary);
+  text-align: center;
+}
+
+.game-over-content h2 {
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin-bottom: 16px;
+}
+
+.game-over-content p {
+  font-size: 1.5rem;
+  margin-bottom: 24px;
 }
 
 /* Log Panel */
@@ -274,6 +490,31 @@ body {
   margin-bottom: 4px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
+}
+
+.log-entry {
+  border-left: 3px solid transparent;
+}
+
+.log-damage {
+  border-left-color: var(--color-health);
+}
+
+.log-heal {
+  border-left-color: var(--color-armor);
+}
+
+.log-summon {
+  border-left-color: var(--color-mana);
+}
+
+.log-death {
+  border-left-color: #666;
+}
+
+.log-turn {
+  border-left-color: var(--color-primary);
+  font-weight: bold;
 }
 
 /* Responsive */
