@@ -16,8 +16,8 @@ export const DEMO_CARDS: CardDefinition[] = [
   { id: 'HERO_05', type: CardType.HERO, cardClass: CardClass.HUNTER, cost: 0, rarity: Rarity.FREE, collectible: false, health: 30 },
 
   // Neutral Minions - Basic
-  { id: 'CS2_168', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 1, rarity: Rarity.COMMON, collectible: true, attack: 2, health: 1, race: Race.MURLOC },
-  { id: 'CS2_171', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 1, rarity: Rarity.COMMON, collectible: true, attack: 1, health: 1, race: Race.BEAST },
+  { id: 'CS2_168', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 1, rarity: Rarity.COMMON, collectible: true, attack: 1, health: 1, race: Race.MURLOC },
+  { id: 'CS2_171', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 1, rarity: Rarity.COMMON, collectible: true, attack: 1, health: 1, race: Race.BEAST, charge: true },
   { id: 'CS2_120', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 2, rarity: Rarity.COMMON, collectible: true, attack: 2, health: 3, race: Race.BEAST },
   { id: 'CS2_121', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 2, rarity: Rarity.COMMON, collectible: true, attack: 2, health: 2 },
   { id: 'CS2_122', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 3, rarity: Rarity.COMMON, collectible: true, attack: 2, health: 2 },

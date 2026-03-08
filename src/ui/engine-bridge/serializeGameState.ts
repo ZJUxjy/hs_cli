@@ -96,6 +96,9 @@ function canMinionAttack(minion: any): boolean {
   if (minion.frozen) return false;
   // Can't attack if attack is 0
   if ((minion.attack ?? 0) <= 0) return false;
+  // Can't attack if already attacked this turn (unless Windfury)
+  const maxAttacks = minion.windfury ? 2 : 1;
+  if ((minion.attacksThisTurn ?? 0) >= maxAttacks) return false;
   // Can attack if has charge or has been in play for a turn
   return minion.charge || (minion.turnsInPlay ?? 0) >= 1;
 }
@@ -110,13 +113,19 @@ function serializeHero(hero: any, player?: any): UIHeroState {
   // Hero can attack if has weapon and weapon has durability
   const canAttack = hasWeapon && (weapon?.durability ?? 0) > 0;
 
+  // Hero has a health getter that returns 30 - damage
+  // Use hero.health directly as it's already the current health
+  const currentHealth = hero.health ?? 30;
+  const maxHealth = 30; // Heroes always have 30 max health
+  const damage = hero.damage ?? 0;
+
   return {
     uiId: generateUiId(hero, 'hero'),
     id: hero.id || 'unknown',
     name: hero.name || 'Hero',
-    health: (hero.health ?? 30) - (hero.damage ?? 0),
-    maxHealth: hero.health ?? 30,
-    damage: hero.damage ?? 0,
+    health: currentHealth,
+    maxHealth: maxHealth,
+    damage: damage,
     armor: hero.armor ?? 0,
     attack,
     canAttack,

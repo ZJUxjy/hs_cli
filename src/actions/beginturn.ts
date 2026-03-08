@@ -31,6 +31,8 @@ export class BeginTurn extends Action {
         }
         // Increment turns in play counter
         minionAny.turnsInPlay = (minionAny.turnsInPlay ?? 0) + 1;
+        // Reset attacks this turn counter
+        minionAny.attacksThisTurn = 0;
       }
 
       // Mana crystal management

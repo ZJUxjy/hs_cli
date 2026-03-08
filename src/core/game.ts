@@ -341,7 +341,14 @@ export class Game extends Entity {
 
     for (const entity of this.liveEntities) {
       const entityAny = entity as any;
-      if ((entityAny as any).dead || ((entityAny as any).health !== undefined && (entityAny as any).damage >= (entityAny as any).health)) {
+      // Check if entity should die:
+      // - explicitly marked as dead, OR
+      // - is a character (has maxHealth) and damage >= maxHealth
+      const shouldDie = entityAny.dead ||
+        (entityAny.maxHealth !== undefined && entityAny.damage >= entityAny.maxHealth);
+
+      if (shouldDie) {
+        console.log(`[Death] ${entityAny.name || entityAny.id} marked for death (damage: ${entityAny.damage}, maxHealth: ${entityAny.maxHealth})`);
         deadEntities.push(entity as any);
       }
     }

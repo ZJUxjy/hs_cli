@@ -70,17 +70,41 @@ const App: React.FC = () => {
   // Drag and drop state for attacks
   const [draggedEntity, setDraggedEntity] = useState<string | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
+  const [arrowStart, setArrowStart] = useState<{ x: number; y: number } | null>(null);
+  const [arrowEnd, setArrowEnd] = useState<{ x: number; y: number } | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
 
   // Drag and drop state for playing cards from hand
   const [draggedHandCard, setDraggedHandCard] = useState<number | null>(null);
   const [dragOverField, setDragOverField] = useState<boolean>(false);
 
-  const handleDragStart = (entityId: string) => {
+  // Create a transparent drag image to hide the default card drag preview
+  const emptyDragImageRef = useRef<HTMLImageElement | null>(null);
+  if (!emptyDragImageRef.current) {
+    const img = new Image();
+    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    emptyDragImageRef.current = img;
+  }
+
+  const handleDragStart = (entityId: string, event: React.DragEvent) => {
+    // Hide the default drag image
+    event.dataTransfer.setDragImage(emptyDragImageRef.current!, 0, 0);
+    event.dataTransfer.effectAllowed = 'move';
+
     setDraggedEntity(entityId);
+    // Get the start position from the dragged element
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    setArrowStart({ x: centerX, y: centerY });
+    setArrowEnd({ x: centerX, y: centerY });
   };
 
-  const handleDragOver = (targetId: string | null) => {
+  const handleDragOver = (targetId: string | null, event?: React.DragEvent) => {
     setDragOverTarget(targetId);
+    if (event && arrowStart) {
+      setArrowEnd({ x: event.clientX, y: event.clientY });
+    }
   };
 
   const handleDrop = (targetId: string) => {
@@ -89,7 +113,37 @@ const App: React.FC = () => {
     }
     setDraggedEntity(null);
     setDragOverTarget(null);
+    setArrowStart(null);
+    setArrowEnd(null);
   };
+
+  const handleDragEnd = () => {
+    setDraggedEntity(null);
+    setDragOverTarget(null);
+    setArrowStart(null);
+    setArrowEnd(null);
+  };
+
+  // Generate SVG path for arc arrow
+  const generateArrowPath = () => {
+    if (!arrowStart || !arrowEnd) return null;
+
+    const dx = arrowEnd.x - arrowStart.x;
+    const dy = arrowEnd.y - arrowStart.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Control point for bezier curve (creates the arc)
+    const midX = (arrowStart.x + arrowEnd.x) / 2;
+    const midY = (arrowStart.y + arrowEnd.y) / 2;
+    // Arc height proportional to distance, max 100px
+    const arcHeight = Math.min(distance * 0.3, 100);
+    const controlY = midY - arcHeight;
+
+    return `M ${arrowStart.x} ${arrowStart.y} Q ${midX} ${controlY} ${arrowEnd.x} ${arrowEnd.y}`;
+  };
+
+  // Arrow head marker
+  const arrowHeadId = 'arrow-head';
 
   // Handle dragging a card from hand to play it
   const handleHandCardDragStart = (handIndex: number) => {
@@ -190,7 +244,34 @@ const App: React.FC = () => {
         <p>Hearthstone Simulator</p>
       </header>
 
-      <main className="game-container">
+      <main className="game-container" ref={boardRef}>
+        {/* Attack Arrow SVG Overlay */}
+        {draggedEntity && arrowStart && arrowEnd && (
+          <svg className="attack-arrow-overlay">
+            <defs>
+              <marker
+                id={arrowHeadId}
+                markerWidth="10"
+                markerHeight="10"
+                refX="9"
+                refY="5"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path d="M0,0 L0,10 L10,5 Z" fill="#ff4444" />
+              </marker>
+            </defs>
+            <path
+              d={generateArrowPath() || ''}
+              stroke="#ff4444"
+              strokeWidth="4"
+              fill="none"
+              markerEnd={`url(#${arrowHeadId})`}
+              className="attack-arrow"
+            />
+          </svg>
+        )}
+
         <div className="status-bar">
           <span>Turn: {turn}</span>
           <span>Current: {gameState.currentPlayerId}</span>
@@ -223,7 +304,7 @@ const App: React.FC = () => {
                 }}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  handleDragOver(opponent.hero.uiId);
+                  handleDragOver(opponent.hero.uiId, e);
                 }}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -269,7 +350,7 @@ const App: React.FC = () => {
                   }}
                   onDragOver={(e) => {
                     e.preventDefault();
-                    handleDragOver(minion.uiId);
+                    handleDragOver(minion.uiId, e);
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -310,8 +391,9 @@ const App: React.FC = () => {
                   key={minion.uiId}
                   className={`minion ${minion.taunt ? 'taunt-minion' : ''} ${minion.divineShield ? 'divine-shield-minion' : ''} ${minion.canAttack && isLocalPlayerTurn ? 'can-attack' : ''} ${isValidTarget(minion.uiId) ? 'valid-target' : ''}`}
                   draggable={minion.canAttack && isLocalPlayerTurn}
-                  onDragStart={() => handleDragStart(minion.uiId)}
-                  onDragEnd={() => setDraggedEntity(null)}
+                  onDragStart={(e) => handleDragStart(minion.uiId, e)}
+                  onDragEnd={handleDragEnd}
+                  onDrag={(e) => handleDragOver(null, e)}
                   onClick={() => {
                     if (isValidTarget(minion.uiId)) {
                       handleSelectTarget(minion.uiId);

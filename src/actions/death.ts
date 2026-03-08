@@ -15,7 +15,15 @@ export class Death extends Action {
 
     for (const entity of this.entities) {
       const entityAny = entity as any;
-      if (entityAny.dead && entityAny.zone !== 'GRAVEYARD') {
+
+      // Check if entity should die (dead flag OR damage >= maxHealth)
+      const shouldDie = entityAny.dead ||
+        (entityAny.maxHealth !== undefined && entityAny.damage >= entityAny.maxHealth);
+
+      if (shouldDie && entityAny.zone !== 'GRAVEYARD') {
+        // Mark as dead
+        entityAny.dead = true;
+
         // Move to graveyard
         entityAny.zone = 'GRAVEYARD';
 
@@ -26,8 +34,17 @@ export class Death extends Action {
           if (idx !== -1) {
             controller.field.splice(idx, 1);
             controller.graveyard.push(entity);
-            console.log(`[Death] ${entity.id} died and moved to graveyard`);
+            console.log(`[Death] ${entityAny.name || entity.id} died and moved to graveyard`);
             deadEntities.push(entity);
+          }
+        }
+
+        // Also check if it's a hero (type 3 is HERO)
+        if (entityAny.type === 3 || entityAny.type === 'HERO') {
+          console.log(`[Death] Hero ${entityAny.name || entity.id} died!`);
+          // Mark player as losing
+          if (controller) {
+            controller.playstate = 3; // PlayState.LOSING
           }
         }
 

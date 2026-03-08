@@ -16,6 +16,10 @@ export interface CardDefinition {
   health?: number;
   race?: Race;
   durability?: number;
+  charge?: boolean;
+  taunt?: boolean;
+  divineShield?: boolean;
+  windfury?: boolean;
   requirements?: Record<string, number>;
   scripts?: CardScripts;
   names?: Record<string, string>;

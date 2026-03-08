@@ -16,6 +16,7 @@ import { Attack } from '../../actions/attack';
 import { MAGE_DECK, WARRIOR_DECK, HEROES } from './decks';
 import { DEMO_CARDS, CARD_NAMES } from '../../cards/demoCards';
 import { I18n } from '../../i18n';
+import { GameRules } from '../../core/rules';
 
 // Track if cards are loaded
 let cardsLoaded = false;
@@ -286,12 +287,16 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
     const playAction = new Play(currentPlayer, card, target);
     game.queueActions(currentPlayer, [playAction]);
 
+    // Process deaths after playing card (in case of damage effects)
+    game.processDeaths();
+    game.checkForEndGame();
+
     notifySubscribers();
     return { success: true, state: serializeGameState(game, localPlayerId) };
   };
 
   /**
-   * Handle ATTACK command
+   * Handle ATTACK command - uses centralized game rules
    */
   const handleAttack = (command: { attackerId: string; defenderId: string }): CommandResult => {
     const attacker = findEntityById(command.attackerId);
@@ -304,11 +309,30 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
       return { success: false, error: `Defender not found: ${command.defenderId}` };
     }
 
-    const attackAction = new Attack(attacker, defender);
-    game.queueActions(attacker, [attackAction]);
+    // Validate attack using centralized rules
+    const validation = GameRules.canAttack(attacker, defender, game);
+    if (!validation.valid) {
+      console.log(`[GameController] Attack validation failed: ${validation.reason}`);
+      return { success: false, error: validation.reason || 'Invalid attack' };
+    }
 
-    notifySubscribers();
-    return { success: true, state: serializeGameState(game, localPlayerId) };
+    try {
+      const attackAction = new Attack(attacker, defender);
+      game.queueActions(attacker, [attackAction]);
+
+      // Process deaths after attack
+      game.processDeaths();
+
+      // Check for game end
+      game.checkForEndGame();
+
+      notifySubscribers();
+      return { success: true, state: serializeGameState(game, localPlayerId) };
+    } catch (e) {
+      const error = e instanceof Error ? e.message : String(e);
+      console.error(`[GameController] Attack error:`, error);
+      return { success: false, error };
+    }
   };
 
   /**
@@ -387,18 +411,21 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
         }
       }
 
-      // Try to attack with minions
+      // Try to attack with minions - using centralized rules
       const fieldArray = (opponent.field as any).toArray ? (opponent.field as any).toArray() : Array.from(opponent.field as any);
       const localPlayerObj = game.players.find((p: any) => p.name === localPlayerId);
       const targetHero = localPlayerObj?.hero;
 
       for (const minion of fieldArray) {
-        const canAttack = !(minion as any).sleeping && (minion as any).attack > 0;
-        if (canAttack && targetHero) {
+        // Use centralized rules for attack validation
+        const validation = GameRules.canAttack(minion, targetHero, game);
+        if (validation.valid) {
           console.log(`[AI] Attacking hero with: ${(minion as any).name || (minion as any).id}`);
           try {
             const attackAction = new Attack(minion as any, targetHero);
             game.queueActions(minion as any, [attackAction]);
+            game.processDeaths();
+            game.checkForEndGame();
             actionCount++;
             notifySubscribers();
             setTimeout(doNextAction, 1000);
