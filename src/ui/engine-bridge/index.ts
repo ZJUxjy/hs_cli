@@ -1,3 +1,3 @@
 export { serializeGameState } from './serializeGameState';
-export { createGameController } from './createGameController';
+export { createGameController, initializeCardLoader, areCardsLoaded } from './createGameController';
 export type { GameController } from './createGameController';
