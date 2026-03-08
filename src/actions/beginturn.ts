@@ -22,6 +22,17 @@ export class BeginTurn extends Action {
       this.player.minionsPlayedThisTurn = 0;
       (this.player as any).minionsKilledThisTurn = [];
 
+      // Wake up minions - they can attack this turn
+      for (const minion of this.player.field) {
+        const minionAny = minion as any;
+        if (minionAny.sleeping) {
+          minionAny.sleeping = false;
+          console.log(`[BeginTurn] ${minionAny.name} wakes up`);
+        }
+        // Increment turns in play counter
+        minionAny.turnsInPlay = (minionAny.turnsInPlay ?? 0) + 1;
+      }
+
       // Mana crystal management
       // First, apply overload from previous turn
       this.player.overloadLocked = this.player.overloaded;

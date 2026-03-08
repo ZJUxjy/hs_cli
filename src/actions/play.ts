@@ -42,7 +42,10 @@ export class Play extends Action {
         this.player.field.push(this.card as any);
         (this.card as any).zone = 'PLAY';
         (this.card as any).turnsInPlay = 0;
-        console.log(`[Play] Minion ${this.card.id} summoned to field`);
+        // Minions without Charge are sleeping (can't attack until next turn)
+        const hasCharge = (this.card as any).charge || (this.card as any)._charge;
+        (this.card as any).sleeping = !hasCharge;
+        console.log(`[Play] Minion ${this.card.id} summoned to field, sleeping: ${!hasCharge}`);
       }
     } else if (this.card.type === CardType.SPELL) {
       // Spell effect would be applied here
