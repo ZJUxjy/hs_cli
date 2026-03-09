@@ -32,3 +32,5 @@ export {
   DestroyWeapon, DrawUntil, ForcePlay
 } from './extended';
 export { Dormant, Awaken } from './dormant';
+export { Discover } from './discover';
+export type { DiscoverOptions } from './discover';
