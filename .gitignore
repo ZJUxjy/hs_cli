@@ -3,3 +3,6 @@ dist/
 dist-web/
 *.log
 .DS_Store
+
+# Test coverage reports
+coverage/

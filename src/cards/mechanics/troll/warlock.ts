@@ -140,7 +140,7 @@ cardScriptsRegistry.register('TRL_555', {
     const controller = source?.controller;
     const hand = controller?.hand || [];
     // Check if holding a Dragon
-    let hasDragon = false;
+    const hasDragon = false;
     // Simplified - just do 2 damage
     const opponent = controller?.opponent;
     if (opponent?.hero) {

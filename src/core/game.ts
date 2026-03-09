@@ -228,7 +228,10 @@ export class Game extends Entity {
     this._mulliganPending.delete(player);
 
     if (this._mulliganPending.size === 0) {
-      // All mulligans complete, start the game
+      // All mulligans complete, transition to main phase
+      this.stepTransition(Step.MAIN_START); // BEGIN_MULLIGAN -> MAIN_READY
+      this.stepTransition(Step.MAIN_ACTION); // MAIN_READY -> MAIN_START
+      this.stepTransition(Step.MAIN_NEXT); // MAIN_START -> MAIN_ACTION
       this.queueActions(this, [new GameStart()]);
       this.beginTurn(this.player1);
     }
