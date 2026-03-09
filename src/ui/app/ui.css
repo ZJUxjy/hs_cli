@@ -1193,3 +1193,337 @@ body {
 .player-info-overlay .deck-count {
   font-size: var(--font-sm);
 }
+
+/* ============================================
+   Card Tooltip - Fantasy RPG Aesthetic
+   ============================================ */
+
+.card-tooltip {
+  position: fixed;
+  min-width: 240px;
+  max-width: 320px;
+  padding: 0;
+  z-index: 10000;
+  pointer-events: none;
+  font-family: 'Cinzel', 'Georgia', serif;
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out;
+  filter: drop-shadow(0 0 20px rgba(200, 164, 92, 0.4));
+}
+
+/* Ethereal glow effect behind tooltip */
+.card-tooltip-glow {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(200, 164, 92, 0.15) 0%,
+    rgba(139, 105, 20, 0.1) 40%,
+    transparent 70%
+  );
+  border-radius: 20px;
+  animation: tooltip-glow-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes tooltip-glow-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* Decorative corner ornaments */
+.card-tooltip-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(200, 164, 92, 0.8);
+  pointer-events: none;
+}
+
+.card-tooltip-corner-tl {
+  top: 4px;
+  left: 4px;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 8px;
+}
+
+.card-tooltip-corner-tr {
+  top: 4px;
+  right: 4px;
+  border-left: none;
+  border-bottom: none;
+  border-top-right-radius: 8px;
+}
+
+.card-tooltip-corner-bl {
+  bottom: 4px;
+  left: 4px;
+  border-right: none;
+  border-top: none;
+  border-bottom-left-radius: 8px;
+}
+
+.card-tooltip-corner-br {
+  bottom: 4px;
+  right: 4px;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 8px;
+}
+
+/* Main content container */
+.card-tooltip-content {
+  position: relative;
+  background: linear-gradient(
+    165deg,
+    rgba(45, 38, 30, 0.92) 0%,
+    rgba(35, 28, 22, 0.94) 50%,
+    rgba(26, 20, 16, 0.95) 100%
+  );
+  border: 2px solid rgba(200, 164, 92, 0.6);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(200, 164, 92, 0.15);
+  overflow: hidden;
+}
+
+/* Parchment texture overlay */
+.card-tooltip-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(200, 164, 92, 0.02) 2px,
+      rgba(200, 164, 92, 0.02) 4px
+    );
+  pointer-events: none;
+  border-radius: 10px;
+}
+
+/* Header with cost, name, and type */
+.card-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.card-tooltip-cost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #5588ff 0%, #3366dd 100%);
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 2px 8px rgba(85, 136, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.card-tooltip-name {
+  flex: 1;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f0e6d2;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(200, 164, 92, 0.3);
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.card-tooltip-type {
+  font-size: 0.75rem;
+  color: rgba(200, 164, 92, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  background: rgba(200, 164, 92, 0.1);
+  border: 1px solid rgba(200, 164, 92, 0.3);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* Divider with magical rune */
+.card-tooltip-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.card-tooltip-divider::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 164, 92, 0.4) 20%,
+    rgba(200, 164, 92, 0.6) 50%,
+    rgba(200, 164, 92, 0.4) 80%,
+    transparent 100%
+  );
+}
+
+.card-tooltip-rune {
+  margin: 0 12px;
+  color: rgba(200, 164, 92, 0.8);
+  font-size: 0.9rem;
+  text-shadow: 0 0 10px rgba(200, 164, 92, 0.5);
+  animation: rune-pulse 2s ease-in-out infinite;
+}
+
+@keyframes rune-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Keyword badges */
+.card-tooltip-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.card-tooltip-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #1a1410;
+  background: linear-gradient(135deg, #c8a45c 0%, #a08040 100%);
+  border-radius: 4px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Description text */
+.card-tooltip-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #e8dcc0;
+  font-family: 'Noto Serif SC', 'Georgia', serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  position: relative;
+  z-index: 1;
+  padding: 8px 0;
+}
+
+.card-tooltip-no-description {
+  color: rgba(240, 230, 210, 0.4);
+  font-style: italic;
+  text-align: center;
+}
+
+/* Stats footer */
+.card-tooltip-stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(200, 164, 92, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.card-tooltip-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.card-tooltip-attack {
+  background: linear-gradient(135deg, rgba(255, 204, 0, 0.2) 0%, rgba(204, 153, 0, 0.15) 100%);
+  color: #ffcc00;
+  border: 1px solid rgba(255, 204, 0, 0.4);
+}
+
+.card-tooltip-health {
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.2) 0%, rgba(204, 34, 34, 0.15) 100%);
+  color: #ff6666;
+  border: 1px solid rgba(255, 102, 102, 0.4);
+}
+
+/* Responsive tooltip adjustments */
+@media (max-width: 900px) {
+  .card-tooltip {
+    max-width: 260px;
+  }
+
+  .card-tooltip-name {
+    font-size: 1rem;
+  }
+
+  .card-tooltip-description {
+    font-size: 0.85rem;
+  }
+
+  .card-tooltip-cost {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 500px) {
+  .card-tooltip {
+    max-width: 220px;
+  }
+
+  .card-tooltip-content {
+    padding: 10px 12px;
+  }
+
+  .card-tooltip-name {
+    font-size: 0.9rem;
+  }
+
+  .card-tooltip-description {
+    font-size: 0.8rem;
+  }
+}

@@ -14,7 +14,7 @@ import type { UIGameState, UICommand, CommandResult } from '../types';
 import { Play } from '../../actions/play';
 import { Attack } from '../../actions/attack';
 import { MAGE_DECK, WARRIOR_DECK, HEROES } from './decks';
-import { DEMO_CARDS, CARD_NAMES } from '../../cards/demoCards';
+import { DEMO_CARDS, CARD_NAMES, CARD_DESCRIPTIONS } from '../../cards/demoCards';
 import { I18n } from '../../i18n';
 import { GameRules } from '../../core/rules';
 
@@ -23,7 +23,7 @@ let cardsLoaded = false;
 
 /**
  * Initialize card loader - must be called before creating games
- * Uses demo cards for fast loading
+ * Uses demo cards for browser compatibility
  */
 export function initializeCardLoader(_xmlContent?: string): void {
   if (cardsLoaded) {
@@ -37,22 +37,20 @@ export function initializeCardLoader(_xmlContent?: string): void {
     // Set up I18n first
     I18n.setLocale('enUS');
 
-    // Create locale data with card names
+    // In browser environment, use demo cards directly
+    // (fs/path modules are not available in browser)
+    console.log('[CardLoader] Loading demo cards...');
     const localeData = {
       locale: 'enUS' as const,
       cardNames: { ...CARD_NAMES },
-      cardDescriptions: {} as Record<string, string>,
+      cardDescriptions: { ...CARD_DESCRIPTIONS },
       gameTexts: {} as Record<string, string>,
       errorMessages: {} as Record<string, string>,
       logMessages: {} as Record<string, string>,
     };
-
     I18n.loadLocale(localeData);
-    console.log(`[CardLoader] I18n loaded with ${Object.keys(CARD_NAMES).length} card names`);
-
-    // Load demo cards into CardLoader
-    console.log('[CardLoader] Loading demo cards...');
     CardLoader.registerAll(DEMO_CARDS);
+    console.log(`[CardLoader] Loaded ${DEMO_CARDS.length} demo cards`);
 
     // Verify cards are loaded
     const testCard = CardLoader.get('CS2_168');
@@ -62,6 +60,11 @@ export function initializeCardLoader(_xmlContent?: string): void {
     console.log(`[CardLoader] Initialization complete`);
   } catch (error) {
     console.error('[CardLoader] Failed to load cards:', error);
+    console.error('[CardLoader] Error type:', typeof error);
+    console.error('[CardLoader] Error stack:', error instanceof Error ? error.stack : 'No stack');
+    if (error instanceof Error) {
+      console.error('[CardLoader] Error message:', error.message);
+    }
   }
 }
 

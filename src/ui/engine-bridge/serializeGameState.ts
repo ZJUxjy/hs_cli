@@ -67,7 +67,7 @@ function serializeCard(card: Card | PlayableCard, index: number): UICardState {
 function serializeMinion(minion: Minion, index: number): UIMinionState {
   const minionAny = minion as any;
 
-  return {
+  const uiMinion: UIMinionState = {
     uiId: generateUiId(minion, 'minion') + `_${index}`,
     id: minionAny.id || 'unknown',
     name: minionAny.name || 'Unknown Minion',
@@ -84,6 +84,13 @@ function serializeMinion(minion: Minion, index: number): UIMinionState {
     frozen: minionAny.frozen ?? false,
     stealth: minionAny.stealth ?? false,
   };
+
+  // Add description if available
+  if (minionAny.description) {
+    uiMinion.description = minionAny.description;
+  }
+
+  return uiMinion;
 }
 
 /**

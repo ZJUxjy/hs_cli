@@ -193,6 +193,13 @@ export class CardLoader {
   }
 
   /**
+   * Get number of loaded cards
+   */
+  static get count(): number {
+    return this.cards.size;
+  }
+
+  /**
    * Get collectible cards only
    */
   static getCollectible(): CardDefinition[] {

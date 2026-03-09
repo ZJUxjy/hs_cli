@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createGameController, GameController, initializeCardLoader, areCardsLoaded } from '../engine-bridge';
-import type { UIGameState } from '../types';
+import { CardTooltip } from '../components/CardTooltip';
+import type { UIGameState, UICardState, UIMinionState } from '../types';
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -78,6 +79,12 @@ const App: React.FC = () => {
   const [draggedHandCard, setDraggedHandCard] = useState<number | null>(null);
   const [dragOverField, setDragOverField] = useState<boolean>(false);
 
+  // Tooltip state for card hover
+  const [tooltipCard, setTooltipCard] = useState<UICardState | UIMinionState | null>(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Create a transparent drag image to hide the default card drag preview
   const emptyDragImageRef = useRef<HTMLImageElement | null>(null);
   if (!emptyDragImageRef.current) {
@@ -123,6 +130,25 @@ const App: React.FC = () => {
     setArrowStart(null);
     setArrowEnd(null);
   };
+
+  // Tooltip handlers
+  const handleCardMouseEnter = useCallback((card: UICardState | UIMinionState) => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+    }
+    setTooltipCard(card);
+    setTooltipVisible(true);
+  }, []);
+
+  const handleCardMouseLeave = useCallback(() => {
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setTooltipVisible(false);
+    }, 100);
+  }, []);
+
+  const handleCardMouseMove = useCallback((e: React.MouseEvent) => {
+    setTooltipPos({ x: e.clientX, y: e.clientY });
+  }, []);
 
   // Generate SVG path for arc arrow
   const generateArrowPath = () => {
@@ -356,6 +382,9 @@ const App: React.FC = () => {
                     e.preventDefault();
                     handleDrop(minion.uiId);
                   }}
+                  onMouseEnter={() => handleCardMouseEnter(minion)}
+                  onMouseLeave={handleCardMouseLeave}
+                  onMouseMove={handleCardMouseMove}
                 >
                   <span className="minion-name">{minion.name}</span>
                   <div className="minion-stats">
@@ -399,6 +428,9 @@ const App: React.FC = () => {
                       handleSelectTarget(minion.uiId);
                     }
                   }}
+                  onMouseEnter={() => handleCardMouseEnter(minion)}
+                  onMouseLeave={handleCardMouseLeave}
+                  onMouseMove={handleCardMouseMove}
                 >
                   <span className="minion-name">{minion.name}</span>
                   <div className="minion-stats">
@@ -467,6 +499,9 @@ const App: React.FC = () => {
                   onDragStart={() => handleHandCardDragStart(i)}
                   onDragEnd={handleHandCardDragEnd}
                   onClick={() => card.playable && isLocalPlayerTurn && handlePlayCard(i)}
+                  onMouseEnter={() => handleCardMouseEnter(card)}
+                  onMouseLeave={handleCardMouseLeave}
+                  onMouseMove={handleCardMouseMove}
                 >
                   <span className="card-cost">{card.cost}</span>
                   <span className="card-name">{card.name}</span>
@@ -538,6 +573,14 @@ const App: React.FC = () => {
           )}
         </div>
       </aside>
+
+      {/* Card Tooltip */}
+      <CardTooltip
+        card={tooltipCard}
+        visible={tooltipVisible}
+        x={tooltipPos.x}
+        y={tooltipPos.y}
+      />
     </div>
   );
 };

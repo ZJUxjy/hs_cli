@@ -15,15 +15,14 @@ export class I18n {
     return this.currentLocale;
   }
 
+  /**
+   * Load locale data directly (for browser/demo use)
+   */
   static loadLocale(data: LocaleData): void {
     this.data.set(data.locale, data);
+    this.currentLocale = data.locale;
   }
 
-  /**
-   * Load card names and descriptions from parsed XML data
-   * @param xmlCards Map of card ID -> parsed card data from xmlparser
-   * @param locale Target locale to load
-   */
   static loadFromXml(xmlCards: Map<string, {
     name: Record<string, string>;
     description: Record<string, string>;
