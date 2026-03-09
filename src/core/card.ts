@@ -71,6 +71,13 @@ export class Card extends Entity {
     return (this as any).controller;
   }
 
+  /**
+   * Get the game instance this card belongs to
+   */
+  get game(): import('./game').Game | undefined {
+    return (this as any).controller?.game;
+  }
+
   isPlayable(): boolean {
     if (this.zone !== Zone.HAND) return false;
     const controller = this.getController();

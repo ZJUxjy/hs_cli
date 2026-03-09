@@ -74,7 +74,7 @@ body {
   font-size: 0.85rem;
 }
 
-/* Game Container */
+/* Game Container - Use flexbox to fill available space */
 .game-container {
   display: flex;
   flex-direction: column;
@@ -87,11 +87,19 @@ body {
   display: none; /* Moved turn info to center divider */
 }
 
-/* Board Layout - Hearthstone-style vertical layout */
+/* Board Layout - Use CSS Grid for better space distribution */
 .board {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows:
+    minmax(60px, 10vh)   /* opponent-hand */
+    minmax(80px, 12vh)   /* opponent-hero-row */
+    minmax(80px, 18vh)   /* opponent-field */
+    minmax(30px, 5vh)    /* center-divider */
+    minmax(80px, 18vh)   /* player-field */
+    minmax(80px, 12vh)   /* player-hero-row */
+    minmax(100px, 15vh)  /* player-hand */
+    auto;                /* controls */
   background: linear-gradient(180deg,
     #1a1410 0%,
     #2a241c 15%,
@@ -101,6 +109,7 @@ body {
   );
   position: relative;
   overflow: hidden;
+  min-height: 0; /* Allow grid to shrink */
 }
 
 /* Attack Arrow Overlay */
@@ -137,16 +146,15 @@ body {
   justify-content: center;
   position: relative;
   z-index: 5;
+  min-height: 0; /* Allow shrinking */
 }
 
 .opponent-hand {
-  height: 100px;
-  padding: 8px 20px;
+  padding: 4px 10px;
 }
 
 .player-hand {
-  height: 160px;
-  padding: 10px 20px 8px;
+  padding: 4px 10px;
   perspective: 1000px;
 }
 
@@ -186,8 +194,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 8px 20px;
+  padding: 4px 10px;
   position: relative;
+  min-height: 0;
 }
 
 /* Weapon Slot */
@@ -345,13 +354,14 @@ body {
 /* Field Areas - Battlefield */
 .field {
   display: flex;
-  gap: 12px;
-  min-height: 180px;
-  padding: 16px 30px;
+  gap: var(--gap-field);
+  padding: 8px 15px;
   justify-content: center;
   align-items: center;
   position: relative;
   z-index: 3;
+  min-height: 0; /* Allow grid to control size */
+  overflow: hidden;
 }
 
 .opponent-field {
@@ -389,8 +399,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 0;
+  padding: 2px 0;
   position: relative;
+  min-height: 0;
 }
 
 .center-divider::before {
@@ -399,17 +410,17 @@ body {
   left: 10%;
   right: 10%;
   top: 50%;
-  height: 3px;
+  height: 2px;
   background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%);
   opacity: 0.5;
 }
 
 .turn-info {
   background: rgba(0, 0, 0, 0.7);
-  padding: 6px 20px;
-  border-radius: 20px;
+  padding: 4px 16px;
+  border-radius: 16px;
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--color-primary);
   border: 2px solid var(--color-primary);
   z-index: 1;
@@ -657,14 +668,15 @@ body {
 .controls {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  padding: 8px;
+  gap: 8px;
+  padding: 6px;
   background: rgba(0, 0, 0, 0.3);
+  flex-shrink: 0; /* Don't allow controls to shrink */
 }
 
 .btn {
-  padding: 10px 24px;
-  font-size: 0.9rem;
+  padding: 8px 16px;
+  font-size: 0.85rem;
   font-weight: bold;
   border: none;
   border-radius: 6px;
@@ -941,48 +953,35 @@ body {
     --gap-hand: -8px;
   }
 
-  .opponent-hand {
-    height: 80px;
-    padding: 6px 10px;
+  /* Adjust grid rows for smaller screens */
+  .board {
+    grid-template-rows:
+      minmax(50px, 8vh)   /* opponent-hand */
+      minmax(70px, 10vh)  /* opponent-hero-row */
+      minmax(70px, 15vh)  /* opponent-field */
+      minmax(25px, 4vh)   /* center-divider */
+      minmax(70px, 15vh)  /* player-field */
+      minmax(70px, 10vh)  /* player-hero-row */
+      minmax(90px, 12vh)  /* player-hand */
+      auto;               /* controls */
   }
 
   .opponent-hand .card-back {
-    width: 60px;
-    height: 84px;
-    margin: 0 -10px;
-  }
-
-  .player-hand {
-    height: 130px;
-    padding: 8px 10px 6px;
+    width: 55px;
+    height: 77px;
+    margin: 0 -8px;
   }
 
   .hero-row {
-    padding: 6px 10px;
-    gap: 8px;
-  }
-
-  .field {
-    min-height: 120px;
-    padding: 10px 15px;
+    gap: 6px;
   }
 
   .player-info-overlay {
-    right: 10px;
+    right: 8px;
   }
 
   .opponent-hero-row .player-info-overlay {
-    left: 10px;
-  }
-
-  .controls {
-    padding: 6px;
-    gap: 8px;
-  }
-
-  .btn {
-    padding: 8px 16px;
-    font-size: 0.8rem;
+    left: 8px;
   }
 }
 
@@ -1003,73 +1002,66 @@ body {
     --gap-hand: -6px;
   }
 
+  /* Adjust grid rows for very small screens */
+  .board {
+    grid-template-rows:
+      minmax(40px, 6vh)   /* opponent-hand */
+      minmax(60px, 8vh)   /* opponent-hero-row */
+      minmax(60px, 12vh)  /* opponent-field */
+      minmax(20px, 3vh)   /* center-divider */
+      minmax(60px, 12vh)  /* player-field */
+      minmax(60px, 8vh)   /* player-hero-row */
+      minmax(80px, 10vh)  /* player-hand */
+      auto;               /* controls */
+  }
+
   .header {
-    padding: 6px 10px;
+    padding: 4px 8px;
   }
 
   .header h1 {
-    font-size: 1rem;
-  }
-
-  .opponent-hand {
-    height: 70px;
-    padding: 4px 8px;
+    font-size: 0.9rem;
   }
 
   .opponent-hand .card-back {
-    width: 50px;
-    height: 70px;
-    margin: 0 -8px;
+    width: 45px;
+    height: 63px;
+    margin: 0 -6px;
   }
 
   .opponent-hand .card-back::before {
-    font-size: 1.5rem;
-  }
-
-  .player-hand {
-    height: 110px;
-    padding: 6px 8px 4px;
+    font-size: 1.2rem;
   }
 
   .hero-row {
-    padding: 4px 8px;
-    gap: 6px;
-  }
-
-  .field {
-    min-height: 100px;
-    padding: 8px 10px;
-  }
-
-  .center-divider {
-    padding: 4px 0;
+    gap: 4px;
   }
 
   .turn-info {
-    padding: 4px 12px;
-    font-size: 0.75rem;
+    padding: 3px 10px;
+    font-size: 0.7rem;
   }
 
   .controls {
-    padding: 4px;
-    gap: 6px;
+    padding: 3px;
+    gap: 4px;
   }
 
   .btn {
-    padding: 6px 12px;
-    font-size: 0.75rem;
+    padding: 5px 10px;
+    font-size: 0.7rem;
   }
 
   .game-over-content {
-    padding: 24px 36px;
+    padding: 20px 30px;
   }
 
   .game-over-content h2 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .game-over-content p {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 }
 

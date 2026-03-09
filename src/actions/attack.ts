@@ -16,6 +16,12 @@ export class Attack extends Action {
     const defender = this.defender as any;
     const game = (source as any).game;
 
+    // Safety check for game instance
+    if (!game) {
+      console.error(`[Attack] No game instance available for source: ${(source as any).id}`);
+      throw new Error('No game instance available');
+    }
+
     // Validate the attack using centralized rules
     const validation = GameRules.canAttack(attacker, defender, game);
     if (!validation.valid) {
