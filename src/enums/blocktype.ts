@@ -1,13 +1,13 @@
-export const enum BlockType {
+export enum BlockType {
   ATTACK = 1,
   JOUST = 2,
   POWER = 3,
   TRIGGER = 5,
   DEATHS = 6,
-  PLAY = 8,
-  FATALITY = 9,
-  RITUAL = 10,
-  REVEAL_CARD = 11,
-  GAME_RESET = 12,
-  MOVE_MINION = 14,
+  PLAY = 7,
+  FATIGUE = 8,
+  RITUAL = 9,
+  REVEAL_CARD = 10,
+  GAME_RESET = 11,
+  MOVE_MINION = 12,
 }
