@@ -198,6 +198,10 @@ export class Action {
    * @param args - Additional arguments
    */
   protected broadcastSingle(obj: Entity, at: EventListenerAt, source: Entity, ...args: unknown[]): void {
+    if (!obj) {
+      return;
+    }
+
     const entityAny = obj as unknown as {
       events?: Array<{ actions: unknown[]; once?: boolean }>;
       triggerEvent?: (source: Entity, event: { actions: unknown[]; once?: boolean }, args: unknown[]) => unknown[];

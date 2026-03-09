@@ -1,32 +1,39 @@
 import { Action } from './base';
+import { EventListenerAt } from './eventlistener';
 import type { Entity } from '../core/entity';
 import { CardLoader } from '../cards/loader';
 import { Minion } from '../core/card';
 
 export class Summon extends Action {
   constructor(
-    public source: Entity,
-    public card: string | Entity,
+    private card: string | Entity,
     public index: number | null = null
   ) {
-    super();
+    super(card);
   }
 
-  trigger(source: Entity): unknown[] {
+  getArgs(_source: Entity): [string | Entity] {
+    return [this.card];
+  }
+
+  do(source: Entity, cardRef: string | Entity): void {
+    // Broadcast ON
+    this.broadcast(source, EventListenerAt.ON, cardRef);
+
     const controller = (source as any).controller;
-    if (!controller) return [];
+    if (!controller) return;
 
     const field = controller.field as Entity[];
-    if (field.length >= 7) return []; // Board full
+    if (field.length >= 7) return; // Board full
 
     let card: Entity;
-    if (typeof this.card === 'string') {
+    if (typeof cardRef === 'string') {
       // Create card from card ID
-      const def = CardLoader.get(this.card);
-      if (!def) return [];
+      const def = CardLoader.get(cardRef);
+      if (!def) return;
       card = new Minion(def) as unknown as Entity;
     } else {
-      card = this.card;
+      card = cardRef;
     }
 
     if (this.index !== null && this.index >= 0) {
@@ -35,7 +42,20 @@ export class Summon extends Action {
       field.push(card);
     }
 
-    (card as any).playCounter = (source as any).game.tick++;
-    return [card];
+    const game = (source as any).game;
+    if (game) {
+      (card as any).playCounter = game.tick++;
+    }
+
+    // Broadcast AFTER
+    this.broadcast(source, EventListenerAt.AFTER, cardRef);
+
+    // Trigger callbacks
+    if (this.callback.length > 0) {
+      const game = controller.game;
+      if (game?.queueActions) {
+        game.queueActions(source, this.callback);
+      }
+    }
   }
 }

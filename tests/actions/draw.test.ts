@@ -22,37 +22,33 @@ describe('Draw', () => {
   });
 
   test('should create Draw action', () => {
-    const source = { entityId: 1 } as unknown as Entity;
-    const draw = new Draw(source);
-    expect(draw.source).toBe(source);
+    const draw = new Draw(1);
+    expect(draw).toBeDefined();
   });
 
   test('should default to drawing 1 card', () => {
-    const source = { entityId: 1 } as unknown as Entity;
-    const draw = new Draw(source);
-    expect(draw.count).toBe(1);
+    const draw = new Draw();
+    // Default count is 1
+    expect((draw as any).count).toBe(1);
   });
 
   test('should draw cards from deck to hand', () => {
-    const draw = new Draw(player, 1);
-    const drawn = draw.trigger(player);
-    expect(drawn.length).toBe(1);
+    const draw = new Draw(1);
+    draw.trigger(player);
     expect(player.hand.length).toBe(1);
     expect(player.deck.length).toBe(1);
   });
 
   test('should draw multiple cards', () => {
-    const draw = new Draw(player, 2);
-    const drawn = draw.trigger(player);
-    expect(drawn.length).toBe(2);
+    const draw = new Draw(2);
+    draw.trigger(player);
     expect(player.hand.length).toBe(2);
     expect(player.deck.length).toBe(0);
   });
 
   test('should not draw more than available', () => {
-    const draw = new Draw(player, 5);
-    const drawn = draw.trigger(player);
-    expect(drawn.length).toBe(2);
+    const draw = new Draw(5);
+    draw.trigger(player);
     expect(player.hand.length).toBe(2);
   });
 });

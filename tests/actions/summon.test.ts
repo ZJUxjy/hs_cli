@@ -17,11 +17,9 @@ describe('Summon', () => {
   });
 
   test('should create Summon action', () => {
-    const source = { entityId: 1 } as unknown as Entity;
     const card = { entityId: 2 } as unknown as Entity;
-    const summon = new Summon(source, card);
-    expect(summon.source).toBe(source);
-    expect(summon.card).toBe(card);
+    const summon = new Summon(card);
+    expect((summon as any).card).toBe(card);
   });
 
   test('should summon minion to field', () => {
@@ -33,10 +31,10 @@ describe('Summon', () => {
       attack: 1,
       health: 1
     });
-    const summon = new Summon(player, minion);
-    const result = summon.trigger(player);
+    const summon = new Summon(minion);
+    summon.trigger(player);
     expect(player.field.length).toBe(1);
-    expect(result).toContain(minion);
+    expect(player.field.first()).toBe(minion);
   });
 
   test('should not summon if board is full', () => {
@@ -61,9 +59,8 @@ describe('Summon', () => {
       attack: 1,
       health: 1
     });
-    const summon = new Summon(player, minion);
-    const result = summon.trigger(player);
-    expect(result.length).toBe(0);
+    const summon = new Summon(minion);
+    summon.trigger(player);
     expect(player.field.length).toBe(7);
   });
 
@@ -87,7 +84,7 @@ describe('Summon', () => {
 
     player.field.push(minion1);
 
-    const summon = new Summon(player, minion2, 0);
+    const summon = new Summon(minion2, 0);
     summon.trigger(player);
 
     // After summon at index 0, minion2 should be first
