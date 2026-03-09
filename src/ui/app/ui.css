@@ -152,12 +152,12 @@ body {
 
 /* Card backs for opponent */
 .opponent-hand .card-back {
-  width: 80px;
-  height: 110px;
+  width: calc(var(--card-width) * 0.62);
+  height: calc(var(--card-height) * 0.62);
   background: linear-gradient(135deg, #3a3028 0%, #2a241c 50%, #1a1410 100%);
   border: 2px solid var(--color-primary);
   border-radius: 8px;
-  margin: 0 -15px;
+  margin: 0 calc(var(--gap-hand) * -0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -212,8 +212,8 @@ body {
 
 /* Hero Portrait - Larger and more prominent */
 .hero-portrait {
-  width: 120px;
-  height: 120px;
+  width: var(--hero-size);
+  height: var(--hero-size);
   background: linear-gradient(180deg, var(--color-hero-portrait) 0%, #2a241c 100%);
   border: 4px solid var(--color-card-border);
   border-radius: 50%;
@@ -252,7 +252,7 @@ body {
 
 .hero-stats {
   position: absolute;
-  bottom: -14px;
+  bottom: calc(var(--hero-size) * -0.12);
   display: flex;
   align-items: center;
   gap: 3px;
@@ -261,30 +261,30 @@ body {
 .hero-attack {
   background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%);
   color: #222;
-  padding: 5px 10px;
+  padding: calc(var(--hero-size) * 0.04) calc(var(--hero-size) * 0.08);
   border-radius: 10px;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: var(--font-sm);
   box-shadow: 0 2px 6px rgba(255, 204, 0, 0.5);
 }
 
 .hero-health {
   background: linear-gradient(135deg, #ff4444 0%, #cc2222 100%);
   color: white;
-  padding: 5px 14px;
+  padding: calc(var(--hero-size) * 0.04) calc(var(--hero-size) * 0.12);
   border-radius: 14px;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: var(--font-base);
   box-shadow: 0 2px 8px rgba(255, 68, 68, 0.5);
 }
 
 .hero-armor {
   background: linear-gradient(135deg, #55cc55 0%, #339933 100%);
   color: white;
-  padding: 5px 12px;
+  padding: calc(var(--hero-size) * 0.04) calc(var(--hero-size) * 0.1);
   border-radius: 12px;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: var(--font-sm);
   box-shadow: 0 2px 8px rgba(85, 204, 85, 0.5);
 }
 
@@ -417,15 +417,15 @@ body {
 
 /* Minions - Larger size like Hearthstone */
 .minion {
-  width: 120px;
-  height: 150px;
+  width: var(--minion-width);
+  height: var(--minion-height);
   background: linear-gradient(180deg, #5a5048 0%, #4a4038 40%, #3a3028 100%);
   border: 3px solid var(--color-card-border);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px;
+  padding: 6px;
   position: relative;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -469,28 +469,28 @@ body {
 .minion-stats .attack {
   background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%);
   color: #222;
-  width: 32px;
-  height: 32px;
+  width: calc(var(--minion-width) * 0.27);
+  height: calc(var(--minion-width) * 0.27);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: var(--font-sm);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .minion-stats .health {
   background: linear-gradient(135deg, #ff4444 0%, #cc2222 100%);
   color: white;
-  width: 32px;
-  height: 32px;
+  width: calc(var(--minion-width) * 0.27);
+  height: calc(var(--minion-width) * 0.27);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: var(--font-sm);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
@@ -534,41 +534,41 @@ body {
 
 /* Cards in Hand - Larger size */
 .card {
-  width: 130px;
-  height: 180px;
+  width: var(--card-width);
+  height: var(--card-height);
   background: linear-gradient(180deg, #4a4038 0%, var(--color-card-bg) 50%, #2a241c 100%);
   border: 3px solid var(--color-card-border);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px;
+  padding: 6px;
   position: relative;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .card-cost {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 4px;
+  left: 4px;
   background: linear-gradient(135deg, #5588ff 0%, #3366dd 100%);
   color: white;
-  width: 32px;
-  height: 32px;
+  width: calc(var(--card-width) * 0.25);
+  height: calc(var(--card-width) * 0.25);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: var(--font-sm);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .card-name {
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
   text-align: center;
-  margin-top: 36px;
+  margin-top: calc(var(--card-width) * 0.28);
   word-wrap: break-word;
   max-width: 90%;
   font-weight: 500;
@@ -579,36 +579,36 @@ body {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  padding: 0 6px;
+  padding: 0 4px;
   margin-top: auto;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .card-stats .attack {
   background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%);
   color: #222;
-  width: 30px;
-  height: 30px;
+  width: calc(var(--card-width) * 0.23);
+  height: calc(var(--card-width) * 0.23);
   border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: var(--font-sm);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .card-stats .health {
   background: linear-gradient(135deg, #ff4444 0%, #cc2222 100%);
   color: white;
-  width: 30px;
-  height: 30px;
+  width: calc(var(--card-width) * 0.23);
+  height: calc(var(--card-width) * 0.23);
   border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: var(--font-sm);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -637,9 +637,9 @@ body {
 }
 
 .player-card.playable:hover {
-  transform: rotate(0deg) translateY(-50px) scale(1.4) !important;
+  transform: rotate(0deg) translateY(calc(var(--card-height) * -0.28)) scale(1.4) !important;
   box-shadow: 0 0 25px rgba(74, 144, 217, 0.8);
-  margin: 0 15px;
+  margin: 0 10px;
   z-index: 100;
 }
 
@@ -649,7 +649,7 @@ body {
 }
 
 .player-card.unplayable:hover {
-  transform: rotate(0deg) translateY(-20px) scale(1.1) !important;
+  transform: rotate(0deg) translateY(calc(var(--card-height) * -0.12)) scale(1.1) !important;
   margin: 0 5px;
 }
 
@@ -830,8 +830,57 @@ body {
 .log-death { border-left-color: #666; }
 .log-turn { border-left-color: var(--color-primary); font-weight: bold; }
 
-/* Responsive */
-@media (max-width: 900px) {
+/* ============================================
+   Responsive Design - Multi-breakpoint Support
+   ============================================ */
+
+/* Large screens (default) - 1200px+ */
+:root {
+  --card-width: 130px;
+  --card-height: 180px;
+  --minion-width: 120px;
+  --minion-height: 150px;
+  --hero-size: 120px;
+  --weapon-size: 70px;
+  --hero-power-size: 70px;
+  --font-base: 1rem;
+  --font-sm: 0.85rem;
+  --font-xs: 0.7rem;
+  --gap-field: 12px;
+  --gap-hand: -18px;
+}
+
+/* Medium-large screens - 1200px to 1400px */
+@media (max-width: 1400px) {
+  :root {
+    --card-width: 120px;
+    --card-height: 166px;
+    --minion-width: 110px;
+    --minion-height: 138px;
+    --hero-size: 110px;
+    --weapon-size: 65px;
+    --hero-power-size: 65px;
+    --gap-hand: -15px;
+  }
+}
+
+/* Medium screens - 900px to 1200px */
+@media (max-width: 1200px) {
+  :root {
+    --card-width: 110px;
+    --card-height: 152px;
+    --minion-width: 100px;
+    --minion-height: 125px;
+    --hero-size: 100px;
+    --weapon-size: 60px;
+    --hero-power-size: 60px;
+    --font-base: 0.9rem;
+    --font-sm: 0.75rem;
+    --font-xs: 0.65rem;
+    --gap-field: 10px;
+    --gap-hand: -12px;
+  }
+
   .app {
     grid-template-columns: 1fr;
   }
@@ -839,4 +888,316 @@ body {
   .log-panel {
     display: none;
   }
+}
+
+/* Small-medium screens - 700px to 900px */
+@media (max-width: 900px) {
+  :root {
+    --card-width: 100px;
+    --card-height: 138px;
+    --minion-width: 90px;
+    --minion-height: 112px;
+    --hero-size: 90px;
+    --weapon-size: 55px;
+    --hero-power-size: 55px;
+    --font-base: 0.85rem;
+    --font-sm: 0.7rem;
+    --font-xs: 0.6rem;
+    --gap-field: 8px;
+    --gap-hand: -10px;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .log-panel {
+    display: none;
+  }
+
+  .header h1 {
+    font-size: 1.2rem;
+  }
+
+  .header p {
+    display: none;
+  }
+}
+
+/* Small screens - 500px to 700px */
+@media (max-width: 700px) {
+  :root {
+    --card-width: 85px;
+    --card-height: 118px;
+    --minion-width: 78px;
+    --minion-height: 98px;
+    --hero-size: 80px;
+    --weapon-size: 50px;
+    --hero-power-size: 50px;
+    --font-base: 0.8rem;
+    --font-sm: 0.65rem;
+    --font-xs: 0.55rem;
+    --gap-field: 6px;
+    --gap-hand: -8px;
+  }
+
+  .opponent-hand {
+    height: 80px;
+    padding: 6px 10px;
+  }
+
+  .opponent-hand .card-back {
+    width: 60px;
+    height: 84px;
+    margin: 0 -10px;
+  }
+
+  .player-hand {
+    height: 130px;
+    padding: 8px 10px 6px;
+  }
+
+  .hero-row {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .field {
+    min-height: 120px;
+    padding: 10px 15px;
+  }
+
+  .player-info-overlay {
+    right: 10px;
+  }
+
+  .opponent-hero-row .player-info-overlay {
+    left: 10px;
+  }
+
+  .controls {
+    padding: 6px;
+    gap: 8px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Extra small screens - below 500px */
+@media (max-width: 500px) {
+  :root {
+    --card-width: 70px;
+    --card-height: 98px;
+    --minion-width: 65px;
+    --minion-height: 82px;
+    --hero-size: 70px;
+    --weapon-size: 45px;
+    --hero-power-size: 45px;
+    --font-base: 0.75rem;
+    --font-sm: 0.6rem;
+    --font-xs: 0.5rem;
+    --gap-field: 4px;
+    --gap-hand: -6px;
+  }
+
+  .header {
+    padding: 6px 10px;
+  }
+
+  .header h1 {
+    font-size: 1rem;
+  }
+
+  .opponent-hand {
+    height: 70px;
+    padding: 4px 8px;
+  }
+
+  .opponent-hand .card-back {
+    width: 50px;
+    height: 70px;
+    margin: 0 -8px;
+  }
+
+  .opponent-hand .card-back::before {
+    font-size: 1.5rem;
+  }
+
+  .player-hand {
+    height: 110px;
+    padding: 6px 8px 4px;
+  }
+
+  .hero-row {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .field {
+    min-height: 100px;
+    padding: 8px 10px;
+  }
+
+  .center-divider {
+    padding: 4px 0;
+  }
+
+  .turn-info {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+  }
+
+  .controls {
+    padding: 4px;
+    gap: 6px;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
+  .game-over-content {
+    padding: 24px 36px;
+  }
+
+  .game-over-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .game-over-content p {
+    font-size: 1.1rem;
+  }
+}
+
+/* Height-based adjustments for short screens */
+@media (max-height: 700px) {
+  :root {
+    --card-height: calc(var(--card-width) * 1.38);
+    --minion-height: calc(var(--minion-width) * 1.25);
+  }
+
+  .opponent-hand {
+    height: 70px;
+  }
+
+  .player-hand {
+    height: 110px;
+  }
+
+  .field {
+    min-height: 100px;
+    padding: 8px 15px;
+  }
+
+  .hero-row {
+    padding: 4px 15px;
+  }
+}
+
+@media (max-height: 600px) {
+  .header {
+    padding: 4px 15px;
+  }
+
+  .header h1 {
+    font-size: 1rem;
+  }
+
+  .header p {
+    display: none;
+  }
+
+  .opponent-hand {
+    height: 60px;
+  }
+
+  .player-hand {
+    height: 90px;
+  }
+
+  .field {
+    min-height: 80px;
+    padding: 6px 10px;
+  }
+
+  .hero-row {
+    padding: 2px 10px;
+  }
+
+  .controls {
+    padding: 4px;
+  }
+}
+
+/* Apply CSS variables to components */
+.card {
+  width: var(--card-width);
+  height: var(--card-height);
+}
+
+.minion {
+  width: var(--minion-width);
+  height: var(--minion-height);
+}
+
+.hero-portrait {
+  width: var(--hero-size);
+  height: var(--hero-size);
+}
+
+.weapon-slot,
+.hero-power-slot {
+  width: var(--weapon-size);
+  height: var(--weapon-size);
+}
+
+.weapon-slot .weapon,
+.hero-power {
+  width: calc(var(--weapon-size) - 10px);
+  height: calc(var(--weapon-size) - 10px);
+}
+
+.field {
+  gap: var(--gap-field);
+}
+
+.player-card {
+  margin: 0 var(--gap-hand);
+}
+
+/* Scaled font sizes */
+.minion-name,
+.card-name {
+  font-size: var(--font-sm);
+}
+
+.minion .keyword {
+  font-size: var(--font-xs);
+}
+
+.card-cost,
+.minion-stats .attack,
+.minion-stats .health,
+.card-stats .attack,
+.card-stats .health {
+  font-size: var(--font-sm);
+}
+
+.hero-avatar {
+  font-size: calc(var(--hero-size) * 0.15);
+}
+
+.hero-attack,
+.hero-health,
+.hero-armor {
+  font-size: var(--font-sm);
+}
+
+.player-info-overlay .mana,
+.player-info-overlay .deck-count {
+  font-size: var(--font-sm);
 }
