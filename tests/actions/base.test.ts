@@ -17,13 +17,15 @@ describe('Action', () => {
 
 describe('EventListener', () => {
   test('should create EventListener', () => {
-    const listener = new EventListener('event', [], EventListenerAt.ON);
-    expect(listener.trigger).toBe('event');
+    const trigger = new Action();
+    const listener = new EventListener(trigger, [], EventListenerAt.ON);
+    expect(listener.trigger).toBe(trigger);
     expect(listener.at).toBe(EventListenerAt.ON);
   });
 
   test('should have once false by default', () => {
-    const listener = new EventListener('event', [], EventListenerAt.ON);
+    const trigger = new Action();
+    const listener = new EventListener(trigger, [], EventListenerAt.ON);
     expect(listener.once).toBe(false);
   });
 });
