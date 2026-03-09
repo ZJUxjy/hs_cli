@@ -303,6 +303,54 @@ export class Spell extends PlayableCard {
   }
 }
 
+export interface SecretDefinition extends CardDefinition {
+  secret?: boolean;
+  quest?: boolean;
+}
+
+export class Secret extends Spell {
+  public secret: boolean;
+
+  constructor(def: SecretDefinition) {
+    super(def);
+    this.secret = def.secret ?? false;
+  }
+
+  playToSecretZone(): void {
+    const controller = this.controller as any;
+    if (!controller) return;
+
+    if (controller.secrets && controller.secrets.length >= 5) {
+      console.log(`[Secret] Cannot play ${this.id} - secret limit reached`);
+      return;
+    }
+
+    controller.secrets.push(this);
+    this.zone = 7; // Zone.SECRET
+    console.log(`[Secret] ${controller.name} played ${this.id}`);
+  }
+
+  checkTrigger(eventName: string, eventArgs: Record<string, unknown>): boolean {
+    return false;
+  }
+
+  reveal(): void {
+    const controller = this.controller as any;
+    if (controller?.secrets) {
+      const idx = controller.secrets.indexOf(this);
+      if (idx !== -1) {
+        controller.secrets.splice(idx, 1);
+      }
+    }
+    console.log(`[Secret] ${this.id} revealed!`);
+  }
+
+  destroy(): void {
+    this.reveal();
+    this.zone = 4; // Zone.GRAVEYARD
+  }
+}
+
 export class Weapon extends PlayableCard {
   public _attack: number = 0;
   public _durability: number = 0;
@@ -473,9 +521,6 @@ export class HeroPower extends Card {
     this.activationsThisTurn = 0;
   }
 }
-
-// Secret is now in secret.ts - re-export for convenience
-export { Secret } from './secret';
 
 // Forward declaration for Player (circular dependency)
 export class Player extends Entity {}
