@@ -24,9 +24,10 @@ export { Play } from './play';
 export { Fatigue } from './fatigue';
 export { MulliganChoice } from './mulligan';
 export type { MulliganChoiceCallback, PlayerChoice } from './mulligan';
+export { SpendMana } from './spendmana';
 export {
   Hit, Discard, DiscardRandom, Battlecry, Deathrattle,
-  SetTag, UnsetTag, Reveal, Hide, SpendMana, GainManaCrystal,
+  SetTag, UnsetTag, Reveal, Hide, GainManaCrystal,
   Overload, Copy, Transform, SwapAttackHealth, Equip,
   DestroyWeapon, DrawUntil, ForcePlay
 } from './extended';
