@@ -21,12 +21,16 @@ export class Player extends Entity {
   public secrets = new CardList<Secret>();
 
   // 资源
-  public mana: number = 0;
   public maxMana: number = 0;
   public usedMana: number = 0;
   public overloadLocked: number = 0;
   public overloaded: number = 0;
   public tempMana: number = 0;
+
+  // Computed mana getter
+  get mana(): number {
+    return Math.max(0, this.maxMana - this.usedMana - this.overloadLocked) + this.tempMana;
+  }
 
   // 状态
   public playstate: PlayState = PlayState.PLAYING;

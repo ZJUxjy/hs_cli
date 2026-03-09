@@ -40,14 +40,12 @@ export class BeginTurn extends Action {
       this.player.overloadLocked = this.player.overloaded;
       this.player.overloaded = 0;
 
-      // Then add mana crystal
-      if (this.player.maxMana < 10) {
-        this.player.maxMana++;
-      }
+      // Then add mana crystal (capped at 10)
+      this.player.maxMana = Math.min(10, this.player.maxMana + 1);
 
-      // Finally, set available mana (after overload is applied)
-      this.player.mana = this.player.maxMana - this.player.overloadLocked;
+      // Reset used mana and temp mana
       this.player.usedMana = 0;
+      this.player.tempMana = 0;
 
       // Draw a card at the start of turn
       this.player.draw(1);
