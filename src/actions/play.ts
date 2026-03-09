@@ -29,7 +29,6 @@ export class Play extends Action {
     // Pay mana cost
     const cost = this.card.cost || 0;
     this.player.usedMana += cost;
-    this.player.mana -= cost;
 
     // Track cards played
     this.player.cardsPlayedThisTurn++;

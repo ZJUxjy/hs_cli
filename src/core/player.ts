@@ -32,6 +32,20 @@ export class Player extends Entity {
     return Math.max(0, this.maxMana - this.usedMana - this.overloadLocked) + this.tempMana;
   }
 
+  // Mana setter for backward compatibility
+  set mana(value: number) {
+    const currentMana = this.mana;
+    const diff = value - currentMana;
+
+    if (diff > 0) {
+      // Increasing mana - add to temp mana
+      this.tempMana += diff;
+    } else if (diff < 0) {
+      // Decreasing mana - add to used mana
+      this.usedMana -= diff; // diff is negative, so this increases usedMana
+    }
+  }
+
   // 状态
   public playstate: PlayState = PlayState.PLAYING;
   public combo: boolean = false;
