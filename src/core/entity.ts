@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { CardType } from '../enums';
 import { Manager } from './manager';
+import { EventListenerAt } from '../actions/eventlistener';
 
 export type EntityId = number;
 
@@ -35,6 +36,8 @@ export interface CardData {
 export interface EntityGameEvent {
   actions: Action[];
   once?: boolean;
+  trigger?: Action;      // For Action-based events
+  at?: EventListenerAt;  // ON or AFTER timing
 }
 
 export interface UpdateScript {
@@ -62,6 +65,10 @@ export class Entity {
   public manager: Manager;
   protected _events: EntityGameEvent[] = [];
   protected baseEvents: EntityGameEvent[] = [];
+
+  // Private storage for buffs and slots
+  protected _buffs: Buff[] = [];
+  protected _slots: Slot[] = [];
 
   constructor(protected data: CardData | null = null) {
     this.uuid = uuidv4();
@@ -99,12 +106,14 @@ export class Entity {
   }
 
   triggerEvent(source: Entity, event: EntityGameEvent, args: unknown[]): unknown[] {
-    const actions: Action[] = [];
+    const actions: unknown[] = [];
+
+    // Build action list
     for (const action of event.actions) {
       if (typeof action === 'function') {
         const result = action(this, ...args);
         if (result) {
-          if (typeof result[Symbol.iterator] === 'function') {
+          if (Array.isArray(result)) {
             actions.push(...result);
           } else {
             actions.push(result);
@@ -114,12 +123,20 @@ export class Entity {
         actions.push(action);
       }
     }
-    const ret = (source as any).game?.trigger(this, actions, args);
+
+    // Execute via game.trigger
+    const game = (source as any).game || (this as any).game;
+    const ret = game?.actionTrigger?.(this, actions as Action[], args) || [];
+
+    // Remove once events
     if (event.once) {
       const idx = this._events.indexOf(event);
-      if (idx !== -1) this._events.splice(idx, 1);
+      if (idx !== -1) {
+        this._events.splice(idx, 1);
+      }
     }
-    return ret || [];
+
+    return ret;
   }
 
   getDamage(amount: number, target: Character): number {
@@ -146,14 +163,33 @@ export class Entity {
   }
 
   get buffs(): Buff[] {
-    return [];
+    return this._buffs || [];
   }
 
   get slots(): Slot[] {
-    return [];
+    return this._slots || [];
   }
 
-  protected _getattr(_attr: string, value: number): number {
-    return value;
+  protected _getattr(attr: string, value: number): number {
+    let result = value;
+    result += (this as any)['_' + attr] || 0;
+
+    for (const buff of this.buffs) {
+      result = buff._getattr(attr, result);
+    }
+
+    for (const slot of this.slots) {
+      result = slot._getattr(attr, result);
+    }
+
+    // Apply data.scripts if available
+    if (this.data?.scripts && !this.ignoreScripts) {
+      const scriptFn = (this.data.scripts as any)[attr];
+      if (typeof scriptFn === 'function') {
+        result = scriptFn(this, result);
+      }
+    }
+
+    return result;
   }
 }
