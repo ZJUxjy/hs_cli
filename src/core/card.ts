@@ -441,9 +441,8 @@ export class Hero extends PlayableCard {
 // HeroPower is now in heropower.ts - re-export for convenience
 export { HeroPower } from './heropower';
 
-export class Secret extends Card {
-  // Secret logic
-}
+// Secret is now in secret.ts - re-export for convenience
+export { Secret } from './secret';
 
 // Forward declaration for Player (circular dependency)
 export class Player extends Entity {}
