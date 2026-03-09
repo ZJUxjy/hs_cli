@@ -1,6 +1,6 @@
 import { Action } from './base';
 import { Entity } from '../core/entity';
-import { CardType } from '../enums';
+import { CardType, Race } from '../enums';
 import type { PlayableCard } from '../core/card';
 import type { Player } from '../core/player';
 
@@ -45,6 +45,12 @@ export class Play extends Action {
         const hasCharge = (this.card as any).charge || (this.card as any)._charge;
         (this.card as any).sleeping = !hasCharge;
         console.log(`[Play] Minion ${this.card.id} summoned to field, sleeping: ${!hasCharge}`);
+      }
+
+      // Track elemental plays for synergy effects
+      if ((this.card as any).race === Race.ELEMENTAL) {
+        this.player.elementalPlayedThisTurn++;
+        console.log(`[Elemental] ${this.player.name} played elemental this turn (${this.player.elementalPlayedThisTurn})`);
       }
     } else if (this.card.type === CardType.SPELL) {
       // Spell effect would be applied here
