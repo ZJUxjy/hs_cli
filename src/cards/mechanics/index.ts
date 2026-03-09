@@ -1,6 +1,7 @@
 // Card scripts registry and executor
 import type { Entity } from '../../core/entity';
 import { CardScript, ActionContext, EventType } from './types';
+import { adaptLegacyScript } from './adapter';
 
 // Entity with card ID
 interface CardEntity extends Entity {
@@ -14,7 +15,9 @@ class CardScriptsRegistry {
    * Register a card script
    */
   register(cardId: string, script: CardScript): void {
-    this.scripts.set(cardId, script);
+    // Auto-adapt legacy scripts
+    const adapted = adaptLegacyScript(cardId, script);
+    this.scripts.set(cardId, adapted);
   }
 
   /**
