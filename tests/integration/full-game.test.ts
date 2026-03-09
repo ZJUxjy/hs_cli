@@ -599,4 +599,149 @@ describe('Full Game Integration', () => {
     // Should include hero and minion
     expect(characters.length).toBe(2);
   });
+
+  // Task 14: Additional integration tests for full game flow
+  test('Complete game flow with mulligan', () => {
+    const deck1 = ['CS2_120', 'CS2_121', 'CS2_122', 'CS2_123', 'CS2_124'];
+    const deck2 = ['CS2_120', 'CS2_121', 'CS2_122', 'CS2_123', 'CS2_124', 'CS2_125'];
+    const newPlayer1 = new Player('Player1', deck1);
+    const newPlayer2 = new Player('Player2', deck2);
+    newPlayer1.startingHero = 'HERO_01';
+    newPlayer2.startingHero = 'HERO_01';
+
+    const newGame = new Game({ players: [newPlayer1, newPlayer2] });
+
+    // Start with mulligan
+    newGame.startWithMulligan();
+
+    expect(newGame.step).toBe(4); // Step.BEGIN_MULLIGAN
+    expect(newPlayer1.choice).toBeDefined();
+    expect(newPlayer2.choice).toBeDefined();
+  });
+
+  test('Resolve mulligan and transition to game start', () => {
+    const deck1 = ['CS2_120'];
+    const deck2 = ['CS2_120', 'CS2_121', 'CS2_122', 'CS2_123', 'CS2_124'];
+    const newPlayer1 = new Player('Player1', deck1);
+    const newPlayer2 = new Player('Player2', deck2);
+    newPlayer1.startingHero = 'HERO_01';
+    newPlayer2.startingHero = 'HERO_01';
+
+    const newGame = new Game({ players: [newPlayer1, newPlayer2] });
+    newGame.startWithMulligan();
+
+    // Resolve both mulligan (keep all cards)
+    newGame.resolveMulligan(newPlayer1, []);
+    newGame.resolveMulligan(newPlayer2, []);
+
+    expect(newGame.currentPlayer).toBe(newPlayer1);
+  });
+
+  test('Mana growth over multiple turns', () => {
+    const newPlayer1 = new Player('P1', ['CS2_120']);
+    const newPlayer2 = new Player('P2', ['CS2_120']);
+    newPlayer1.startingHero = 'HERO_01';
+    newPlayer2.startingHero = 'HERO_01';
+    const newGame = new Game({ players: [newPlayer1, newPlayer2] });
+    newGame.start();
+
+    // Turn 1
+    expect(newPlayer1.maxMana).toBe(1);
+    expect(newPlayer2.maxMana).toBe(0);
+
+    newGame.endTurn();
+    // Turn 2
+    expect(newPlayer1.maxMana).toBe(1);
+    expect(newPlayer2.maxMana).toBe(1);
+
+    newGame.endTurn();
+    // Turn 3
+    expect(newPlayer1.maxMana).toBe(2);
+    expect(newPlayer2.maxMana).toBe(1);
+
+    newGame.endTurn();
+    // Turn 4
+    expect(newPlayer1.maxMana).toBe(2);
+    expect(newPlayer2.maxMana).toBe(2);
+
+    newGame.endTurn();
+    // Turn 5
+    expect(newPlayer1.maxMana).toBe(3);
+    expect(newPlayer2.maxMana).toBe(2);
+
+    newGame.endTurn();
+    // Turn 6
+    expect(newPlayer1.maxMana).toBe(3);
+    expect(newPlayer2.maxMana).toBe(3);
+
+    newGame.endTurn();
+    // Turn 7
+    expect(newPlayer1.maxMana).toBe(4);
+    expect(newPlayer2.maxMana).toBe(3);
+
+    newGame.endTurn();
+    // Turn 8
+    expect(newPlayer1.maxMana).toBe(4);
+    expect(newPlayer2.maxMana).toBe(4);
+
+    newGame.endTurn();
+    // Turn 9
+    expect(newPlayer1.maxMana).toBe(5);
+    expect(newPlayer2.maxMana).toBe(4);
+
+    newGame.endTurn();
+    // Turn 10
+    expect(newPlayer1.maxMana).toBe(5);
+    expect(newPlayer2.maxMana).toBe(5);
+
+    newGame.endTurn();
+    // Turn 11
+    expect(newPlayer1.maxMana).toBe(6);
+    expect(newPlayer2.maxMana).toBe(5);
+
+    newGame.endTurn();
+    // Turn 12
+    expect(newPlayer1.maxMana).toBe(6);
+    expect(newPlayer2.maxMana).toBe(6);
+
+    newGame.endTurn();
+    // Turn 13
+    expect(newPlayer1.maxMana).toBe(7);
+    expect(newPlayer2.maxMana).toBe(6);
+
+    newGame.endTurn();
+    // Turn 14
+    expect(newPlayer1.maxMana).toBe(7);
+    expect(newPlayer2.maxMana).toBe(7);
+
+    newGame.endTurn();
+    // Turn 15
+    expect(newPlayer1.maxMana).toBe(8);
+    expect(newPlayer2.maxMana).toBe(7);
+
+    newGame.endTurn();
+    // Turn 16
+    expect(newPlayer1.maxMana).toBe(8);
+    expect(newPlayer2.maxMana).toBe(8);
+
+    newGame.endTurn();
+    // Turn 17
+    expect(newPlayer1.maxMana).toBe(9);
+    expect(newPlayer2.maxMana).toBe(8);
+
+    newGame.endTurn();
+    // Turn 18
+    expect(newPlayer1.maxMana).toBe(9);
+    expect(newPlayer2.maxMana).toBe(9);
+
+    newGame.endTurn();
+    // Turn 19
+    expect(newPlayer1.maxMana).toBe(10);
+    expect(newPlayer2.maxMana).toBe(9);
+
+    newGame.endTurn();
+    // Turn 20
+    expect(newPlayer1.maxMana).toBe(10);
+    expect(newPlayer2.maxMana).toBe(10);
+  });
 });
