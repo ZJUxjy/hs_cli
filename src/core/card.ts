@@ -438,9 +438,8 @@ export class Hero extends PlayableCard {
   }
 }
 
-export class HeroPower extends Card {
-  // Hero power logic
-}
+// HeroPower is now in heropower.ts - re-export for convenience
+export { HeroPower } from './heropower';
 
 export class Secret extends Card {
   // Secret logic
