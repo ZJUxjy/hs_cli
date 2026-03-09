@@ -31,3 +31,4 @@ export {
   Overload, Copy, Transform, SwapAttackHealth, Equip,
   DestroyWeapon, DrawUntil, ForcePlay
 } from './extended';
+export { Dormant, Awaken } from './dormant';

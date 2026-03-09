@@ -1,6 +1,7 @@
 import { Action } from './base';
 import { Entity } from '../core/entity';
 import type { Player } from '../core/player';
+import { Awaken } from './dormant';
 
 /**
  * BeginTurn Action - Triggered when a player begins their turn
@@ -33,6 +34,18 @@ export class BeginTurn extends Action {
         minionAny.turnsInPlay = (minionAny.turnsInPlay ?? 0) + 1;
         // Reset attacks this turn counter
         minionAny.attacksThisTurn = 0;
+      }
+
+      // Process dormant minions - decrement dormant turns and awaken if needed
+      for (const entity of this.player.field) {
+        const entityAny = entity as any;
+        if (entityAny.dormantTurns && entityAny.dormantTurns > 0) {
+          entityAny.dormantTurns--;
+          console.log(`[BeginTurn] ${entityAny.id} dormant turns remaining: ${entityAny.dormantTurns}`);
+          if (entityAny.dormantTurns === 0) {
+            game.queueActions(game, [new Awaken(entity)]);
+          }
+        }
       }
 
       // Mana crystal management
