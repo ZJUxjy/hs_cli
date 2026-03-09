@@ -201,10 +201,20 @@ export class Game extends Entity {
     this.beginTurn(this.player1);
   }
 
+  // ============== Step Management ==============
+
+  stepTransition(nextStep: Step): void {
+    const oldStep = this.step;
+    this.step = this.nextStep;
+    this.nextStep = nextStep;
+    this.manager.step(oldStep, this.step);
+  }
+
   setup(): void {
     console.log('[Game] Setting up');
     this.state = State.RUNNING;
-    this.step = Step.BEGIN_DRAW;
+    this.stepTransition(Step.BEGIN_DRAW); // BEGIN_FIRST -> BEGIN_SHUFFLE
+    this.stepTransition(Step.BEGIN_MULLIGAN); // BEGIN_SHUFFLE -> BEGIN_DRAW
     (this as any).zone = Zone.PLAY;
 
     // Player 1 is always first player (no random shuffle for web demo)
