@@ -405,6 +405,24 @@ export class Weapon extends PlayableCard {
   getBuff(id: string): import('./buff').Buff | undefined {
     return this._buffs.find(b => b.id === id);
   }
+
+  loseDurability(amount: number = 1): void {
+    this.damage += amount;
+    console.log(`[Weapon] ${this.id} durability: ${this.durability}/${this.maxDurability}`);
+
+    if (this.durability <= 0) {
+      this.destroy();
+    }
+  }
+
+  destroy(): void {
+    const controller = this.getController();
+    if (controller && (controller as any).weapon === this) {
+      (controller as any).weapon = null;
+      console.log(`[Weapon] ${this.id} destroyed`);
+    }
+    this.zone = Zone.GRAVEYARD;
+  }
 }
 
 export class Hero extends PlayableCard {
