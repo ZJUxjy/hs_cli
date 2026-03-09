@@ -56,6 +56,14 @@ export class Player extends Entity {
   public cthun?: Entity;
   public jadeGolem: number = 1;
 
+  // Player choice (for mulligan, discover, etc.)
+  public choice?: {
+    cards: Entity[];
+    minCount: number;
+    maxCount: number;
+    source?: Entity;
+  };
+
   constructor(
     public readonly name: string,
     decklist: string[]

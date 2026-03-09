@@ -22,6 +22,8 @@ export { EndTurn } from './endturn';
 export { Death, Deaths } from './death';
 export { Play } from './play';
 export { Fatigue } from './fatigue';
+export { MulliganChoice } from './mulligan';
+export type { MulliganChoiceCallback, PlayerChoice } from './mulligan';
 export {
   Hit, Discard, DiscardRandom, Battlecry, Deathrattle,
   SetTag, UnsetTag, Reveal, Hide, SpendMana, GainManaCrystal,
