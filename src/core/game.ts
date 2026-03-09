@@ -6,6 +6,7 @@ import { CardList } from '../utils/cardlist';
 import { Player } from './player';
 import { Card } from './card';
 import { GameStart, BeginTurn, EndTurn, Death, Action } from '../actions';
+import { EventListener } from '../actions/eventlistener';
 import { EventManager } from '../events/eventmanager';
 import { GameEvent, EventPayload, EventHandler } from '../events/eventtypes';
 
@@ -293,7 +294,7 @@ export class Game extends Entity {
 
   actionBlock(
     source: Entity,
-    actions: Action[],
+    actions: (Action | EventListener)[],
     type: BlockType,
     index = -1,
     target?: Entity,
@@ -301,30 +302,48 @@ export class Game extends Entity {
   ): unknown[] {
     this.actionStart(type, source, index, target);
     let ret: unknown[] = [];
-    if (actions.length > 0) {
+    if (actions && actions.length > 0) {
       ret = this.queueActions(source, actions, eventArgs);
     }
     this.actionEnd(type, source);
     return ret;
   }
 
-  queueActions(source: Entity, actions: Action[], _eventArgs?: unknown): unknown[] {
-    return this.triggerActions(source, actions);
+  actionTrigger(source: Entity, actions: (Action | EventListener)[], eventArgs?: unknown): unknown[] {
+    return this.actionBlock(source, actions, BlockType.TRIGGER, -1, undefined, eventArgs);
   }
 
-  triggerActions(source: Entity, actions: Action[]): unknown[] {
+  cheatAction(source: Entity, actions: (Action | EventListener)[]): unknown[] {
+    return this.actionTrigger(source, actions);
+  }
+
+  queueActions(source: Entity, actions: (Action | EventListener)[], eventArgs?: unknown): unknown[] {
+    const oldEventArgs = source.eventArgs;
+    source.eventArgs = eventArgs;
+    const ret = this.triggerActions(source, actions);
+    source.eventArgs = oldEventArgs;
+    return ret;
+  }
+
+  triggerActions(source: Entity, actions: (Action | EventListener)[]): unknown[] {
     const results: unknown[] = [];
     for (const action of actions) {
-      const result = action.trigger(source);
-      if (result) {
-        results.push(result);
+      // Check if action is an EventListener (has .trigger and .at properties)
+      if (action instanceof EventListener) {
+        action.once = true;
+        // Determine the listener: use source.controller if source is a SPELL, otherwise use source
+        const listener = source.type === CardType.SPELL ? (source as any).controller : source;
+        if (listener && listener._events) {
+          listener._events.push(action as unknown as import('./entity').EntityGameEvent);
+        }
+      } else {
+        const result = (action as Action).trigger(source);
+        if (result !== undefined) {
+          results.push(result);
+        }
       }
     }
     return results;
-  }
-
-  cheatAction(source: Entity, actions: Action[]): unknown[] {
-    return this.queueActions(source, actions);
   }
 
   // ============== Combat ==============
