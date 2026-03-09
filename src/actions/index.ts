@@ -19,7 +19,7 @@ export { Steal } from './steal';
 export { GameStart } from './gamestart';
 export { BeginTurn } from './beginturn';
 export { EndTurn } from './endturn';
-export { Death } from './death';
+export { Death, Deaths } from './death';
 export { Play } from './play';
 export { Fatigue } from './fatigue';
 export {

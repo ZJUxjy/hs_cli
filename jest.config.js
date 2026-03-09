@@ -18,6 +18,7 @@ module.exports = {
             esModuleInterop: true,
             moduleResolution: 'node',
             skipLibCheck: true,
+            isolatedModules: true,
           }
         }]
       }
