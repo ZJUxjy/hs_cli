@@ -34,3 +34,4 @@ export {
 export { Dormant, Awaken } from './dormant';
 export { Discover } from './discover';
 export type { DiscoverOptions } from './discover';
+export { Choice } from './choice';
