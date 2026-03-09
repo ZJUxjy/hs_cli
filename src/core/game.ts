@@ -22,7 +22,7 @@ const blockTypeNames: Record<number, string> = {
   [BlockType.TRIGGER]: 'TRIGGER',
   [BlockType.DEATHS]: 'DEATHS',
   [BlockType.PLAY]: 'PLAY',
-  [BlockType.FATALITY]: 'FATALITY',
+  [BlockType.FATIGUE]: 'FATIGUE',
   [BlockType.RITUAL]: 'RITUAL',
   [BlockType.REVEAL_CARD]: 'REVEAL_CARD',
   [BlockType.GAME_RESET]: 'GAME_RESET',
@@ -149,18 +149,18 @@ export class Game extends Entity {
     return result;
   }
 
-  get decks(): CardList {
-    const result = new CardList();
-    this.players[0].deck.forEach((c) => result.push(c as unknown as Card));
-    this.players[1].deck.forEach((c) => result.push(c as unknown as Card));
-    return result;
+  get decks(): Card[][] {
+    return [
+      this.players[0].deck as unknown as Card[],
+      this.players[1].deck as unknown as Card[]
+    ];
   }
 
-  get hands(): CardList {
-    const result = new CardList();
-    this.players[0].hand.forEach((c) => result.push(c as unknown as Card));
-    this.players[1].hand.forEach((c) => result.push(c as unknown as Card));
-    return result;
+  get hands(): Card[][] {
+    return [
+      this.players[0].hand as unknown as Card[],
+      this.players[1].hand as unknown as Card[]
+    ];
   }
 
   get characters(): CardList {
@@ -177,12 +177,12 @@ export class Game extends Entity {
     return result;
   }
 
-  get entities(): CardList {
-    const result = new CardList();
-    result.push(this as unknown as Card);
-    this.players[0].entities.forEach((e) => result.push(e as unknown as Card));
-    this.players[1].entities.forEach((e) => result.push(e as unknown as Card));
-    return result;
+  get entities(): Entity[] {
+    return [
+      this,
+      ...this.players[0].entities as unknown as Entity[],
+      ...this.players[1].entities as unknown as Entity[]
+    ];
   }
 
   get liveEntities(): CardList {
@@ -340,6 +340,7 @@ export class Game extends Entity {
     const deadEntities: Entity[] = [];
 
     for (const entity of this.liveEntities) {
+      if (!entity) continue;
       const entityAny = entity as any;
       // Check if entity should die:
       // - explicitly marked as dead, OR
