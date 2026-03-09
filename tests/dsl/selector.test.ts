@@ -18,8 +18,8 @@ describe('Selector', () => {
   });
 
   test('SELF should return source entity', () => {
-    const source = {} as unknown as Entity;
-    const result = SELF(source, game as unknown as any);
+    const source = player1 as unknown as Entity;
+    const result = SELF([], source);
     expect(result).toContain(source);
   });
 
@@ -44,7 +44,7 @@ describe('Selector', () => {
     player1.field.push(minion1);
     player2.field.push(minion2);
 
-    const result = ALL_MINIONS(player1 as unknown as Entity, game as unknown as any);
+    const result = ALL_MINIONS([], player1 as unknown as Entity);
     expect(result.length).toBe(2);
   });
 
@@ -60,7 +60,7 @@ describe('Selector', () => {
 
     player1.field.push(minion1);
 
-    const result = FRIENDLY_MINIONS(player1 as unknown as Entity, game as unknown as any);
+    const result = FRIENDLY_MINIONS([], player1 as unknown as Entity);
     expect(result.length).toBe(1);
   });
 
@@ -76,7 +76,7 @@ describe('Selector', () => {
 
     player2.field.push(minion1);
 
-    const result = ENEMY_MINIONS(player1 as unknown as Entity, game as unknown as any);
+    const result = ENEMY_MINIONS([], player1 as unknown as Entity);
     expect(result.length).toBe(1);
   });
 
@@ -102,7 +102,7 @@ describe('Selector', () => {
 
     player1.field.push(minion1, minion2);
 
-    const result = TAUNT(player1 as unknown as Entity, game as unknown as any);
+    const result = TAUNT([], player1 as unknown as Entity);
     expect(result.length).toBe(1);
   });
 

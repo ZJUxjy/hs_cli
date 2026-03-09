@@ -7,10 +7,18 @@ import type { Player } from '../core/player';
 import { CardType } from '../enums';
 
 /**
+ * CallableSelector interface - allows selectors to be called directly
+ * This matches Python fireplace where Selectors can be called directly
+ */
+export interface CallableSelector extends Selector {
+  (entities: Entity[], source: Entity): Entity[];
+}
+
+/**
  * Selector function type - for simple function-based selectors
+ * @deprecated Use CallableSelector instead
  */
 export type SelectorFn = (source: Entity, game: Game) => Entity[];
-export type CallableSelector = Selector & SelectorFn;
 export type SelectorLike = Selector | SelectorFn;
 
 /**
@@ -25,18 +33,33 @@ function toContext(source: Entity, game: Game): SelectorContext {
   return { game, source };
 }
 
+/**
+ * makeCallable - wraps a Selector to make it callable
+ * Both SELF.eval(entities, source) and SELF(entities, source) should work
+ * This matches Python fireplace where Selectors can be called directly
+ */
+export function makeCallable(selector: Selector): CallableSelector {
+  const callable = function(entities: Entity[], source: Entity): Entity[] {
+    return selector.eval({ game: (source as any).game, source });
+  } as CallableSelector;
+
+  // Copy all methods from selector
+  Object.setPrototypeOf(callable, Selector.prototype);
+  callable.eval = selector.eval.bind(selector);
+
+  return callable;
+}
+
+/**
+ * evaluateSelector - evaluates a Selector or SelectorFn
+ * @deprecated Use selector.eval() or callable selector directly
+ */
 export function evaluateSelector(selector: SelectorLike, source: Entity, game: Game): Entity[] {
   if (typeof selector === 'function') {
+    // Handle old-style function selectors (source, game) => Entity[]
     return selector(source, game);
   }
   return selector.eval(toContext(source, game));
-}
-
-function makeCallableSelector<T extends Selector>(selector: T): CallableSelector {
-  const callable = ((source: Entity, game: Game) => selector.eval(toContext(source, game))) as CallableSelector;
-  Object.setPrototypeOf(callable, Object.getPrototypeOf(selector));
-  callable.eval = (context: SelectorContext) => selector.eval(context);
-  return callable;
 }
 
 /**
@@ -46,27 +69,27 @@ export abstract class Selector {
   abstract eval(context: SelectorContext): Entity[];
 
   or(other: Selector): CallableSelector {
-    return makeCallableSelector(new OrSelector(this, other));
+    return makeCallable(new OrSelector(this, other));
   }
 
   and(other: Selector): CallableSelector {
-    return makeCallableSelector(new AndSelector(this, other));
+    return makeCallable(new AndSelector(this, other));
   }
 
   exclude(other: Selector): CallableSelector {
-    return makeCallableSelector(new ExcludeSelector(this, other));
+    return makeCallable(new ExcludeSelector(this, other));
   }
 
   filter(predicate: (entity: Entity) => boolean): CallableSelector {
-    return makeCallableSelector(new FilterSelector(this, predicate));
+    return makeCallable(new FilterSelector(this, predicate));
   }
 
   random(count: number = 1): CallableSelector {
-    return makeCallableSelector(new RandomSelector(this, count));
+    return makeCallable(new RandomSelector(this, count));
   }
 
   first(count: number = 1): CallableSelector {
-    return makeCallableSelector(new FirstSelector(this, count));
+    return makeCallable(new FirstSelector(this, count));
   }
 }
 
@@ -301,22 +324,22 @@ export function hasTaunt(entity: Entity): boolean {
 }
 
 // Predefined selectors
-export const SELF = makeCallableSelector(new SelfSelector());
-export const TARGET = makeCallableSelector(new TargetSelector());
-export const OWNER = makeCallableSelector(new OwnerSelector());
-export const ALL_ENTITIES = makeCallableSelector(new AllEntitiesSelector());
-export const ALL_MINIONS = makeCallableSelector(new MinionsSelector());
-export const ALL_HEROES = makeCallableSelector(new HeroesSelector());
-export const ALL_CHARACTERS = makeCallableSelector(new CharactersSelector());
-export const FIELD = makeCallableSelector(new FieldSelector());
-export const FRIENDLY = makeCallableSelector(new FriendlySelector());
-export const ENEMY = makeCallableSelector(new EnemySelector());
-export const FRIENDLY_MINIONS = makeCallableSelector(new FriendlySelector(ALL_MINIONS));
-export const ENEMY_MINIONS = makeCallableSelector(new EnemySelector(ALL_MINIONS));
-export const FRIENDLY_HERO = makeCallableSelector(new FriendlySelector(ALL_HEROES));
-export const ENEMY_HERO = makeCallableSelector(new EnemySelector(ALL_HEROES));
-export const FRIENDLY_CHARACTERS = makeCallableSelector(new FriendlySelector(ALL_CHARACTERS));
-export const ENEMY_CHARACTERS = makeCallableSelector(new EnemySelector(ALL_CHARACTERS));
+export const SELF = makeCallable(new SelfSelector());
+export const TARGET = makeCallable(new TargetSelector());
+export const OWNER = makeCallable(new OwnerSelector());
+export const ALL_ENTITIES = makeCallable(new AllEntitiesSelector());
+export const ALL_MINIONS = makeCallable(new MinionsSelector());
+export const ALL_HEROES = makeCallable(new HeroesSelector());
+export const ALL_CHARACTERS = makeCallable(new CharactersSelector());
+export const FIELD = makeCallable(new FieldSelector());
+export const FRIENDLY = makeCallable(new FriendlySelector());
+export const ENEMY = makeCallable(new EnemySelector());
+export const FRIENDLY_MINIONS = makeCallable(new FriendlySelector(ALL_MINIONS));
+export const ENEMY_MINIONS = makeCallable(new EnemySelector(ALL_MINIONS));
+export const FRIENDLY_HERO = makeCallable(new FriendlySelector(ALL_HEROES));
+export const ENEMY_HERO = makeCallable(new EnemySelector(ALL_HEROES));
+export const FRIENDLY_CHARACTERS = makeCallable(new FriendlySelector(ALL_CHARACTERS));
+export const ENEMY_CHARACTERS = makeCallable(new EnemySelector(ALL_CHARACTERS));
 export const DAMAGED_MINIONS = ALL_MINIONS.filter(isDamaged);
 export const FROZEN_MINIONS = ALL_MINIONS.filter(isFrozen);
 export const MINIONS_WITH_TAUNT = ALL_MINIONS.filter(hasTaunt);
