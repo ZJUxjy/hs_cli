@@ -1,0 +1,25 @@
+{
+    "env": {
+      "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
+      "ANTHROPIC_AUTH_TOKEN": "330c0ecb926a478b87c3dbb8e7b7bb39.tdnnD7DR5u0ytzBI",
+      "API_TIMEOUT_MS": "3000000",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": 1,
+      "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.7",
+      "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5",
+      "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5"
+    },
+    "permissions": {
+      "defaultMode": "default"
+    },
+    "model": "glm-5",
+    "enabledPlugins": {
+      "clangd-lsp@claude-plugins-official": true,
+      "superpowers@claude-plugins-official": true,
+      "frontend-design@claude-plugins-official": true,
+      "feature-dev@claude-plugins-official": true,
+      "ralph-loop@claude-plugins-official": true
+    },
+    "skipDangerousModePermissionPrompt": true,
+    "language": "Chinese"
+  }
+  

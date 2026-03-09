@@ -438,8 +438,41 @@ export class Hero extends PlayableCard {
   }
 }
 
-// HeroPower is now in heropower.ts - re-export for convenience
-export { HeroPower } from './heropower';
+export interface HeroPowerDefinition extends CardDefinition {
+  cost: number;
+}
+
+export class HeroPower extends Card {
+  public activationsThisTurn: number = 0;
+  public additionalActivationsThisTurn: number = 0;
+
+  constructor(def: HeroPowerDefinition) {
+    super(def);
+  }
+
+  isUsable(): boolean {
+    const maxActivations = 1 + this.additionalActivationsThisTurn;
+    if (this.activationsThisTurn >= maxActivations) {
+      return false;
+    }
+    const controller = this.controller as any;
+    if (!controller) return false;
+    if (controller.mana < this.cost) return false;
+    return true;
+  }
+
+  activate(): boolean {
+    if (!this.isUsable()) return false;
+    const controller = this.controller as any;
+    controller.payCost(this.cost);
+    this.activationsThisTurn++;
+    return true;
+  }
+
+  resetForNewTurn(): void {
+    this.activationsThisTurn = 0;
+  }
+}
 
 // Secret is now in secret.ts - re-export for convenience
 export { Secret } from './secret';
