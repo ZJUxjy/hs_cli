@@ -5,7 +5,7 @@ import { Manager } from './manager';
 import { CardList } from '../utils/cardlist';
 import { Player } from './player';
 import { Card } from './card';
-import { GameStart, BeginTurn, EndTurn, Death, Action } from '../actions';
+import { GameStart, BeginTurn, EndTurn, Death, Action, MulliganChoice } from '../actions';
 import { EventListener } from '../actions/eventlistener';
 import { EventManager } from '../events/eventmanager';
 import { GameEvent, EventPayload, EventHandler } from '../events/eventtypes';
@@ -117,6 +117,8 @@ export class Game extends Entity {
   public manager: GameManager;
   public eventManager: EventManager;
   private _actionStack = 0;
+  private _mulliganCallbacks: Map<Player, () => void> = new Map();
+  private _mulliganPending: Set<Player> = new Set();
 
   type = CardType.GAME;
 
@@ -199,6 +201,37 @@ export class Game extends Entity {
     this.setup();
     this.queueActions(this, [new GameStart()]);
     this.beginTurn(this.player1);
+  }
+
+  // ============== Mulligan Flow ==============
+
+  startWithMulligan(): void {
+    this.setup();
+    this.step = Step.BEGIN_MULLIGAN;
+    this.nextStep = Step.MAIN_READY;
+    console.log('[Game] Entering mulligan phase');
+
+    for (const player of this.players) {
+      this._mulliganPending.add(player);
+      const callback = () => this._onMulliganComplete(player);
+      this._mulliganCallbacks.set(player, callback);
+      this.queueActions(this, [new MulliganChoice(player, callback)]);
+    }
+  }
+
+  resolveMulligan(player: Player, cardsToReplace: Entity[]): void {
+    const mulligan = new MulliganChoice(player, this._mulliganCallbacks.get(player));
+    mulligan.resolve(cardsToReplace);
+  }
+
+  private _onMulliganComplete(player: Player): void {
+    this._mulliganPending.delete(player);
+
+    if (this._mulliganPending.size === 0) {
+      // All mulligans complete, start the game
+      this.queueActions(this, [new GameStart()]);
+      this.beginTurn(this.player1);
+    }
   }
 
   // ============== Step Management ==============
