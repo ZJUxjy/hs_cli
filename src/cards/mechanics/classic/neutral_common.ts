@@ -4,8 +4,41 @@ import { PlayReq } from '../../../enums/playreq';
 import { Give, Damage, Buff, Draw, Summon } from '../../../actions';
 import { Entity } from '../../../core/entity';
 
-// CS2_122 Boulderfist Ogre - No special ability
+// CS2_122 Raid Leader - Your other minions have +1 Attack
 cardScriptsRegistry.register('CS2_122', {
+  // Aura: Give other friendly minions +1 Attack
+  events: {
+    // When any minion is summoned, buff it
+    MINION_SUMMON: (ctx: ActionContext) => {
+      const source = ctx.source as Entity;
+      const controller = (source as any).controller;
+      const field = controller?.field || [];
+
+      // Find all Raid Leaders on the field
+      for (const minion of field) {
+        if ((minion as any).id === 'CS2_122' && minion !== ctx.event?.card) {
+          // Buff the newly summoned minion (if it's not another Raid Leader)
+          const newMinion = ctx.event?.card as any;
+          if (newMinion && newMinion !== minion) {
+            newMinion._attack = (newMinion._attack || 0) + 1;
+          }
+        }
+      }
+    },
+  },
+  // Apply aura when played
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    const field = controller?.field || [];
+
+    // Buff all other friendly minions
+    for (const minion of field) {
+      if (minion !== source) {
+        (minion as any)._attack = ((minion as any)._attack || 0) + 1;
+      }
+    }
+  },
 });
 
 // CS2_222 Frostwolf Grunt - Taunt
