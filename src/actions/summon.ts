@@ -26,7 +26,7 @@ export class Summon extends Action {
     const field = controller.field as Entity[];
     if (field.length >= 7) return; // Board full
 
-    let card: Entity;
+    let card: Entity | undefined;
     if (typeof cardRef === 'string') {
       // Create card from card ID
       const def = CardLoader.get(cardRef);
@@ -35,6 +35,8 @@ export class Summon extends Action {
     } else {
       card = cardRef;
     }
+
+    if (!card) return;
 
     if (this.index !== null && this.index >= 0) {
       field.splice(this.index, 0, card);

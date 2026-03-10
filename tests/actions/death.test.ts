@@ -337,16 +337,23 @@ describe('Death Broadcast Timing', () => {
   });
 
   test('should trigger deathrattle at ON timing', () => {
+    // Create a simple action class for deathrattle
+    class TestDeathrattleAction extends Action {
+      do(_source: Entity): void {
+        // Deathrattle effect
+      }
+    }
+
     const minion = createCard(mockCardData('TEST_001', 2)) as unknown as Minion;
     (minion as any).controller = player1;
-    (minion as any).game = game;  // Set game reference for deathrattle queueing
+    (player1 as any).game = game;  // Set game on controller for the getter to work
     (minion as any).zone = Zone.PLAY;
     (minion as any).dead = true;
     (minion as any).damage = 2;
     (minion as any).maxHealth = 2;
     (minion as any).playCounter = 1;
-    (minion as any).hasDeathrattle = true;
-    (minion as any).deathrattles = [new Action()];
+    // Use _deathrattles array with proper Action instances
+    (minion as any)._deathrattles = [new TestDeathrattleAction()];
     (minion as any).silenced = false;
 
     player1.field.push(minion);
@@ -355,9 +362,6 @@ describe('Death Broadcast Timing', () => {
 
     const death = new Death([minion as unknown as Entity]);
     // Call broadcastSingle directly to test deathrattle triggering
-    // The entity (minion) has playCounter=1, target also has playCounter=1
-    // So objPlayCounter (1) > targetPlayCounter (1) is false, deathrattle won't trigger
-    // We need an entity with higher playCounter
     const triggeringEntity = { playCounter: 2 } as unknown as Entity;
     (death as any).broadcastSingle(triggeringEntity, EventListenerAt.ON, game, minion);
 
@@ -367,15 +371,23 @@ describe('Death Broadcast Timing', () => {
   });
 
   test('should not trigger deathrattle if silenced', () => {
+    // Create a simple action class for deathrattle
+    class TestDeathrattleAction extends Action {
+      do(_source: Entity): void {
+        // Deathrattle effect
+      }
+    }
+
     const minion = createCard(mockCardData('TEST_001', 2)) as unknown as Minion;
     (minion as any).controller = player1;
+    (player1 as any).game = game;  // Set game on controller
     (minion as any).zone = Zone.PLAY;
     (minion as any).dead = true;
     (minion as any).damage = 2;
     (minion as any).maxHealth = 2;
     (minion as any).playCounter = 1;
-    (minion as any).hasDeathrattle = true;
-    (minion as any).deathrattles = [new Action()];
+    // Use _deathrattles array with proper Action instances
+    (minion as any)._deathrattles = [new TestDeathrattleAction()];
     (minion as any).silenced = true;
 
     player1.field.push(minion);
