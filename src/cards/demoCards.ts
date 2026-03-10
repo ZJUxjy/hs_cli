@@ -78,6 +78,22 @@ export const DEMO_CARDS: CardDefinition[] = [
   // Tokens
   { id: 'CS2_tk1', type: CardType.MINION, cardClass: CardClass.MAGE, cost: 0, rarity: Rarity.COMMON, collectible: false, attack: 1, health: 1, race: Race.BEAST },
   { id: 'CS2_mirror', type: CardType.MINION, cardClass: CardClass.MAGE, cost: 0, rarity: Rarity.COMMON, collectible: false, attack: 0, health: 2 },
+
+  // Battlecry Minions (Low Cost)
+  { id: 'EX1_593', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 1, rarity: Rarity.COMMON, collectible: true, attack: 1, health: 1, descriptions: { 'enUS': 'Battlecry: Deal 1 damage.', 'zhCN': '战吼：造成1点伤害。' } }, // Elven Archer
+  { id: 'EX1_011', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 2, rarity: Rarity.COMMON, collectible: true, attack: 2, health: 1, descriptions: { 'enUS': 'Battlecry: Restore 2 Health.', 'zhCN': '战吼：恢复2点生命值。' } }, // Voodoo Doctor
+  { id: 'EX1_066', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 2, rarity: Rarity.COMMON, collectible: true, attack: 3, health: 2, descriptions: { 'enUS': "Battlecry: Destroy your opponent's weapon.", 'zhCN': '战吼：摧毁对手的武器。' } }, // Acidic Swamp Ooze
+  { id: 'CS2_226', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 3, rarity: Rarity.COMMON, collectible: true, attack: 2, health: 2, descriptions: { 'enUS': 'Battlecry: Deal 1 damage.', 'zhCN': '战吼：造成1点伤害。' } }, // Ironforge Rifleman
+  { id: 'EX1_019', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 3, rarity: Rarity.COMMON, collectible: true, attack: 3, health: 2, descriptions: { 'enUS': 'Battlecry: Give a friendly minion +1/+1.', 'zhCN': '战吼：使一个友方随从获得+1/+1。' } }, // Shattered Sun Cleric
+  { id: 'CS2_188', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 3, rarity: Rarity.COMMON, collectible: true, attack: 3, health: 3, descriptions: { 'enUS': 'Battlecry: Restore 3 Health.', 'zhCN': '战吼：恢复3点生命值。' } }, // Earthen Ring Farseer
+
+  // Deathrattle Minions (Low Cost)
+  { id: 'EX1_029', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 1, rarity: Rarity.COMMON, collectible: true, attack: 1, health: 1, descriptions: { 'enUS': 'Deathrattle: Deal 2 damage to the enemy hero.', 'zhCN': '亡语：对敌方英雄造成2点伤害。' } }, // Leper Gnome
+  { id: 'EX1_096', type: CardType.MINION, cardClass: CardClass.NEUTRAL, cost: 2, rarity: Rarity.COMMON, collectible: true, attack: 2, health: 1, descriptions: { 'enUS': 'Deathrattle: Draw a card.', 'zhCN': '亡语：抽一张牌。' } }, // Loot Hoarder
+
+  // Additional Mage Spells
+  { id: 'CS2_027', type: CardType.SPELL, cardClass: CardClass.MAGE, cost: 1, rarity: Rarity.COMMON, collectible: true }, // Mirror Image
+  { id: 'CS2_031', type: CardType.SPELL, cardClass: CardClass.MAGE, cost: 4, rarity: Rarity.COMMON, collectible: true }, // Cone of Cold
 ];
 
 // Card descriptions for display (Chinese)
@@ -145,6 +161,22 @@ export const CARD_DESCRIPTIONS: Record<string, string> = {
   // Tokens
   'CS2_tk1': '一只被变形的绵羊。',
   'CS2_mirror': '镜像：0/2的防御随从。',
+
+  // Battlecry Minions
+  'EX1_593': '战吼：造成1点伤害。', // Elven Archer
+  'EX1_011': '战吼：恢复2点生命值。', // Voodoo Doctor
+  'EX1_066': '战吼：摧毁对手的武器。', // Acidic Swamp Ooze
+  'CS2_226': '战吼：造成1点伤害。', // Ironforge Rifleman
+  'EX1_019': '战吼：使一个友方随从获得+1/+1。', // Shattered Sun Cleric
+  'CS2_188': '战吼：恢复3点生命值。', // Earthen Ring Farseer
+
+  // Deathrattle Minions
+  'EX1_029': '亡语：对敌方英雄造成2点伤害。', // Leper Gnome
+  'EX1_096': '亡语：抽一张牌。', // Loot Hoarder
+
+  // Additional Mage Spells
+  'CS2_027': '召唤两个0/2并具有嘲讽的随从。',
+  'CS2_031': '冻结一个随从，并对其造成1点伤害。',
 };
 
 // Card names for display
@@ -209,6 +241,22 @@ export const CARD_NAMES: Record<string, string> = {
   // Tokens
   'CS2_tk1': 'Sheep',
   'CS2_mirror': 'Mirror Image',
+
+  // Battlecry Minions
+  'EX1_593': 'Elven Archer', // 1费 1/1 战吼: 造成1点伤害
+  'EX1_011': 'Voodoo Doctor', // 2费 2/1 战吼: 恢复2点生命值
+  'EX1_066': 'Acidic Swamp Ooze', // 2费 3/2 战吼: 摧毁敌方武器
+  'CS2_226': 'Ironforge Rifleman', // 3费 2/2 战吼: 造成1点伤害
+  'EX1_019': 'Shattered Sun Cleric', // 3费 3/2 战吼: +1/+1
+  'CS2_188': 'Earthen Ring Farseer', // 3费 3/3 战吼: 恢复3点生命值
+
+  // Deathrattle Minions
+  'EX1_029': 'Leper Gnome', // 1费 1/1 亡语: 对敌方英雄造成2点伤害
+  'EX1_096': 'Loot Hoarder', // 2费 2/1 亡语: 抽一张牌
+
+  // Additional Mage Spells
+  'CS2_027': 'Mirror Image',
+  'CS2_031': 'Cone of Cold',
 };
 
 /**

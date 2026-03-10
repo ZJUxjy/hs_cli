@@ -94,6 +94,33 @@ export const HUNTER_DECK: string[] = [
   'CS2_080', 'CS2_080', // Assassin's Blade 3/2
 ];
 
+// Mage Deck with Battlecry and Deathrattle focus
+export const MAGE_BATTLECRY_DECK: string[] = [
+  // 1-Cost Minions (6)
+  'EX1_593', 'EX1_593',       // Elven Archer (1/1) - Battlecry: Deal 1 damage
+  'EX1_029', 'EX1_029',       // Leper Gnome (1/1) - Deathrattle: Deal 2 damage to enemy hero
+
+  // 2-Cost Minions (6)
+  'EX1_011', 'EX1_011',       // Voodoo Doctor (2/1) - Battlecry: Restore 2 Health
+  'EX1_066', 'EX1_066',       // Acidic Swamp Ooze (3/2) - Battlecry: Destroy weapon
+  'EX1_096', 'EX1_096',       // Loot Hoarder (2/1) - Deathrattle: Draw a card
+
+  // 3-Cost Minions (6)
+  'CS2_226', 'CS2_226',       // Ironforge Rifleman (2/2) - Battlecry: Deal 1 damage
+  'EX1_019', 'EX1_019',       // Shattered Sun Cleric (3/2) - Battlecry: +1/+1
+  'CS2_188', 'CS2_188',       // Earthen Ring Farseer (3/3) - Battlecry: Restore 3 Health
+
+  // Spells (12)
+  'CS2_027', 'CS2_027',       // Mirror Image - Summon two 0/2 Taunt
+  'EX1_295', 'EX1_295',       // Arcane Missiles - 3 random damage
+  'EX1_275', 'EX1_275',       // Frostbolt - Deal 3 damage and Freeze
+  'CS2_023', 'CS2_023',       // Arcane Intellect - Draw 2 cards
+  'CS2_022', 'CS2_022',       // Polymorph - Transform to 1/1 Sheep
+  'CS2_025', 'CS2_025',       // Fireball - Deal 6 damage
+  'CS2_031',                   // Cone of Cold - Freeze and deal 1 damage
+  'CS2_024',                   // Frost Nova - Freeze all enemy minions
+];
+
 // Default decks for quick game
 export const DEFAULT_P1_DECK = MAGE_DECK;
 export const DEFAULT_P2_DECK = WARRIOR_DECK;
@@ -105,6 +132,12 @@ export const DECK_INFO = {
     hero: HEROES.MAGE,
     heroName: 'Jaina Proudmoore',
     description: 'Mage deck focused on spell damage and control',
+  },
+  MAGE_BATTLECRY_DECK: {
+    name: 'Battlecry & Deathrattle',
+    hero: HEROES.MAGE,
+    heroName: 'Jaina Proudmoore',
+    description: 'Mage deck with many Battlecry and Deathrattle minions for testing mechanics',
   },
   WARRIOR_DECK: {
     name: 'Basic Aggro',
