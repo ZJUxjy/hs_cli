@@ -144,6 +144,11 @@ export class Death extends Action {
         }
       }
 
+      // Clean up event listeners for the dead entity
+      if (game?.eventManager) {
+        game.eventManager.offAll(entity);
+      }
+
       // Also check if it's a hero
       if (entityAny.type === CardType.HERO) {
         console.log(`[Death] Hero ${entityAny.name || entityAny.id} died!`);

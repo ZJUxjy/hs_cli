@@ -50,6 +50,20 @@ export interface UIMinionState extends UICardState {
   frozen?: boolean;
   /** Whether the minion is stealthed */
   stealth?: boolean;
+  /** Whether the minion has windfury (can attack twice) */
+  windfury?: boolean;
+  /** Whether the minion has charge (can attack immediately) */
+  charge?: boolean;
+  /** Whether the minion has lifesteal (heals when dealing damage) */
+  lifesteal?: boolean;
+  /** Whether the minion has poisonous (destroys any minion it damages) */
+  poisonous?: boolean;
+  /** Whether the minion has elusive (can't be targeted by spells/hero powers) */
+  elusive?: boolean;
+  /** Whether the minion is silenced (text effects disabled) */
+  silenced?: boolean;
+  /** Whether the minion is sleeping (summoning sickness, can't attack) */
+  sleeping?: boolean;
 }
 
 /**

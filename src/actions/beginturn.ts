@@ -2,6 +2,7 @@ import { Action } from './base';
 import { Entity } from '../core/entity';
 import type { Player } from '../core/player';
 import { Awaken } from './dormant';
+import { GameEvent } from '../events/eventtypes';
 
 /**
  * BeginTurn Action - Triggered when a player begins their turn
@@ -16,6 +17,18 @@ export class BeginTurn extends Action {
     const game = source as any;
     if (game) {
       console.log(`[Game] Turn ${game.turn} begins for ${this.player.name}`);
+
+      // Broadcast TURN_BEGIN event for cards that trigger at start of turn
+      if (game.eventManager) {
+        game.eventManager.broadcast(GameEvent.TURN_BEGIN, {
+          player: this.player,
+        });
+
+        // Also broadcast OWN_TURN_BEGIN for the active player
+        game.eventManager.broadcast(GameEvent.OWN_TURN_BEGIN, {
+          player: this.player,
+        });
+      }
 
       // Reset turn-based counters
       this.player.cardsDrawnThisTurn = 0;

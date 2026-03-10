@@ -426,32 +426,82 @@ body {
   z-index: 1;
 }
 
-/* Minions - Larger size like Hearthstone */
+/* ============================================
+   Minions - Oval Design like Hearthstone
+   ============================================ */
+
 .minion {
   width: var(--minion-width);
   height: var(--minion-height);
-  background: linear-gradient(180deg, #5a5048 0%, #4a4038 40%, #3a3028 100%);
+  background: linear-gradient(180deg,
+    #6b5d4f 0%,
+    #5a5048 20%,
+    #4a4038 50%,
+    #3a3028 80%,
+    #2a241c 100%
+  );
   border: 3px solid var(--color-card-border);
-  border-radius: 10px;
+  border-radius: 50% / 40%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px;
+  padding: 8px 12px;
   position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  overflow: hidden;
+}
+
+/* Inner ellipse texture */
+.minion::before {
+  content: '';
+  position: absolute;
+  top: 8%;
+  left: 10%;
+  right: 10%;
+  bottom: 15%;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  border-radius: 50% / 40%;
+  pointer-events: none;
 }
 
 .minion:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
 }
 
 .minion.can-attack {
   cursor: grab;
-  box-shadow: 0 0 15px rgba(100, 200, 100, 0.5);
+  box-shadow:
+    0 0 20px rgba(100, 200, 100, 0.6),
+    0 6px 16px rgba(0, 0, 0, 0.5);
   border-color: #66cc66;
+}
+
+.minion.can-attack::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px dashed rgba(100, 255, 100, 0.6);
+  border-radius: 50% / 40%;
+  animation: can-attack-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes can-attack-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
 }
 
 .minion.drop-target {
@@ -460,87 +510,454 @@ body {
 }
 
 .minion-name {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-align: center;
-  max-width: 90%;
-  font-weight: 500;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  margin-top: 6px;
+  max-width: 85%;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  margin-top: 8px;
+  color: #f0e6d2;
+  z-index: 1;
 }
 
+/* Minion Stats - Positioned at bottom like HS */
 .minion-stats {
+  position: absolute;
+  bottom: 8%;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
-  width: 100%;
-  padding: 0 4px;
-  margin-top: auto;
-  margin-bottom: 6px;
+  padding: 0 12%;
+  z-index: 2;
 }
 
 .minion-stats .attack {
-  background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%);
-  color: #222;
-  width: calc(var(--minion-width) * 0.27);
-  height: calc(var(--minion-width) * 0.27);
-  border-radius: 6px;
+  background: linear-gradient(135deg, #ffcc00 0%, #cc9900 50%, #b8860b 100%);
+  color: #1a1410;
+  width: calc(var(--minion-width) * 0.26);
+  height: calc(var(--minion-width) * 0.26);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: var(--font-sm);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.4),
+    inset 0 2px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.2);
+  border: 2px solid #e6b800;
 }
 
 .minion-stats .health {
-  background: linear-gradient(135deg, #ff4444 0%, #cc2222 100%);
+  background: linear-gradient(135deg, #ff4444 0%, #cc2222 50%, #a81c1c 100%);
   color: white;
-  width: calc(var(--minion-width) * 0.27);
-  height: calc(var(--minion-width) * 0.27);
-  border-radius: 6px;
+  width: calc(var(--minion-width) * 0.26);
+  height: calc(var(--minion-width) * 0.26);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: var(--font-sm);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.4),
+    inset 0 2px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.2);
+  border: 2px solid #ff6666;
 }
 
+/* Keyword badges positioned at top */
 .minion .keywords {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 3px;
   justify-content: center;
-  margin-top: 2px;
+  z-index: 2;
 }
 
 .minion .keyword {
-  font-size: 0.55rem;
-  padding: 1px 4px;
-  border-radius: 2px;
+  font-size: 0.5rem;
+  padding: 2px 5px;
+  border-radius: 3px;
   font-weight: bold;
   text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* ============================================
+   Keyword Visual Effects
+   ============================================ */
+
+/* --- Taunt: Shield Border --- */
 .minion.taunt-minion {
-  border: 4px solid #c8a45c;
-  box-shadow: 0 0 12px rgba(200, 164, 92, 0.5), 0 4px 10px rgba(0, 0, 0, 0.5);
+  border: 4px solid transparent;
+  background:
+    linear-gradient(180deg, #5a5048 0%, #4a4038 50%, #3a3028 100%) padding-box,
+    linear-gradient(135deg, #c8a45c 0%, #ffd700 25%, #b8860b 50%, #ffd700 75%, #c8a45c 100%) border-box;
+  box-shadow:
+    0 0 20px rgba(200, 164, 92, 0.5),
+    0 6px 16px rgba(0, 0, 0, 0.5),
+    inset 0 0 20px rgba(200, 164, 92, 0.1);
+}
+
+/* Shield pattern overlay */
+.minion.taunt-minion::after {
+  content: '🛡️';
+  position: absolute;
+  top: 25%;
+  right: 8%;
+  font-size: 1.2rem;
+  opacity: 0.3;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
 }
 
 .minion .taunt {
-  background: linear-gradient(135deg, #c8a45c 0%, #8b6914 100%);
+  background: linear-gradient(135deg, #c8a45c 0%, #ffd700 50%, #b8860b 100%);
   color: #1a1410;
   border: 1px solid #ffd700;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
+/* --- Divine Shield: Golden Bubble --- */
 .minion.divine-shield-minion {
-  box-shadow: 0 0 16px rgba(255, 215, 0, 0.7), 0 4px 10px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 30px rgba(255, 215, 0, 0.6),
+    0 0 60px rgba(255, 215, 0, 0.3),
+    0 6px 16px rgba(0, 0, 0, 0.5);
   border-color: #ffd700;
 }
 
+/* Bubble shimmer effect */
+.minion.divine-shield-minion::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 30% 20%,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 50%
+  );
+  border-radius: 50% / 40%;
+  animation: divine-shield-shimmer 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes divine-shield-shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
 .minion .divine-shield {
-  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+  background: linear-gradient(135deg, #ffd700 0%, #ffec8b 50%, #daa520 100%);
   color: #1a1410;
   border: 1px solid #fff;
+}
+
+/* --- Stealth: Smoke/Grey Overlay --- */
+.minion.stealth-minion {
+  box-shadow: 0 6px 16px rgba(100, 100, 100, 0.3);
+}
+
+.minion.stealth-minion::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg,
+    rgba(100, 100, 100, 0.4) 0%,
+    rgba(80, 80, 80, 0.5) 50%,
+    rgba(60, 60, 60, 0.6) 100%
+  );
+  border-radius: 50% / 40%;
+  animation: stealth-smoke 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes stealth-smoke {
+  0%, 100% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(-3px);
+  }
+}
+
+/* Smoke wisps */
+.minion.stealth-minion::before {
+  content: '🌫️';
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  opacity: 0.4;
+  filter: blur(2px);
+  animation: smoke-float 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes smoke-float {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+  50% { transform: translateX(-50%) translateY(-5px); opacity: 0.6; }
+}
+
+.minion .stealth {
+  background: linear-gradient(135deg, #666 0%, #888 50%, #555 100%);
+  color: #ddd;
+  border: 1px solid #999;
+}
+
+/* --- Elusive (Can't be targeted): Prismatic Effect --- */
+.minion.elusive-minion {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(180deg, #5a5048 0%, #4a4038 50%, #3a3028 100%) padding-box,
+    linear-gradient(45deg,
+      #ff0000 0%, #ff7f00 14%, #ffff00 28%, #00ff00 42%,
+      #0000ff 56%, #4b0082 70%, #9400d3 84%, #ff0000 100%
+    ) border-box;
+  background-size: 200% 200%;
+  animation: prismatic-shift 3s linear infinite;
+}
+
+@keyframes prismatic-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Prismatic shimmer overlay */
+.minion.elusive-minion::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 80%,
+    transparent 100%
+  );
+  animation: prismatic-shimmer 2s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 50% / 40%;
+}
+
+@keyframes prismatic-shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.minion .elusive {
+  background: linear-gradient(135deg,
+    #ff6b6b 0%, #feca57 20%, #48dbfb 40%,
+    #ff9ff3 60%, #54a0ff 80%, #5f27cd 100%
+  );
+  color: #fff;
+  border: 1px solid #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Windfury: Dual Icon --- */
+.minion.windfury-minion::after {
+  content: '⚔️';
+  position: absolute;
+  top: 30%;
+  right: 10%;
+  font-size: 1rem;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 4px rgba(100, 200, 255, 0.8));
+  pointer-events: none;
+}
+
+.minion .windfury {
+  background: linear-gradient(135deg, #48dbfb 0%, #0abde3 50%, #0097e6 100%);
+  color: #fff;
+  border: 1px solid #00d2d3;
+}
+
+/* --- Charge: Red Lightning --- */
+.minion.charge-minion::after {
+  content: '⚡';
+  position: absolute;
+  top: 25%;
+  right: 8%;
+  font-size: 1.3rem;
+  opacity: 0.6;
+  color: #ff4444;
+  filter: drop-shadow(0 0 8px rgba(255, 68, 68, 0.8));
+  animation: charge-pulse 1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes charge-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.minion .charge {
+  background: linear-gradient(135deg, #ff4444 0%, #cc2222 50%, #a81c1c 100%);
+  color: #fff;
+  border: 1px solid #ff6666;
+}
+
+/* --- Lifesteal: Red Heart Pulse --- */
+.minion.lifesteal-minion::after {
+  content: '❤️';
+  position: absolute;
+  top: 30%;
+  right: 12%;
+  font-size: 1rem;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.8));
+  animation: heart-pulse 1.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes heart-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}
+
+.minion .lifesteal {
+  background: linear-gradient(135deg, #c0392b 0%, #e74c3c 50%, #c0392b 100%);
+  color: #fff;
+  border: 1px solid #ff6b6b;
+}
+
+/* --- Poisonous: Green Skull --- */
+.minion.poisonous-minion::after {
+  content: '☠️';
+  position: absolute;
+  top: 28%;
+  right: 10%;
+  font-size: 1.1rem;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 6px rgba(0, 255, 0, 0.6));
+  pointer-events: none;
+}
+
+.minion .poisonous {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 50%, #27ae60 100%);
+  color: #fff;
+  border: 1px solid #58d68d;
+}
+
+/* --- Frozen: Ice Overlay --- */
+.minion.frozen-minion::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg,
+    rgba(135, 206, 235, 0.4) 0%,
+    rgba(176, 224, 230, 0.3) 50%,
+    rgba(135, 206, 235, 0.4) 100%
+  );
+  border-radius: 50% / 40%;
+  border: 3px solid rgba(135, 206, 235, 0.6);
+  box-shadow:
+    inset 0 0 20px rgba(135, 206, 235, 0.4),
+    0 0 15px rgba(135, 206, 235, 0.5);
+  animation: frost-shimmer 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes frost-shimmer {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.minion.frozen-minion::before {
+  content: '❄️';
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.4rem;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 4px rgba(135, 206, 235, 0.8));
+  animation: snow-fall 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes snow-fall {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+  50% { transform: translateX(-50%) translateY(3px) rotate(10deg); }
+}
+
+.minion .frozen {
+  background: linear-gradient(135deg, #5dade2 0%, #85c1e9 50%, #5dade2 100%);
+  color: #fff;
+  border: 1px solid #aed6f1;
+}
+
+/* --- Sleeping (can't attack this turn): Zzz indicator --- */
+.minion.sleeping-minion::after {
+  content: '💤';
+  position: absolute;
+  top: 5%;
+  right: 15%;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  animation: zzz-float 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+
+@keyframes zzz-float {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.6; }
+  50% { transform: translateY(-5px) translateX(3px); opacity: 0.9; }
+}
+
+/* --- Silenced: Chains Overlay --- */
+.minion.silenced-minion::after {
+  content: '⛓️';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  opacity: 0.4;
+  filter: grayscale(100%) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+
+.minion.silenced-minion::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(100, 100, 100, 0.3);
+  border-radius: 50% / 40%;
+  pointer-events: none;
+}
+
+.minion .silenced {
+  background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 50%, #7f8c8d 100%);
+  color: #ddd;
+  border: 1px solid #bdc3c7;
 }
 
 /* Cards in Hand - Larger size */

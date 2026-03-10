@@ -321,30 +321,30 @@ const App: React.FC = () => {
             </div>
             {opponent.hero && (
               <div
-                className={`hero-portrait opponent-hero ${dragOverTarget === opponent.hero.uiId ? 'drop-target' : ''} ${isValidTarget(opponent.hero.uiId) ? 'valid-target' : ''}`}
-                data-hero-id={opponent.hero.uiId}
+                className={`hero-portrait opponent-hero ${dragOverTarget === opponent.hero!.uiId ? 'drop-target' : ''} ${isValidTarget(opponent.hero!.uiId) ? 'valid-target' : ''}`}
+                data-hero-id={opponent.hero!.uiId}
                 onClick={() => {
-                  if (isValidTarget(opponent.hero.uiId)) {
-                    handleSelectTarget(opponent.hero.uiId);
+                  if (isValidTarget(opponent.hero!.uiId)) {
+                    handleSelectTarget(opponent.hero!.uiId);
                   }
                 }}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  handleDragOver(opponent.hero.uiId, e);
+                  handleDragOver(opponent.hero!.uiId, e);
                 }}
                 onDrop={(e) => {
                   e.preventDefault();
-                  handleDrop(opponent.hero.uiId);
+                  handleDrop(opponent.hero!.uiId);
                 }}
               >
-                <div className="hero-avatar">{opponent.hero.name.charAt(0)}</div>
+                <div className="hero-avatar">{opponent.hero!.name.charAt(0)}</div>
                 <div className="hero-stats">
-                  {opponent.hero.attack > 0 && (
-                    <span className="hero-attack">{opponent.hero.attack}</span>
+                  {opponent.hero!.attack > 0 && (
+                    <span className="hero-attack">{opponent.hero!.attack}</span>
                   )}
-                  <span className="hero-health">{opponent.hero.health}</span>
-                  {opponent.hero.armor > 0 && (
-                    <span className="hero-armor">{opponent.hero.armor}</span>
+                  <span className="hero-health">{opponent.hero!.health}</span>
+                  {opponent.hero!.armor > 0 && (
+                    <span className="hero-armor">{opponent.hero!.armor}</span>
                   )}
                 </div>
               </div>
@@ -368,7 +368,7 @@ const App: React.FC = () => {
               opponent.field.map((minion) => (
                 <div
                   key={minion.uiId}
-                  className={`minion ${minion.taunt ? 'taunt-minion' : ''} ${minion.divineShield ? 'divine-shield-minion' : ''} ${dragOverTarget === minion.uiId ? 'drop-target' : ''} ${isValidTarget(minion.uiId) ? 'valid-target' : ''}`}
+                  className={`minion ${minion.taunt ? 'taunt-minion' : ''} ${minion.divineShield ? 'divine-shield-minion' : ''} ${minion.stealth ? 'stealth-minion' : ''} ${minion.elusive ? 'elusive-minion' : ''} ${minion.windfury ? 'windfury-minion' : ''} ${minion.charge ? 'charge-minion' : ''} ${minion.lifesteal ? 'lifesteal-minion' : ''} ${minion.poisonous ? 'poisonous-minion' : ''} ${minion.frozen ? 'frozen-minion' : ''} ${minion.silenced ? 'silenced-minion' : ''} ${minion.sleeping ? 'sleeping-minion' : ''} ${dragOverTarget === minion.uiId ? 'drop-target' : ''} ${isValidTarget(minion.uiId) ? 'valid-target' : ''}`}
                   onClick={() => {
                     if (isValidTarget(minion.uiId)) {
                       handleSelectTarget(minion.uiId);
@@ -392,8 +392,16 @@ const App: React.FC = () => {
                     <span className="health">{minion.health}</span>
                   </div>
                   <div className="keywords">
-                    {minion.taunt && <span className="keyword taunt">Taunt</span>}
-                    {minion.divineShield && <span className="keyword divine-shield">DS</span>}
+                    {minion.taunt && <span className="keyword taunt">嘲讽</span>}
+                    {minion.divineShield && <span className="keyword divine-shield">圣盾</span>}
+                    {minion.stealth && <span className="keyword stealth">潜行</span>}
+                    {minion.windfury && <span className="keyword windfury">风怒</span>}
+                    {minion.charge && <span className="keyword charge">冲锋</span>}
+                    {minion.lifesteal && <span className="keyword lifesteal">吸血</span>}
+                    {minion.poisonous && <span className="keyword poisonous">剧毒</span>}
+                    {minion.frozen && <span className="keyword frozen">冻结</span>}
+                    {minion.elusive && <span className="keyword elusive">扰魔</span>}
+                    {minion.silenced && <span className="keyword silenced">沉默</span>}
                   </div>
                 </div>
               ))
@@ -418,7 +426,7 @@ const App: React.FC = () => {
               localPlayer.field.map((minion) => (
                 <div
                   key={minion.uiId}
-                  className={`minion ${minion.taunt ? 'taunt-minion' : ''} ${minion.divineShield ? 'divine-shield-minion' : ''} ${minion.canAttack && isLocalPlayerTurn ? 'can-attack' : ''} ${isValidTarget(minion.uiId) ? 'valid-target' : ''}`}
+                  className={`minion ${minion.taunt ? 'taunt-minion' : ''} ${minion.divineShield ? 'divine-shield-minion' : ''} ${minion.stealth ? 'stealth-minion' : ''} ${minion.elusive ? 'elusive-minion' : ''} ${minion.windfury ? 'windfury-minion' : ''} ${minion.charge ? 'charge-minion' : ''} ${minion.lifesteal ? 'lifesteal-minion' : ''} ${minion.poisonous ? 'poisonous-minion' : ''} ${minion.frozen ? 'frozen-minion' : ''} ${minion.silenced ? 'silenced-minion' : ''} ${minion.sleeping ? 'sleeping-minion' : ''} ${minion.canAttack && isLocalPlayerTurn ? 'can-attack' : ''} ${isValidTarget(minion.uiId) ? 'valid-target' : ''}`}
                   draggable={minion.canAttack && isLocalPlayerTurn}
                   onDragStart={(e) => handleDragStart(minion.uiId, e)}
                   onDragEnd={handleDragEnd}
@@ -438,8 +446,16 @@ const App: React.FC = () => {
                     <span className="health">{minion.health}</span>
                   </div>
                   <div className="keywords">
-                    {minion.taunt && <span className="keyword taunt">Taunt</span>}
-                    {minion.divineShield && <span className="keyword divine-shield">DS</span>}
+                    {minion.taunt && <span className="keyword taunt">嘲讽</span>}
+                    {minion.divineShield && <span className="keyword divine-shield">圣盾</span>}
+                    {minion.stealth && <span className="keyword stealth">潜行</span>}
+                    {minion.windfury && <span className="keyword windfury">风怒</span>}
+                    {minion.charge && <span className="keyword charge">冲锋</span>}
+                    {minion.lifesteal && <span className="keyword lifesteal">吸血</span>}
+                    {minion.poisonous && <span className="keyword poisonous">剧毒</span>}
+                    {minion.frozen && <span className="keyword frozen">冻结</span>}
+                    {minion.elusive && <span className="keyword elusive">扰魔</span>}
+                    {minion.silenced && <span className="keyword silenced">沉默</span>}
                   </div>
                 </div>
               ))
@@ -455,7 +471,7 @@ const App: React.FC = () => {
               <div
                 className={`hero-portrait player-hero ${localPlayer.hero.canAttack && isLocalPlayerTurn ? 'can-attack' : ''} ${isValidTarget(localPlayer.hero.uiId) ? 'valid-target' : ''}`}
                 draggable={localPlayer.hero.canAttack && isLocalPlayerTurn}
-                onDragStart={() => handleDragStart(localPlayer.hero!.uiId)}
+                onDragStart={(e) => handleDragStart(localPlayer.hero!.uiId, e)}
                 onDragEnd={() => setDraggedEntity(null)}
                 onClick={() => {
                   if (isValidTarget(localPlayer.hero!.uiId)) {

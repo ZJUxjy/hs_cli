@@ -10,7 +10,7 @@ import { Game } from '../../core/game';
 import { Player } from '../../core/player';
 import { CardLoader } from '../../cards/loader';
 import { serializeGameState } from './serializeGameState';
-import type { UIGameState, UICommand, CommandResult } from '../types';
+import type { UIGameState, UICommand, CommandResult, UIPendingTarget } from '../types';
 import { Play } from '../../actions/play';
 import { Attack } from '../../actions/attack';
 import { MAGE_DECK, WARRIOR_DECK, HEROES } from './decks';
@@ -418,6 +418,11 @@ export function createGameController(config?: Partial<GameControllerConfig>): Ga
       const fieldArray = (opponent.field as any).toArray ? (opponent.field as any).toArray() : Array.from(opponent.field as any);
       const localPlayerObj = game.players.find((p: any) => p.name === localPlayerId);
       const targetHero = localPlayerObj?.hero;
+
+      if (!targetHero) {
+        console.log('[AI] No target hero available');
+        return;
+      }
 
       for (const minion of fieldArray) {
         // Use centralized rules for attack validation

@@ -79,8 +79,60 @@ cardScriptsRegistry.register('EX1_102', {
   },
 });
 
-// EX1_162
+// EX1_162 Dire Wolf Alpha - Adjacent minions have +1 Attack
 cardScriptsRegistry.register('EX1_162', {
+  // Aura: Adjacent minions have +1 Attack
+  // We use events to simulate aura behavior
+  events: {
+    // When any minion is summoned or played
+    MINION_SUMMON: (ctx: ActionContext) => {
+      const source = ctx.source as Entity;
+      const controller = (source as any).controller;
+      const field = controller?.field || [];
+      const position = field.indexOf(source as any);
+
+      // Update adjacent minions when a new minion arrives
+      if (position >= 0) {
+        // Check left neighbor
+        if (position > 0) {
+          const leftMinion = field[position - 1] as any;
+          if (leftMinion) {
+            leftMinion._attack = (leftMinion._attack || 0) + 1;
+          }
+        }
+        // Check right neighbor
+        if (position < field.length - 1) {
+          const rightMinion = field[position + 1] as any;
+          if (rightMinion) {
+            rightMinion._attack = (rightMinion._attack || 0) + 1;
+          }
+        }
+      }
+    },
+  },
+  // Apply aura on play
+  play: (ctx: ActionContext) => {
+    const source = ctx.source as Entity;
+    const controller = (source as any).controller;
+    const field = controller?.field || [];
+    const position = field.indexOf(source as any);
+
+    // Buff adjacent minions immediately when played
+    if (position >= 0) {
+      if (position > 0) {
+        const leftMinion = field[position - 1] as any;
+        if (leftMinion) {
+          leftMinion._attack = (leftMinion._attack || 0) + 1;
+        }
+      }
+      if (position < field.length - 1) {
+        const rightMinion = field[position + 1] as any;
+        if (rightMinion) {
+          rightMinion._attack = (rightMinion._attack || 0) + 1;
+        }
+      }
+    }
+  },
 });
 
 // EX1_399 Gnomish Inventor - Battlecry: Draw a card

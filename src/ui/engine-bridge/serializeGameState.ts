@@ -79,10 +79,18 @@ function serializeMinion(minion: Minion, index: number): UIMinionState {
     maxHealth: minionAny.maxHealth ?? 0,
     damage: minionAny.damage ?? 0,
     canAttack: canMinionAttack(minionAny),
+    // Keyword abilities
     taunt: minionAny.taunt ?? false,
     divineShield: minionAny.divineShield ?? false,
     frozen: minionAny.frozen ?? false,
     stealth: minionAny.stealth ?? false,
+    windfury: minionAny.windfury ?? false,
+    charge: minionAny.charge ?? false,
+    lifesteal: minionAny.lifesteal ?? false,
+    poisonous: minionAny.poisonous ?? false,
+    elusive: minionAny.elusive ?? minionAny.cantBeTargeted ?? false,
+    silenced: minionAny.silenced ?? false,
+    sleeping: minionAny.sleeping ?? false,
   };
 
   // Add description if available

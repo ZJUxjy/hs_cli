@@ -142,11 +142,64 @@ export class Minion extends PlayableCard {
   _buffs: import('./buff').Buff[] = [];
   _slots: import('./buff').Slot[] = [];
   _buffValues: Record<string, number> = {};
+  _deathrattles: Array<() => void> = [];
 
   constructor(definition: CardDefinition) {
     super(definition);
     this._attack = definition.attack || 0;
     this._maxHealth = definition.health || 0;
+    // Copy keyword abilities from definition
+    this.charge = definition.charge || false;
+    this._taunt = definition.taunt || false;
+    this._divineShield = definition.divineShield || false;
+    this.windfury = definition.windfury || false;
+  }
+
+  /**
+   * Check if this minion has a deathrattle effect
+   */
+  get hasDeathrattle(): boolean {
+    // Check local deathrattles
+    if (this._deathrattles.length > 0) return true;
+    // Check card scripts registry
+    const { cardScriptsRegistry } = require('../cards/mechanics');
+    const script = cardScriptsRegistry.get(this.id);
+    return script?.deathrattle !== undefined;
+  }
+
+  /**
+   * Get all deathrattle action functions
+   */
+  get deathrattles(): Array<() => void> {
+    const result: Array<() => void> = [...this._deathrattles];
+
+    // Check card scripts registry for deathrattle
+    const { executeDeathrattle } = require('../cards/mechanics');
+    const { cardScriptsRegistry } = require('../cards/mechanics');
+    const script = cardScriptsRegistry.get(this.id);
+    if (script?.deathrattle) {
+      // Wrap the script deathrattle in a function
+      const wrapped = () => {
+        executeDeathrattle(this);
+      };
+      result.push(wrapped);
+    }
+
+    return result;
+  }
+
+  /**
+   * Add a deathrattle effect to this minion
+   */
+  addDeathrattle(action: () => void): void {
+    this._deathrattles.push(action);
+  }
+
+  /**
+   * Clear all deathrattles (e.g., when silenced)
+   */
+  clearDeathrattles(): void {
+    this._deathrattles = [];
   }
 
   get attack(): number {
