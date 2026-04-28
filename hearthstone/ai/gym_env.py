@@ -3,116 +3,118 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 
+from hearthstone.ai.card_embedding import CardEmbedding
+from hearthstone.ai.reward_functions import RewardFunction
+from hearthstone.decks.deck_manager import DeckManager
+from hearthstone.engine.game_controller import GameController
+
 
 class HearthstoneEnv(gym.Env):
-    """Hearthstone environment following Gymnasium API."""
+    """Hearthstone environment following Gymnasium API.
+
+    Observation includes card embeddings for hand and both boards plus 9
+    scalar features. Observation and reward are always computed from the
+    training player's perspective (default Player 1) regardless of whose
+    turn it currently is.
+    """
 
     metadata = {"render_modes": ["human"]}
+    EMBEDDING_DIM = 64
+    MAX_HAND = 10
+    MAX_BOARD = 7
+    NUM_ACTIONS = 100
 
-    def __init__(self, deck1_name: str = "test_deck", deck2_name: str = "test_deck"):
-        """Initialize environment."""
+    def __init__(
+        self,
+        deck1_name: str = "test_deck",
+        deck2_name: str = "test_deck",
+        training_player_name: str = "player1",
+    ):
         super().__init__()
-
         self.deck1_name = deck1_name
         self.deck2_name = deck2_name
+        self.training_player_name = training_player_name
+        self.embedding = CardEmbedding(embedding_dim=self.EMBEDDING_DIM)
+        self.reward_fn = RewardFunction()
 
-        # Observation space
-        # Using simple features for MVP
         self.observation_space = spaces.Dict({
+            "player_hand": spaces.Box(0, 1, shape=(self.MAX_HAND, self.EMBEDDING_DIM), dtype=np.float32),
+            "player_board": spaces.Box(0, 1, shape=(self.MAX_BOARD, self.EMBEDDING_DIM), dtype=np.float32),
+            "opponent_board": spaces.Box(0, 1, shape=(self.MAX_BOARD, self.EMBEDDING_DIM), dtype=np.float32),
             "player_health": spaces.Box(0, 30, shape=(1,), dtype=np.float32),
             "player_mana": spaces.Box(0, 10, shape=(1,), dtype=np.float32),
+            "player_max_mana": spaces.Box(0, 10, shape=(1,), dtype=np.float32),
             "player_hand_size": spaces.Box(0, 10, shape=(1,), dtype=np.float32),
             "player_board_size": spaces.Box(0, 7, shape=(1,), dtype=np.float32),
             "opponent_health": spaces.Box(0, 30, shape=(1,), dtype=np.float32),
             "opponent_board_size": spaces.Box(0, 7, shape=(1,), dtype=np.float32),
             "turn_number": spaces.Box(0, 100, shape=(1,), dtype=np.float32),
+            "player_deck_size": spaces.Box(0, 30, shape=(1,), dtype=np.float32),
         })
 
-        # Action space (will use masking)
-        self.action_space = spaces.Discrete(100)  # Max 100 possible actions
-
+        self.action_space = spaces.Discrete(self.NUM_ACTIONS)
         self.controller = None
 
     def reset(self, seed=None, options=None):
-        """Reset environment to initial state."""
         super().reset(seed=seed)
-
-        from hearthstone.decks.deck_manager import DeckManager
-        from hearthstone.engine.game_controller import GameController
-
-        # Load decks
         manager = DeckManager()
         deck1 = manager.load_deck(self.deck1_name)
         deck2 = manager.load_deck(self.deck2_name)
-
-        # Create game controller
         self.controller = GameController(deck1, deck2)
         self.controller.start_game()
+        return self._get_observation(), {}
 
-        # Get initial observation
-        obs = self._get_observation()
-
-        return obs, {}
+    def _resolve_players(self, state):
+        """Return (training_player, opponent) regardless of whose turn it is."""
+        if state.player1.name == self.training_player_name:
+            return state.player1, state.player2
+        return state.player2, state.player1
 
     def _get_observation(self):
-        """Convert game state to observation."""
         state = self.controller.get_state()
+        me, opp = self._resolve_players(state)
 
         return {
-            "player_health": np.array([state.current_player.hero.health], dtype=np.float32),
-            "player_mana": np.array([state.current_player.mana], dtype=np.float32),
-            "player_hand_size": np.array([len(state.current_player.hand)], dtype=np.float32),
-            "player_board_size": np.array([len(state.current_player.board)], dtype=np.float32),
-            "opponent_health": np.array([state.opposing_player.hero.health], dtype=np.float32),
-            "opponent_board_size": np.array([len(state.opposing_player.board)], dtype=np.float32),
+            "player_hand": self.embedding.encode_hand(me.hand, self.MAX_HAND),
+            "player_board": self.embedding.encode_board(me.board, self.MAX_BOARD),
+            "opponent_board": self.embedding.encode_board(opp.board, self.MAX_BOARD),
+            "player_health": np.array([me.hero.health], dtype=np.float32),
+            "player_mana": np.array([me.mana], dtype=np.float32),
+            "player_max_mana": np.array([me.max_mana], dtype=np.float32),
+            "player_hand_size": np.array([len(me.hand)], dtype=np.float32),
+            "player_board_size": np.array([len(me.board)], dtype=np.float32),
+            "opponent_health": np.array([opp.hero.health], dtype=np.float32),
+            "opponent_board_size": np.array([len(opp.board)], dtype=np.float32),
             "turn_number": np.array([state.turn], dtype=np.float32),
+            "player_deck_size": np.array([len(me.deck)], dtype=np.float32),
         }
 
     def step(self, action):
-        """Execute action and return (obs, reward, terminated, truncated, info)."""
         if self.controller is None:
             raise RuntimeError("Call reset() before step()")
 
-        # Get valid actions
+        old_state = self.controller.get_state()
         valid_actions = self.controller.get_valid_actions()
+        invalid = action >= len(valid_actions)
 
-        # Map action index to actual action
-        if action < len(valid_actions):
-            selected_action = valid_actions[action]
-            event = self.controller.execute_action(selected_action)
+        if not invalid:
+            self.controller.execute_action(valid_actions[action])
 
-            # Calculate reward
-            reward = 0.0
-            if event.success:
-                reward = 0.001  # Small reward for successful action
-        else:
-            # Invalid action, ignore
-            reward = -0.01
-            event = None
-
-        # Get new observation
-        obs = self._get_observation()
-
-        # Check if game is over
+        new_state = self.controller.get_state()
         terminated = self.controller.is_game_over()
-        truncated = False
 
-        # Calculate final reward if game over
-        if terminated:
-            winner = self.controller.get_winner()
-            if winner and winner.name == self.controller.get_state().player1.name:
-                reward = 1.0  # Won
-            else:
-                reward = -1.0  # Lost
+        reward = self.reward_fn.calculate(
+            old_state, new_state, player_name=self.training_player_name,
+        )
+        if invalid:
+            reward -= 0.01  # small penalty for picking out-of-range action
 
-        info = {
-            "valid_actions": len(valid_actions),
-            "event": event.message if event else "Invalid action"
-        }
-
-        return obs, reward, terminated, truncated, info
+        obs = self._get_observation()
+        info = {"valid_actions": len(valid_actions), "invalid_action": invalid}
+        return obs, float(reward), bool(terminated), False, info
 
     def render(self, mode="human"):
-        """Render environment."""
-        # TODO: Implement
         pass
+
+    def close(self):
+        self.controller = None
