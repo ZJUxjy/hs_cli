@@ -77,6 +77,13 @@ class TestRolloutBuffer:
         buf.reset()
         assert len(buf) == 0
 
+    def test_get_on_empty_buffer_raises(self):
+        """get() should raise RuntimeError with clear message when buffer is empty."""
+        buf = RolloutBuffer(capacity=10)
+        buf.compute_returns_and_advantages(0.0)  # succeeds silently
+        with pytest.raises(RuntimeError, match="empty"):
+            buf.get()
+
     def test_get_before_compute_raises(self):
         buf = RolloutBuffer(capacity=10)
         buf.add(make_dummy_obs(), 0, 0.1, 0.5, -1.0, False)

@@ -56,6 +56,10 @@ class RolloutBuffer:
             last_value: Value estimate V(s_{T+1}) for bootstrapping. Pass 0
                 if the trajectory ended in a terminal state.
         """
+        if len(self._rewards) == 0:
+            self._advantages = np.array([], dtype=np.float32)
+            self._returns = np.array([], dtype=np.float32)
+            return
         T = len(self._rewards)
         rewards = np.asarray(self._rewards, dtype=np.float32)
         values = np.asarray(self._values, dtype=np.float32)
@@ -74,6 +78,8 @@ class RolloutBuffer:
         self._returns = advantages + values
 
     def get(self, normalize_advantages: bool = True) -> Dict[str, np.ndarray]:
+        if len(self._observations) == 0:
+            raise RuntimeError("RolloutBuffer is empty; add transitions before calling get()")
         if self._advantages is None or self._returns is None:
             raise RuntimeError(
                 "Call compute_returns_and_advantages() before get()"
