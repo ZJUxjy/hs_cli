@@ -34,6 +34,9 @@ Thumbs.db
 # Linting
 .ruff_cache/
 
+# Worktrees
+.worktrees/
+
 # Misc
 *.log
 .env.local
