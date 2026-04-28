@@ -81,3 +81,15 @@ def test_step_returns_valid_tuple():
     assert isinstance(truncated, bool)
     assert isinstance(info, dict)
     env.close()
+
+
+def test_training_player_name_mismatch_raises():
+    """Passing unknown training_player_name should raise ValueError."""
+    import pytest
+    env = HearthstoneEnv(
+        deck1_name="test_deck", deck2_name="test_deck",
+        training_player_name="wrong_name",
+    )
+    with pytest.raises(ValueError, match="does not match"):
+        env.reset()
+    env.close()

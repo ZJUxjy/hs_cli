@@ -1,4 +1,6 @@
 """Gymnasium environment for Hearthstone."""
+import copy
+
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
@@ -28,7 +30,7 @@ class HearthstoneEnv(gym.Env):
         self,
         deck1_name: str = "test_deck",
         deck2_name: str = "test_deck",
-        training_player_name: str = "player1",
+        training_player_name: str = "Player 1",
     ):
         super().__init__()
         self.deck1_name = deck1_name
@@ -68,7 +70,12 @@ class HearthstoneEnv(gym.Env):
         """Return (training_player, opponent) regardless of whose turn it is."""
         if state.player1.name == self.training_player_name:
             return state.player1, state.player2
-        return state.player2, state.player1
+        if state.player2.name == self.training_player_name:
+            return state.player2, state.player1
+        raise ValueError(
+            f"training_player_name '{self.training_player_name}' does not match "
+            f"either player ('{state.player1.name}', '{state.player2.name}')"
+        )
 
     def _get_observation(self):
         state = self.controller.get_state()
@@ -93,7 +100,7 @@ class HearthstoneEnv(gym.Env):
         if self.controller is None:
             raise RuntimeError("Call reset() before step()")
 
-        old_state = self.controller.get_state()
+        old_state = copy.deepcopy(self.controller.get_state())
         valid_actions = self.controller.get_valid_actions()
         invalid = action >= len(valid_actions)
 
