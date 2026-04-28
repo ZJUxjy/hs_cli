@@ -133,7 +133,7 @@ def test_reward_with_action():
         target_id='enemy_hero'
     )
 
-    reward = rf.calculate(old_state, new_state, play_action)
+    reward = rf.calculate(old_state, new_state)
 
     # Verify the action properties
     assert play_action.card_index == 0
@@ -155,10 +155,81 @@ def test_reward_with_action():
         target_id='enemy_hero'
     )
 
-    reward = rf.calculate(old_state, new_state, attack_action)
+    reward = rf.calculate(old_state, new_state)
 
     assert attack_action.attacker_id == 'minion_1'
     assert attack_action.target_id == 'enemy_hero'
     assert attack_action.player_id == 'player1'
     assert attack_action.action_type == "ATTACK"
     assert reward == 6.5  # Same state transition, same reward
+
+
+class MockGameStateWithPerspective:
+    """Mock that lets us simulate Player 2 being current_player at game end."""
+    def __init__(self, current_name="player1", winner_name="player1",
+                 game_over=True, current_health=30, opposing_health=30,
+                 current_board_size=0, opposing_board_size=0):
+        self._current_name = current_name
+        self._winner_name = winner_name
+        self._game_over = game_over
+        self._current_health = current_health
+        self._opposing_health = opposing_health
+        self._current_board_size = current_board_size
+        self._opposing_board_size = opposing_board_size
+
+    def is_game_over(self):
+        return self._game_over
+
+    def get_winner(self):
+        return type('Player', (), {'name': self._winner_name})()
+
+    @property
+    def current_player(self):
+        return type('Player', (), {
+            'name': self._current_name,
+            'hero': type('Hero', (), {'health': self._current_health})(),
+            'board': [type('Minion', (), {})] * self._current_board_size,
+        })()
+
+    @property
+    def opposing_player(self):
+        opposing = "player2" if self._current_name == "player1" else "player1"
+        return type('Player', (), {
+            'name': opposing,
+            'hero': type('Hero', (), {'health': self._opposing_health})(),
+            'board': [type('Minion', (), {})] * self._opposing_board_size,
+        })()
+
+
+def test_victory_reward_when_opponent_is_current_player():
+    """Player 1 should get DEFEAT when Player 2 wins on their own turn."""
+    from hearthstone.ai.reward_functions import RewardFunction
+    rf = RewardFunction()
+    # Game over, player2 is current (just took winning turn), player2 won
+    state = MockGameStateWithPerspective(
+        current_name="player2", winner_name="player2", game_over=True,
+    )
+    reward = rf.calculate(None, state, player_name="player1")
+    assert reward == -100.0, f"Expected DEFEAT for player1, got {reward}"
+
+
+def test_victory_reward_when_training_player_is_current():
+    """Player 1 wins on their own turn — should get VICTORY."""
+    from hearthstone.ai.reward_functions import RewardFunction
+    rf = RewardFunction()
+    state = MockGameStateWithPerspective(
+        current_name="player1", winner_name="player1", game_over=True,
+    )
+    reward = rf.calculate(None, state, player_name="player1")
+    assert reward == 100.0
+
+
+def test_player_name_none_falls_back_to_current_player():
+    """When player_name is None, perspective falls back to current_player (legacy behavior)."""
+    from hearthstone.ai.reward_functions import RewardFunction
+    rf = RewardFunction()
+    state = MockGameStateWithPerspective(
+        current_name="player1", winner_name="player1", game_over=True,
+    )
+    reward = rf.calculate(None, state, player_name=None)
+    assert reward == 100.0

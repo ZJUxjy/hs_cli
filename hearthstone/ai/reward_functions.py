@@ -4,25 +4,22 @@ from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from hearthstone.models.game_state import GameState
-    from hearthstone.engine.action import Action
 
 
 class RewardFunction:
-    """Calculates rewards for AI training based on game state changes."""
+    """Calculates rewards for AI training based on game state changes.
 
-    # Reward constants
+    Rewards are always computed from the perspective of `player_name`. If
+    `player_name` is None, falls back to `state.current_player` for backward
+    compatibility, but callers should pass an explicit name during training.
+    """
+
     VICTORY_REWARD = 100.0
     DEFEAT_PENALTY = -100.0
     HEALTH_WEIGHT = 1.0
     BOARD_CONTROL_WEIGHT = 0.5
 
     def __init__(self, health_weight=None, board_control_weight=None):
-        """Initialize reward function with configurable weights.
-
-        Args:
-            health_weight: Weight for health advantage reward (default: 1.0)
-            board_control_weight: Weight for board control reward (default: 0.5)
-        """
         self.health_weight = health_weight if health_weight is not None else self.HEALTH_WEIGHT
         self.board_control_weight = (
             board_control_weight if board_control_weight is not None else self.BOARD_CONTROL_WEIGHT
@@ -32,70 +29,50 @@ class RewardFunction:
         self,
         old_state: Optional["GameState"],
         new_state: "GameState",
-        action: Optional["Action"]
+        player_name: Optional[str] = None,
     ) -> float:
-        """Calculate reward based on state transition.
-
-        Args:
-            old_state: Previous game state (can be None for initial state)
-            new_state: Current game state
-            action: Action taken (can be None)
-
-        Returns:
-            float: Reward value
-        """
-        # Check for terminal states first
+        """Reward from the perspective of `player_name` (defaults to current_player)."""
         if new_state.is_game_over():
             winner = new_state.get_winner()
-            if winner.name == new_state.current_player.name:
-                return self.VICTORY_REWARD
-            else:
-                return self.DEFEAT_PENALTY
+            if winner is None:
+                return 0.0
+            perspective = player_name if player_name else new_state.current_player.name
+            return self.VICTORY_REWARD if winner.name == perspective else self.DEFEAT_PENALTY
 
-        # Calculate intermediate rewards
         reward = 0.0
-
         if old_state is not None:
-            # Health advantage reward
-            old_health_diff = self._health_difference(old_state)
-            new_health_diff = self._health_difference(new_state)
-            health_reward = (new_health_diff - old_health_diff) * self.health_weight
-            reward += health_reward
+            old_h = self._health_diff(old_state, player_name)
+            new_h = self._health_diff(new_state, player_name)
+            reward += (new_h - old_h) * self.health_weight
 
-            # Board control reward
-            old_board_diff = self._board_control_bonus(old_state)
-            new_board_diff = self._board_control_bonus(new_state)
-            board_reward = (new_board_diff - old_board_diff) * self.board_control_weight
-            reward += board_reward
+            old_b = self._board_diff(old_state, player_name)
+            new_b = self._board_diff(new_state, player_name)
+            reward += (new_b - old_b) * self.board_control_weight
 
         return reward
 
-    def _health_difference(self, state):
-        """Calculate health advantage.
+    def _resolve(self, state, player_name: Optional[str]):
+        """Return (me, opponent) where `me` is the training player.
 
-        Args:
-            state: Game state
-
-        Returns:
-            float: Health difference (positive = advantage)
+        When player_name is None or matches current_player.name, `me` is
+        current_player; otherwise the players are swapped. Works on both
+        the real GameState and the test mocks (only needs current_player /
+        opposing_player and a `.name` on current_player).
         """
-        player_health = state.current_player.hero.health
-        enemy_health = state.opposing_player.hero.health
-        return player_health - enemy_health
+        if player_name and state.current_player.name != player_name:
+            return state.opposing_player, state.current_player
+        return state.current_player, state.opposing_player
 
-    def _board_control_bonus(self, state):
-        """Calculate board control advantage.
+    def _health_diff(self, state, player_name: Optional[str]) -> float:
+        me, opp = self._resolve(state, player_name)
+        return me.hero.health - opp.hero.health
 
-        Args:
-            state: Game state
-
-        Returns:
-            float: Board control difference (positive = advantage)
-        """
-        player_board_size = len(state.current_player.board)
-        enemy_board_size = len(state.opposing_player.board)
-        return player_board_size - enemy_board_size
+    def _board_diff(self, state, player_name: Optional[str]) -> float:
+        me, opp = self._resolve(state, player_name)
+        return len(me.board) - len(opp.board)
 
     def __repr__(self) -> str:
-        """Return string representation of RewardFunction."""
-        return f"RewardFunction(health_weight={self.health_weight}, board_control_weight={self.board_control_weight})"
+        return (
+            f"RewardFunction(health_weight={self.health_weight}, "
+            f"board_control_weight={self.board_control_weight})"
+        )
