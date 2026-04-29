@@ -187,10 +187,10 @@ class GameEngine:
         """Execute attack action."""
         player = self.state.current_player
 
-        # Find attacker
+        # Find attacker — check instance_id first (set when played), fall back to base id.
         attacker = None
         for minion in player.board:
-            if minion.id == action.attacker_id:
+            if minion.instance_id == action.attacker_id or minion.id == action.attacker_id:
                 attacker = minion
                 break
 

@@ -62,12 +62,14 @@ class AttackExecutor:
         )
 
     def _get_target(self, target_id: str, game_state: GameState) -> Optional[Union[Minion, Hero]]:
-        """Get target by ID."""
+        """Get target by ID. Matches the spell-targeting convention in
+        game_engine.py: try instance_id first (set when a minion is played),
+        fall back to base card id."""
         if target_id == "enemy_hero":
             return game_state.opposing_player.hero
 
         for minion in game_state.opposing_player.board:
-            if minion.id == target_id:
+            if minion.instance_id == target_id or minion.id == target_id:
                 return minion
 
         return None
