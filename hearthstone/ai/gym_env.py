@@ -78,23 +78,16 @@ class HearthstoneEnv(gym.Env):
         )
 
     def _get_observation(self):
+        from hearthstone.ai.card_embedding import build_observation
         state = self.controller.get_state()
-        me, opp = self._resolve_players(state)
-
-        return {
-            "player_hand": self.embedding.encode_hand(me.hand, self.MAX_HAND),
-            "player_board": self.embedding.encode_board(me.board, self.MAX_BOARD),
-            "opponent_board": self.embedding.encode_board(opp.board, self.MAX_BOARD),
-            "player_health": np.array([me.hero.health], dtype=np.float32),
-            "player_mana": np.array([me.mana], dtype=np.float32),
-            "player_max_mana": np.array([me.max_mana], dtype=np.float32),
-            "player_hand_size": np.array([len(me.hand)], dtype=np.float32),
-            "player_board_size": np.array([len(me.board)], dtype=np.float32),
-            "opponent_health": np.array([opp.hero.health], dtype=np.float32),
-            "opponent_board_size": np.array([len(opp.board)], dtype=np.float32),
-            "turn_number": np.array([state.turn], dtype=np.float32),
-            "player_deck_size": np.array([len(me.deck)], dtype=np.float32),
-        }
+        me, _ = self._resolve_players(state)
+        return build_observation(
+            state,
+            perspective_player=me,
+            embedding=self.embedding,
+            max_hand=self.MAX_HAND,
+            max_board=self.MAX_BOARD,
+        )
 
     def step(self, action):
         if self.controller is None:
