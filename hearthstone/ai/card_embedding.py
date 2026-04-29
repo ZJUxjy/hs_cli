@@ -1,8 +1,10 @@
 """Card embedding for AI input representation."""
-from typing import List, Union
+from typing import List, Union, Dict, Optional
 import numpy as np
 from hearthstone.models.card import Card, Minion, Spell, Weapon
 from hearthstone.models.enums import CardType, Ability
+from hearthstone.models.game_state import GameState
+from hearthstone.models.player import Player
 
 
 class CardEmbedding:
@@ -111,3 +113,55 @@ class CardEmbedding:
             result[i] = self.encode(minion)
 
         return result
+
+
+def build_observation(
+    state: GameState,
+    perspective_player: Player,
+    embedding_dim: int = 64,
+    embedding: Optional[CardEmbedding] = None,
+    max_hand: int = 10,
+    max_board: int = 7,
+) -> Dict[str, np.ndarray]:
+    """Build the 12-key observation dict from `perspective_player`'s POV.
+
+    The opponent is derived from `state` by identity comparison: if
+    perspective_player is state.player1, opponent is state.player2;
+    otherwise opponent is state.player1.
+
+    Args:
+        state: A GameState.
+        perspective_player: The Player whose POV the observation reflects.
+            Does NOT have to be state.current_player.
+        embedding_dim: Card embedding dimensionality (used only when
+            `embedding` is None).
+        embedding: Optional pre-built CardEmbedding instance. Pass one to
+            avoid per-call allocation in tight loops.
+        max_hand: Hand padding/truncation size.
+        max_board: Board padding/truncation size.
+
+    Returns:
+        Dict with 3 card-embedding tensors and 9 scalar boxes.
+    """
+    if embedding is None:
+        embedding = CardEmbedding(embedding_dim=embedding_dim)
+
+    if perspective_player is state.player1:
+        opponent = state.player2
+    else:
+        opponent = state.player1
+
+    return {
+        "player_hand": embedding.encode_hand(perspective_player.hand, max_hand),
+        "player_board": embedding.encode_board(perspective_player.board, max_board),
+        "opponent_board": embedding.encode_board(opponent.board, max_board),
+        "player_health": np.array([perspective_player.hero.health], dtype=np.float32),
+        "player_mana": np.array([perspective_player.mana], dtype=np.float32),
+        "player_max_mana": np.array([perspective_player.max_mana], dtype=np.float32),
+        "player_hand_size": np.array([len(perspective_player.hand)], dtype=np.float32),
+        "player_board_size": np.array([len(perspective_player.board)], dtype=np.float32),
+        "opponent_health": np.array([opponent.hero.health], dtype=np.float32),
+        "opponent_board_size": np.array([len(opponent.board)], dtype=np.float32),
+        "turn_number": np.array([state.turn], dtype=np.float32),
+        "player_deck_size": np.array([len(perspective_player.deck)], dtype=np.float32),
+    }

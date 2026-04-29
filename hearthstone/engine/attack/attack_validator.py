@@ -56,13 +56,14 @@ class AttackValidator:
         return attacker.can_attack and Ability.FROZEN not in attacker.abilities
 
     def _is_valid_target(self, target_id: str, game_state: GameState) -> bool:
-        """Check if target exists and is attackable."""
+        """Check if target exists and is attackable. Matches game_engine's
+        spell-targeting convention: instance_id (set when played) or base id."""
         if target_id == "enemy_hero":
             return True
 
         # Check if target is on opposing board
         for minion in game_state.opposing_player.board:
-            if minion.id == target_id:
+            if minion.instance_id == target_id or minion.id == target_id:
                 return True
 
         return False
@@ -81,9 +82,9 @@ class AttackValidator:
         return False
 
     def _get_target(self, target_id: str, game_state: GameState) -> Optional[Minion]:
-        """Get target minion by ID."""
+        """Get target minion by ID (instance_id or base id)."""
         for minion in game_state.opposing_player.board:
-            if minion.id == target_id:
+            if minion.instance_id == target_id or minion.id == target_id:
                 return minion
         return None
 
