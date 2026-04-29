@@ -4,7 +4,6 @@ from typing import Optional
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 from hearthstone.ai.card_embedding import CardEmbedding, build_observation
 from hearthstone.ai.network import PolicyValueNetwork
@@ -76,7 +75,7 @@ class SelfPlayOpponent(OpponentPolicy):
         and training metadata are intentionally ignored. Opponents are
         frozen inference-only.
         """
-        ckpt = torch.load(path, map_location="cpu")
+        ckpt = torch.load(path, map_location="cpu", weights_only=True)
         if isinstance(ckpt, dict) and "network" in ckpt:
             state_dict = ckpt["network"]
         else:
