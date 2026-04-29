@@ -120,7 +120,10 @@ class TestOpponentEnv:
         # Monkey-patch is_game_over to return True after the next opponent step.
         # Simpler: damage P1's hero to 1 HP and let opponent attack.
         # But test_deck may not have an attacker — skip if so.
-        pytest.skip("requires deck/scenario engineering; covered by smoke test")
+        pytest.skip(
+            "requires deck/scenario engineering; "
+            "covered by Task 8's tests/unit/ai/test_train_smoke.py"
+        )
 
     def test_action_cap_force_ends_turn(self, caplog):
         """A pathological opponent that never ends turn hits the cap; wrapper

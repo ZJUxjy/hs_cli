@@ -60,6 +60,8 @@ class OpponentEnv(gym.Env):
         terminated = self._env.controller.is_game_over()
         truncated = False
 
+        # Note: the `else` clause below executes only if the loop exits without
+        # `break` — i.e. the action cap was hit without game-over or turn-flip.
         for _ in range(self.MAX_OPPONENT_ACTIONS_PER_STEP):
             controller = self._env.controller
             if controller.is_game_over():
