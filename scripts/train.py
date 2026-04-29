@@ -41,9 +41,9 @@ def _seed_everything(seed: int) -> None:
     torch.manual_seed(seed)
 
 
-def _build_obs_for_network(obs: dict) -> dict:
-    """Convert a numpy obs dict to a torch tensor obs dict (batch dim added)."""
-    return {k: torch.from_numpy(v).unsqueeze(0) for k, v in obs.items()}
+def _build_obs_for_network(obs: dict, device: str) -> dict:
+    """Convert a numpy obs dict to a torch tensor obs dict on `device` (batch dim added)."""
+    return {k: torch.from_numpy(v).unsqueeze(0).to(device) for k, v in obs.items()}
 
 
 def _make_env(cfg: TrainConfig, opponent) -> OpponentEnv:
@@ -57,14 +57,21 @@ def _make_env(cfg: TrainConfig, opponent) -> OpponentEnv:
 
 def _action_mask(controller, n_actions: int) -> np.ndarray:
     valid = controller.get_valid_actions()
+    n_valid = len(valid)
+    if n_valid > n_actions:
+        logger.warning(
+            "action-space truncation: %d valid actions but n_actions=%d "
+            "(tail %d actions are unreachable)",
+            n_valid, n_actions, n_valid - n_actions,
+        )
     mask = np.zeros(n_actions, dtype=np.float32)
-    mask[: min(len(valid), n_actions)] = 1.0
+    mask[: min(n_valid, n_actions)] = 1.0
     return mask
 
 
-def _bootstrap_value(network: PolicyValueNetwork, obs: dict) -> float:
+def _bootstrap_value(network: PolicyValueNetwork, obs: dict, device: str) -> float:
     """Forward-pass an observation through the value head; return scalar."""
-    torch_obs = _build_obs_for_network(obs)
+    torch_obs = _build_obs_for_network(obs, device)
     with torch.no_grad():
         _, value = network(torch_obs)
     return float(value[0, 0].item())
@@ -92,7 +99,6 @@ def run_training_loop(
 
     # 2. Seed and device
     _seed_everything(config.seed)
-    torch.set_default_device(device)
 
     # 3. Build agent components
     network = PolicyValueNetwork(
@@ -159,7 +165,7 @@ def run_training_loop(
             buffer.reset()
             for _ in range(config.rollout_steps):
                 mask = _action_mask(env.controller, n_actions=100)
-                torch_obs = _build_obs_for_network(obs)
+                torch_obs = _build_obs_for_network(obs, device)
                 action, log_prob, value = trainer.select_action(torch_obs, mask)
                 next_obs, reward, terminated, truncated, _ = env.step(action)
                 buffer.add(obs, action, reward, value, log_prob, terminated)
@@ -167,7 +173,7 @@ def run_training_loop(
                 if terminated or truncated:
                     obs, _ = env.reset()
             # --- Bootstrap final value ---
-            last_value = _bootstrap_value(network, obs)
+            last_value = _bootstrap_value(network, obs, device)
             buffer.compute_returns_and_advantages(last_value)
 
             # --- Update ---

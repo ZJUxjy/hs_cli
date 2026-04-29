@@ -1,4 +1,5 @@
 """Opponent policies used by OpponentEnv during training and eval."""
+import logging
 import random
 from typing import Optional
 
@@ -7,6 +8,8 @@ import torch
 
 from hearthstone.ai.card_embedding import CardEmbedding, build_observation
 from hearthstone.ai.network import PolicyValueNetwork
+
+logger = logging.getLogger(__name__)
 
 
 class OpponentPolicy:
@@ -88,6 +91,12 @@ class SelfPlayOpponent(OpponentPolicy):
         if not valid:
             return 0
 
+        if len(valid) > self.num_actions:
+            logger.warning(
+                "action-space truncation in SelfPlayOpponent: %d valid but num_actions=%d",
+                len(valid), self.num_actions,
+            )
+
         state = controller.get_state()
         obs = build_observation(
             state,
@@ -95,11 +104,12 @@ class SelfPlayOpponent(OpponentPolicy):
             embedding_dim=self.embedding_dim,
             embedding=self._embedding,
         )
-        torch_obs = {k: torch.from_numpy(v).unsqueeze(0) for k, v in obs.items()}
+        device = next(self.network.parameters()).device
+        torch_obs = {k: torch.from_numpy(v).unsqueeze(0).to(device) for k, v in obs.items()}
 
         mask = np.zeros(self.num_actions, dtype=np.float32)
         mask[: min(len(valid), self.num_actions)] = 1.0
-        mask_t = torch.from_numpy(mask)
+        mask_t = torch.from_numpy(mask).to(device)
 
         with torch.no_grad():
             logits, _ = self.network(torch_obs)
