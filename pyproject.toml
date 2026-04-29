@@ -26,3 +26,6 @@ hearthstone-cli = "main:main"
 
 [tool.setuptools.packages.find]
 include = ["hearthstone*", "cli*"]
+
+[tool.pytest.ini_options]
+markers = ["slow: marks slow integration tests"]
