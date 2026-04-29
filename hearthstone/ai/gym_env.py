@@ -5,7 +5,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 
-from hearthstone.ai.card_embedding import CardEmbedding
+from hearthstone.ai.card_embedding import CardEmbedding, build_observation
 from hearthstone.ai.reward_functions import RewardFunction
 from hearthstone.decks.deck_manager import DeckManager
 from hearthstone.engine.game_controller import GameController
@@ -78,7 +78,6 @@ class HearthstoneEnv(gym.Env):
         )
 
     def _get_observation(self):
-        from hearthstone.ai.card_embedding import build_observation
         state = self.controller.get_state()
         me, _ = self._resolve_players(state)
         return build_observation(

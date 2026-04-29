@@ -3,6 +3,8 @@ from typing import List, Union, Dict, Optional
 import numpy as np
 from hearthstone.models.card import Card, Minion, Spell, Weapon
 from hearthstone.models.enums import CardType, Ability
+from hearthstone.models.game_state import GameState
+from hearthstone.models.player import Player
 
 
 class CardEmbedding:
@@ -114,8 +116,8 @@ class CardEmbedding:
 
 
 def build_observation(
-    state,
-    perspective_player,
+    state: GameState,
+    perspective_player: Player,
     embedding_dim: int = 64,
     embedding: Optional[CardEmbedding] = None,
     max_hand: int = 10,
