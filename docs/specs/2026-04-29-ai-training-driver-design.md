@@ -74,6 +74,16 @@ class OpponentEnv(gym.Env):
         self.observation_space = base_env.observation_space
         self.action_space = base_env.action_space
 
+    @property
+    def controller(self):
+        """Expose the underlying GameController for eval / opponent logic."""
+        return self._env.controller
+
+    @property
+    def training_player_name(self) -> str:
+        """Name of the training player (forwarded from the inner env)."""
+        return self._env.training_player_name
+
     def reset(self, **kw):
         obs, info = self._env.reset(**kw)
         obs, extra, terminated, truncated, info = self._loop_opponent(obs, info)
@@ -109,7 +119,13 @@ class OpponentEnv(gym.Env):
         else:
             # Hit the action cap without ending opponent turn — force end.
             logger.warning("Opponent action cap hit; forcing end turn")
-            obs, r, terminated, truncated, info = self._env.step(0)  # 0 = end turn
+            # Find the EndTurnAction in the valid action list rather than
+            # relying on index 0 (action ordering is not guaranteed).
+            from hearthstone.engine.action import EndTurnAction
+            valid = controller.get_valid_actions()
+            idx = next((i for i, a in enumerate(valid)
+                        if isinstance(a, EndTurnAction)), 0)
+            obs, r, terminated, truncated, info = self._env.step(idx)
             extra_reward += r
         return obs, extra_reward, self._env.controller.is_game_over(), False, info
 ```
@@ -146,8 +162,16 @@ class SelfPlayOpponent(OpponentPolicy):
             self.load_from(network_path)
         self.network.eval()
         self.embedding_dim = embedding_dim
+        # Cache a CardEmbedding instance so act() doesn't recreate it each call.
+        self._embedding = CardEmbedding(embedding_dim=embedding_dim)
 
     def load_from(self, path: str) -> None:
+        """Load network weights from checkpoint.
+        
+        Only loads the network state_dict, intentionally skipping the
+        optimizer, iter counter, and other training metadata. Opponents
+        don't need optimizer state — they are frozen inference-only.
+        """
         ckpt = torch.load(path, map_location="cpu")
         state_dict = ckpt["network"] if "network" in ckpt else ckpt
         self.network.load_state_dict(state_dict)
@@ -157,7 +181,8 @@ class SelfPlayOpponent(OpponentPolicy):
         state = controller.get_state()
         # Build observation from THIS player's perspective (current_player).
         obs = build_observation(state, perspective_player=state.current_player,
-                                embedding_dim=self.embedding_dim)
+                                embedding_dim=self.embedding_dim,
+                                embedding=self._embedding)
         torch_obs = {k: torch.from_numpy(v).unsqueeze(0) for k, v in obs.items()}
         valid_n = len(controller.get_valid_actions())
         if valid_n == 0:
@@ -176,7 +201,11 @@ class SelfPlayOpponent(OpponentPolicy):
 
 Lives in `hearthstone/ai/card_embedding.py`. Pure function; takes a `GameState` and a `Player` reference (the perspective owner — does not have to be `current_player`), returns the same 12-key observation dict that `HearthstoneEnv` produces today.
 
-`HearthstoneEnv._get_observation` is updated to a one-liner that calls this helper with `perspective_player = self._resolve_players(state)[0]`. `SelfPlayOpponent.act` calls it with `perspective_player = state.current_player` (because at opponent-turn the current_player IS the opponent, and that's whose POV the network needs to see).
+The opponent is derived from `state`: if `perspective_player is state.player1`, opponent is `state.player2`; otherwise opponent is `state.player1`. This avoids needing to pass both players explicitly while keeping the interface simple.
+
+The function accepts an optional `embedding` kwarg to avoid re-instantiating `CardEmbedding` on every call. If `embedding` is `None` (default), a fresh `CardEmbedding(embedding_dim)` is created internally. Callers that invoke `build_observation` repeatedly (e.g., inside a rollout loop or opponent's `act`) should create a single `CardEmbedding` instance and pass it via `embedding=...` to amortize the allocation cost.
+
+`HearthstoneEnv._get_observation` is updated to a one-liner that calls this helper with `perspective_player = self._resolve_players(state)[0]` and `embedding=self.embedding`. `SelfPlayOpponent.act` calls it with `perspective_player = state.current_player` (because at opponent-turn the current_player IS the opponent, and that's whose POV the network needs to see) and `embedding=self._embedding`.
 
 ### Training loop FSM
 
@@ -209,8 +238,12 @@ Per iteration:
          save checkpoints/best.pt
          best_winrate = winrate
          plateau_count = 0
-     else:
-         plateau_count += 1   # only matters in SELF_PLAY phase
+     elif phase == SELF_PLAY:
+         # Plateau detection only meaningful during self-play.
+         # During RANDOM phase, not improving is expected (agent is learning
+         # from scratch). We only start counting plateaus once the agent has
+         # a competent opponent to improve against.
+         plateau_count += 1
      # Transitions
      if phase == RANDOM and winrate >= switch_threshold:
          phase = SELF_PLAY
@@ -245,10 +278,10 @@ def evaluate(network, opponent_factory, n_games, deck1, deck2, training_player_n
         obs, _ = env.reset()
         terminated = truncated = False
         while not (terminated or truncated):
-            action = eval_agent.act(env._env.controller)
+            action = eval_agent.act(env.controller)
             obs, _, terminated, truncated, _ = env.step(action)
-        winner = env._env.controller.get_winner()
-        if winner is not None and winner.name == env._env.training_player_name:
+        winner = env.controller.get_winner()
+        if winner is not None and winner.name == env.training_player_name:
             wins += 1
     return wins / n_games
 ```
@@ -303,7 +336,10 @@ Loaded via `yaml.safe_load` into a `TrainConfig` dataclass; missing keys raise `
 python scripts/train.py --config configs/default.yaml
 python scripts/train.py --config configs/default.yaml --resume checkpoints/iter_0250.pt
 python scripts/train.py --config configs/default.yaml --override seed=7 lr=1e-4
+python scripts/train.py --config configs/default.yaml --device cuda
 ```
+
+`--device` (default `cpu`) sets `torch.set_default_device()` and controls where the network and tensors live. The network, optimizer, and rollout observations are moved to the specified device at startup. The default is `cpu` — v1 does not require a GPU.
 
 `--override` accepts `key=value` pairs and applies them to the loaded YAML (parsed by `yaml.safe_load(value)` so types are right) before dataclass construction. Nested keys use dotted notation: `--override curriculum.switch_threshold=0.75`.
 
@@ -371,7 +407,7 @@ Three new test files. None mock PyTorch — they exercise tiny real networks (th
 - `test_step_loops_opponent_until_training_turn` — after agent step that ends turn, wrapper invokes opponent until current_player is back to training player or game over.
 - `test_reward_accumulates_across_opponent_turns` — fixed-script opponent that damages the agent's hero; the next agent observation arrives with negative shaping reward summed into return value of `step()`.
 - `test_terminated_during_opponent_turn` — opponent kills agent's hero; wrapper returns `terminated=True` and DEFEAT reward.
-- `test_opponent_action_cap_force_ends_turn` — fake opponent that picks non-end-turn actions forever; wrapper hits cap, calls action 0 (end turn), continues.
+- `test_opponent_action_cap_force_ends_turn` — fake opponent that picks non-end-turn actions forever; wrapper hits cap, forces end turn via EndTurnAction lookup, continues.
 
 ### `tests/unit/ai/test_opponents.py`
 
@@ -393,7 +429,7 @@ Three new test files. None mock PyTorch — they exercise tiny real networks (th
 
 ### Integration smoke (`@pytest.mark.slow`)
 
-- `test_two_iter_train_smoke` — run `train.py` with `max_iters=2, rollout_steps=64, eval_every=1, eval_games=4`; verify `runs/<timestamp>/metrics.csv` has 2 iter rows and 2 eval rows; verify a checkpoint file was created. Doesn't claim the agent learned anything — only confirms wiring.
+- `test_two_iter_train_smoke` — `scripts/train.py` exposes the training loop as an importable function `run_training_loop(config: TrainConfig, resume_path: Optional[str] = None)` (in addition to the CLI entry point under `if __name__ == "__main__"`). The test imports `run_training_loop` directly with `max_iters=2, rollout_steps=64, eval_every=1, eval_games=4`; verifies `runs/<timestamp>/metrics.csv` has 2 iter rows and 2 eval rows; verifies a checkpoint file was created. Doesn't claim the agent learned anything — only confirms wiring. Using a direct import (not subprocess) avoids slow process-launch overhead and makes test output debuggable.
 
 ## Open questions
 
