@@ -1,6 +1,6 @@
 """Training configuration: dataclass schema, YAML loading, CLI parsing."""
 import argparse
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 import yaml
@@ -51,6 +51,12 @@ def apply_overrides(raw: dict, overrides: List[str]) -> dict:
     Supports dotted keys for nested fields, e.g.
     'curriculum.switch_threshold=0.75'. Values are parsed via yaml.safe_load
     so types are preserved (1e-4 → float, true → bool).
+
+    Caveat: PyYAML 6 (YAML 1.2) parses bare scientific notation like '1e-4'
+    as a string; we fall back to float() in that case so the documented
+    type preservation works. As a side effect, overriding a string-typed
+    field with a value that happens to parse as float (e.g. 'deck1=1e3' or
+    'deck1=inf') will silently coerce to float — avoid such collisions.
     """
     for item in overrides:
         if "=" not in item:
