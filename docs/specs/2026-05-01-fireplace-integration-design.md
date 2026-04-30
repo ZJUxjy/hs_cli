@@ -128,27 +128,34 @@ preserved with minimal changes: only constants change (`embedding_dim` →
 
 ```
 hearthstone/ai/
-├── env/                            NEW subpackage
+├── env/                            NEW subpackage; final home for env-related code
 │   ├── __init__.py                 NEW
-│   ├── fireplace_env.py            NEW  ~250 LOC   FireplaceGymEnv
-│   ├── action_enum.py              NEW  ~150 LOC   action types + enumerator + dispatch
-│   ├── observation.py              NEW  ~120 LOC   build_observation_for(env, player)
-│   ├── card_features.py            NEW  ~200 LOC   CardFeatureEncoder + DSL walker + cache
-│   ├── deck_source.py              NEW  ~80 LOC    YAML deck loader, random_deck wrapper
+│   ├── fireplace_env.py            NEW  ~250 LOC  FireplaceGymEnv
+│   ├── action_enum.py              NEW  ~150 LOC  action types + enumerator + dispatch
+│   ├── observation.py              NEW  ~120 LOC  build_observation_for(env, player)
+│   ├── card_features.py            NEW  ~200 LOC  CardFeatureEncoder + DSL walker + cache
+│   ├── deck_source.py              NEW  ~80 LOC   YAML deck loader, random_deck wrapper
 │   ├── mulligan_policy.py          NEW  ~40 LOC
-│   └── discover_policy.py          NEW  ~40 LOC
-├── opponents.py                    REWRITE  ~120 LOC  RandomOpponent, SelfPlayOpponent (fireplace)
-├── opponent_env.py                 REWRITE  ~100 LOC
-├── reward_functions.py             REWRITE  ~120 LOC  RewardFunction over snapshots
+│   ├── discover_policy.py          NEW  ~40 LOC
+│   ├── choose_one_policy.py        NEW  ~30 LOC   pre-pick sub-card for must_choose_one
+│   ├── opponents.py                NEW  ~120 LOC  RandomOpponent, SelfPlayOpponent (fireplace)
+│   ├── opponent_env.py             NEW  ~100 LOC  OpponentEnv wrapper
+│   └── reward.py                   NEW  ~120 LOC  RewardFunction over snapshots (fireplace)
 ├── network.py                      MODIFY   +30 LOC   slot_dim param, expanded SCALAR_KEYS
 ├── ppo_trainer.py                  UNCHANGED
 ├── rollout_buffer.py               UNCHANGED
 ├── curriculum.py                   UNCHANGED
 ├── self_play.py                    MODIFY   ~5 LOC
-├── evaluate.py                     MODIFY   ~10 LOC   loop adapted to dual-perspective env
+├── evaluate.py                     MODIFY   ~25 LOC  uses env.opponents + per-step
+│                                                    perspective dispatch + cap
 ├── training_utils.py               UNCHANGED
-├── config.py                       MODIFY   +15 LOC   deck_pool, mulligan_policy, slot_dim
-└── card_embedding.py               DELETE             superseded by env/card_features.py
+├── config.py                       MODIFY   +20 LOC  deck_pool, mulligan/discover/
+│                                                    choose_one policies, slot_dim
+├── opponents.py                    DELETE in PR-6 (superseded by env/opponents.py)
+├── opponent_env.py                 DELETE in PR-6 (superseded by env/opponent_env.py)
+├── reward_functions.py             DELETE in PR-6 (superseded by env/reward.py)
+├── card_embedding.py               DELETE in PR-6 (superseded by env/card_features.py)
+└── gym_env.py                      DELETE in PR-6 (superseded by env/fireplace_env.py)
 
 hearthstone/engine/                 DELETE   entire dir
 hearthstone/models/                 DELETE   entire dir
@@ -175,28 +182,32 @@ configs/default.yaml                MODIFY   field changes (see Configuration se
 pyproject.toml                      MODIFY   +fireplace dep, AGPL note
 requirements.txt                    MODIFY   +fireplace, +hearthstone-data, +pyyaml (already there)
 
-tests/unit/ai/env/                  NEW subdir
+tests/unit/ai/env/                  NEW subdir; mirrors hearthstone/ai/env/
 ├── test_card_features.py           NEW  ~250 LOC
 ├── test_action_enum.py             NEW  ~150 LOC
 ├── test_observation.py             NEW  ~200 LOC
 ├── test_fireplace_env.py           NEW  ~200 LOC
 ├── test_deck_source.py             NEW  ~50 LOC
 ├── test_mulligan_policy.py         NEW  ~30 LOC
-└── test_discover_policy.py         NEW  ~30 LOC
+├── test_discover_policy.py         NEW  ~30 LOC
+├── test_choose_one_policy.py       NEW  ~30 LOC
+├── test_opponents.py               NEW  ~120 LOC  fireplace-backed opponents
+├── test_opponent_env.py            NEW  ~150 LOC  fireplace-backed wrapper
+└── test_reward.py                  NEW  ~150 LOC  RewardFunction sign-walks
 
-tests/unit/ai/test_opponent_env.py  REWRITE
-tests/unit/ai/test_opponents.py     REWRITE
 tests/unit/ai/test_network.py       MODIFY  slot_dim
 tests/unit/ai/test_train_smoke.py   MODIFY
 tests/unit/ai/test_config.py        MODIFY
 tests/unit/ai/test_evaluate.py      MODIFY
 tests/unit/ai/test_self_play.py     MODIFY
 
-tests/unit/ai/test_build_observation.py     DELETE  (superseded by env/test_observation.py)
-tests/unit/ai/test_card_embedding.py        DELETE
-tests/unit/ai/test_gym_env_observation.py   DELETE
-tests/unit/ai/test_reward_functions.py      REWRITE
-tests/unit/ai/test_training_pipeline.py     MODIFY
+tests/unit/ai/test_opponent_env.py          DELETE in PR-6 (superseded by env/test_opponent_env.py)
+tests/unit/ai/test_opponents.py             DELETE in PR-6 (superseded by env/test_opponents.py)
+tests/unit/ai/test_reward_functions.py      DELETE in PR-6 (superseded by env/test_reward.py)
+tests/unit/ai/test_build_observation.py     DELETE in PR-6
+tests/unit/ai/test_card_embedding.py        DELETE in PR-6
+tests/unit/ai/test_gym_env_observation.py   DELETE in PR-6
+tests/unit/ai/test_training_pipeline.py     MODIFY (or DELETE if redundant with env/test_*)
 
 tests/unit/test_action.py                  DELETE
 tests/unit/test_card.py                    DELETE
@@ -271,9 +282,13 @@ class FireplaceGymEnv(gym.Env):
 2. Construct `fireplace.Game(players, seed=...)`.
 3. Call `game.start()` → enters `BEGIN_MULLIGAN`.
 4. `_auto_resolve_choices()`: while either player has a `choice` pending,
-   resolve via `mulligan_policy.choose(hand)` (mulligan phase) or
-   `discover_policy.choose(options)` (Discover/Choose-One phase). Hard cap
-   at 50 iterations.
+   resolve via `mulligan_policy.cards_to_mulligan(choice.cards)` (mulligan
+   phase, returns the cards to mulligan away) or
+   `discover_policy.choose(choice.cards)` (Discover phase, returns one
+   card). Hard cap at `MAX_CHOICE_RESOLUTIONS=50` iterations.
+   Note: Choose-One on play is NOT routed through `player.choice` —
+   fireplace expects the choice as the `choose=` argument of `card.play()`.
+   See "Choose-One handling" below.
 5. Set `current_valid_actions = enumerate_valid_actions(game.current_player)`.
 6. Return `(self._build_observation(self.training_player), info)`.
 
@@ -316,7 +331,8 @@ class PlayCardAction:
     card_idx_in_hand: int
     target_entity_id: int | None       # None = no target required
     board_index: int | None            # None = append to end of field
-    choose: str | None                 # Choose-One sub-option ID; None in S1'
+    choose: str | None                 # Choose-One sub-card ID; populated by enumerator
+                                       # for must_choose_one cards; None otherwise
 
 @dataclass(frozen=True)
 class AttackAction:
@@ -328,19 +344,60 @@ class HeroPowerAction:
     target_entity_id: int | None
 ```
 
-#### `enumerate_valid_actions(player) -> list[Action]`
+#### Choose-One handling
+
+Fireplace's `card.play(choose=None)` raises `InvalidAction` when
+`card.must_choose_one` is True (`fireplace/card.py:557-560`), and
+`card.play_targets` for a Choose-One card is computed against the
+**chosen sub-card**, not the outer card. This means we can NOT route
+Choose-One through `_auto_resolve_choices()` — the choice has to be
+made before `card.play()` is called.
+
+S1' picks a sub-card deterministically at action-enumeration time
+using a `ChooseOnePolicy`:
 
 ```python
-def enumerate_valid_actions(player) -> list[Action]:
+# choose_one_policy.py
+class ChooseOnePolicy:
+    def choose(self, card: "PlayableCard") -> "PlayableCard":
+        """Return one of card.choose_cards. Called when card.must_choose_one."""
+        raise NotImplementedError
+
+class FirstChoiceOne(ChooseOnePolicy):
+    def choose(self, card): return card.choose_cards[0]
+```
+
+Default: `FirstChoiceOne`. Configurable via `configs/default.yaml`
+`choose_one_policy: first` (parallel to `discover_policy`).
+
+#### `enumerate_valid_actions(player, choose_one_policy) -> list[Action]`
+
+```python
+def enumerate_valid_actions(player, choose_one_policy) -> list[Action]:
     actions: list[Action] = [EndTurnAction()]   # always index 0
 
     for i, card in enumerate(player.hand):
         if not card.is_playable():
             continue
-        targets = card.play_targets or [None]
+        # Resolve Choose-One BEFORE enumerating targets, since play_targets
+        # is computed against the chosen sub-card.
+        if card.must_choose_one:
+            sub_card = choose_one_policy.choose(card)
+            chosen_id = sub_card.id
+            target_source = sub_card                    # play_targets comes from sub-card
+        else:
+            chosen_id = None
+            target_source = card
+
+        targets = target_source.play_targets or [None]
         for target in targets:
             tid = target.entity_id if target is not None else None
-            actions.append(PlayCardAction(i, tid, board_index=None, choose=None))
+            actions.append(PlayCardAction(
+                card_idx_in_hand=i,
+                target_entity_id=tid,
+                board_index=None,
+                choose=chosen_id,
+            ))
 
     for minion in player.field:
         if not minion.can_attack():
@@ -366,9 +423,12 @@ without touching the enumerator.
 #### `dispatch(action, env)`
 
 Resolves `entity_id` references via `env.game.entities` (linear scan,
-N ≤ ~25). Calls fireplace API methods (`card.play`, `minion.attack`,
-`hero_power.use`, `game.end_turn`). Wraps the call in `try/except
-fireplace.exceptions.GameOver` so terminal damage doesn't bubble up.
+N ≤ ~25). Calls fireplace API methods (`card.play(target=, choose=)`,
+`minion.attack`, `hero_power.use`, `game.end_turn`). The `choose`
+field of `PlayCardAction` is forwarded as-is to `card.play(choose=...)` —
+fireplace accepts the sub-card ID string. Wraps the call in
+`try/except fireplace.exceptions.GameOver` so terminal damage doesn't
+bubble up.
 
 ### `CardFeatureEncoder` (`card_features.py`)
 
@@ -380,51 +440,64 @@ MINION_STATE_DIM = 10
 SLOT_DIM         = CARD_FEAT_DIM + MINION_STATE_DIM    # = 90
 ```
 
-Static feature layout (80 dims):
+**All slot features are clipped to `[0.0, 1.0]`.** Every numeric feature
+divides by an explicit MAX and clips. Cards exceeding MAX (e.g., a
+12-cost basic+classic card with `cost/10` would be 1.2) saturate at 1.0.
+Bounds are picked generously enough that saturation is rare in
+basic+classic but explicit so future expansions don't silently break
+`observation_space.contains(obs)`.
 
-| Range | Width | Content |
+Static feature layout (80 dims; all values in `[0, 1]`):
+
+| Range | Width | Content | Normalisation |
+|---|---|---|---|
+| `[0:4]` | 4 | cost, atk, hp, durability | `min(x, MAX) / MAX` with MAX = 10, 20, 20, 5 |
+| `[4:8]` | 4 | type one-hot: MINION / SPELL / WEAPON / HERO_POWER | 0/1 |
+| `[8:19]` | 11 | class one-hot: NEUTRAL + 10 classes | 0/1 |
+| `[19:31]` | 12 | race one-hot: NONE / BEAST / DEMON / DRAGON / ELEMENTAL / MECH / MURLOC / NAGA / PIRATE / TOTEM / UNDEAD / ALL | 0/1 |
+| `[31:46]` | 15 | mechanic one-hot: BATTLECRY, DEATHRATTLE, TAUNT, DIVINE_SHIELD, CHARGE, RUSH, WINDFURY, STEALTH, POISONOUS, LIFESTEAL, SPELL_DAMAGE, FREEZE, SECRET, SILENCE, REBORN | 0/1 |
+| `[46:48]` | 2 | `has_aura`, `has_event_trigger` | 0/1 |
+| `[48:60]` | 12 | effect fingerprint (below) | each `min(x, MAX) / MAX` |
+| `[60:64]` | 4 | rarity one-hot: COMMON / RARE / EPIC / LEGENDARY | 0/1 |
+| `[64:80]` | 16 | reserved (set / spell-school / future) | 0 |
+
+Effect fingerprint (12 dims; all values in `[0, 1]`):
+
+| Index | Field | MAX | Notes |
+|---|---|---|---|
+| 48 | `n_hit_ops` | 5 | count of `Hit`/`Damage` actions |
+| 49 | `total_hit_damage` | 15 | summed damage |
+| 50 | `n_buff_ops` | 5 | |
+| 51 | `total_atk_buff` | 10 | summed atk delta from buff cards |
+| 52 | `total_hp_buff` | 10 | summed hp delta |
+| 53 | `n_draw_ops` | 5 | |
+| 54 | `total_draw_count` | 5 | |
+| 55 | `n_summon_ops` | 5 | |
+| 56 | `n_destroy_ops` | 3 | |
+| 57 | `n_heal_ops` | 3 | |
+| 58 | `total_heal` | 15 | |
+| 59 | `aoe_or_random_flag` | 1 | bit-OR of `aoe_flag` and `random_target_flag` |
+
+Minion dynamic state (10 dims; all values in `[0, 1]`):
+
+| Index | Field | MAX |
 |---|---|---|
-| `[0:4]` | 4 | `cost/10`, `atk/20`, `hp/20`, `durability/5` |
-| `[4:8]` | 4 | type one-hot: MINION / SPELL / WEAPON / HERO_POWER |
-| `[8:19]` | 11 | class one-hot: NEUTRAL + 10 classes |
-| `[19:31]` | 12 | race one-hot: NONE / BEAST / DEMON / DRAGON / ELEMENTAL / MECH / MURLOC / NAGA / PIRATE / TOTEM / UNDEAD / ALL |
-| `[31:46]` | 15 | mechanic one-hot: BATTLECRY, DEATHRATTLE, TAUNT, DIVINE_SHIELD, CHARGE, RUSH, WINDFURY, STEALTH, POISONOUS, LIFESTEAL, SPELL_DAMAGE, FREEZE, SECRET, SILENCE, REBORN |
-| `[46:48]` | 2 | `has_aura` (update non-empty), `has_event_trigger` (events non-empty) |
-| `[48:60]` | 12 | effect fingerprint (below) |
-| `[60:64]` | 4 | rarity one-hot: COMMON / RARE / EPIC / LEGENDARY |
-| `[64:80]` | 16 | reserved (set / spell-school / future) |
+| 0 | `current_atk` | 20 |
+| 1 | `current_hp` | 20 |
+| 2 | `damage_taken` (= max_hp − current_hp) | 20 |
+| 3 | `attacks_remaining_this_turn` | 2 (Windfury caps at 2) |
+| 4 | `divine_shield_active` | 1 (0/1) |
+| 5 | `frozen` | 1 (0/1) |
+| 6 | `silenced` | 1 (0/1) |
+| 7 | `stealth_active` | 1 (0/1) |
+| 8 | `summoning_sick` | 1 (0/1) |
+| 9 | reserved | — |
 
-Effect fingerprint (12 dims):
-
-| Index | Field | Notes |
-|---|---|---|
-| 48 | `n_hit_ops` | count of `Hit`/`Damage` actions |
-| 49 | `total_hit_damage / 15` | clipped sum of damage values |
-| 50 | `n_buff_ops` | |
-| 51 | `total_atk_buff / 10` | summed atk delta from buff cards |
-| 52 | `total_hp_buff / 10` | summed hp delta |
-| 53 | `n_draw_ops` | |
-| 54 | `total_draw_count / 5` | |
-| 55 | `n_summon_ops` | |
-| 56 | `n_destroy_ops` | |
-| 57 | `n_heal_ops` | |
-| 58 | `total_heal / 15` | |
-| 59 | `aoe_flag OR random_target_flag` | bit-OR'd into one slot to keep budget |
-
-Minion dynamic state (10 dims):
-
-| Index | Field |
-|---|---|
-| 0 | `current_atk / 20` |
-| 1 | `current_hp / 20` |
-| 2 | `damage_taken / 20` (max_hp − current_hp) |
-| 3 | `attacks_remaining_this_turn` |
-| 4 | `divine_shield_active` |
-| 5 | `frozen` |
-| 6 | `silenced` |
-| 7 | `stealth_active` |
-| 8 | `summoning_sick` |
-| 9 | reserved |
+The `_clip_normalize(x, max_val)` helper is `min(max(x, 0), max_val) / max_val`
+applied uniformly. A unit test (`test_card_features_in_unit_range`)
+iterates the entire fireplace `cards.db`, encodes each, and asserts
+`(0.0 <= feat).all() and (feat <= 1.0).all()` to catch any new card
+with a value the encoder has not been told to clip.
 
 #### Cache build (`build_card_feature_cache`)
 
@@ -495,13 +568,45 @@ SCALAR_KEYS = (
     "turn_number", "is_my_turn",
 )   # 21 scalars
 
+SCALAR_BOUNDS = {                                # explicit per-scalar (low, high)
+    "player_health": (0,   60),  "player_armor":      (0,  99),
+    "player_mana":   (0,   10),  "player_max_mana":   (0,  10),
+    "player_overload": (0, 10),
+    "player_hand_size": (0, 10), "player_board_size": (0,  7),
+    "player_deck_size": (0, 60), "player_secrets_count": (0, 5),
+    "opponent_health": (0, 60), "opponent_armor":     (0, 99),
+    "opponent_hand_size": (0, 10), "opponent_board_size": (0, 7),
+    "opponent_deck_size": (0, 60), "opponent_secrets_count": (0, 5),
+    "weapon_atk_player": (0, 20), "weapon_dur_player":  (0, 20),
+    "weapon_atk_opponent": (0, 20), "weapon_dur_opponent": (0, 20),
+    "turn_number": (0, 100),     "is_my_turn":         (0, 1),
+}
+
 observation_space = spaces.Dict({
-    "player_hand":    Box(-1, 1, shape=(MAX_HAND, SLOT_DIM),  dtype=float32),
-    "player_board":   Box(-1, 1, shape=(MAX_BOARD, SLOT_DIM), dtype=float32),
-    "opponent_board": Box(-1, 1, shape=(MAX_BOARD, SLOT_DIM), dtype=float32),
-    **{k: Box(0, 100, shape=(1,), dtype=float32) for k in SCALAR_KEYS},
+    "player_hand":    Box(0.0, 1.0, shape=(MAX_HAND, SLOT_DIM),  dtype=np.float32),
+    "player_board":   Box(0.0, 1.0, shape=(MAX_BOARD, SLOT_DIM), dtype=np.float32),
+    "opponent_board": Box(0.0, 1.0, shape=(MAX_BOARD, SLOT_DIM), dtype=np.float32),
+    **{
+        k: Box(low=lo, high=hi, shape=(1,), dtype=np.float32)
+        for k, (lo, hi) in SCALAR_BOUNDS.items()
+    },
 })
 ```
+
+**Slot tensors are `Box(0, 1)`** because the encoder explicitly clips
+all numeric features and one-hots are `0/1` (see CardFeatureEncoder
+section).
+
+**Scalar bounds are explicit per-key** rather than a uniform `(0, 100)`,
+giving real validation power — `observation_space.contains(obs)` will
+catch (e.g.) a `weapon_dur_player` exceeding 20 (a sign of a feature
+bug). Bounds are picked generous enough that legal state never
+saturates: `player_health` 60 covers extreme armor; `weapon_atk` 20
+covers Gorehowl + buffs; `turn_number` 100 covers fatigue endgames.
+
+The env clips raw values into bounds before placing them in obs (matching
+the slot-feature philosophy) — this is documented as defense-in-depth, but
+fireplace state should never legally exceed the listed maxima.
 
 Opponent's hand is **not** in the observation: real Hearthstone hides hand
 contents. `opponent_hand_size` is the only signal. Both players' decks are
@@ -534,7 +639,7 @@ abandoned anyway). `policy_head` becomes `Linear(hidden_dim, 512)`.
 No structural change beyond constants. `RolloutBuffer`, `PPOTrainer`,
 `Curriculum` are untouched.
 
-### Reward (`reward_functions.py`)
+### Reward (`env/reward.py`)
 
 **Terminal status detection.** Fireplace has no `Game.winning_player`
 attribute; the terminal outcome is recorded on each player's `playstate`
@@ -606,7 +711,7 @@ turn, when the opponent attacks the training player, this returns a negative
 shaping reward — which `OpponentEnv` accumulates into the agent-facing
 reward, ensuring "end turn" is not free.
 
-### `OpponentEnv`
+### `OpponentEnv` (`env/opponent_env.py`)
 
 ```python
 class OpponentEnv(gym.Env):
@@ -651,7 +756,7 @@ class OpponentEnv(gym.Env):
 Force-end fallback uses index 0, which by invariant is always
 `EndTurnAction()`.
 
-### Opponents (`opponents.py`)
+### Opponents (`env/opponents.py`)
 
 ```python
 class OpponentPolicy:
@@ -868,6 +973,7 @@ training_player_idx: 0             # 0 | 1 (S1' deterministic; "random" deferred
 mulligan_policy: keep_low_cost     # keep_all | keep_low_cost
 mulligan_threshold: 3
 discover_policy: first             # first | lowest_cost
+choose_one_policy: first           # first (FirstChoiceOne) — pre-picks card.choose_cards[0]
 
 card_features:
   log_coverage: true               # log DSL coverage at startup
@@ -1050,34 +1156,47 @@ PR-2  hearthstone/ai/env/card_features.py + test_card_features.py.
       unit-tested against fireplace card definitions.
 
 PR-3  hearthstone/ai/env/{action_enum,observation,deck_source,
-      mulligan_policy,discover_policy,fireplace_env}.py + their test files
-      + data/fireplace_decks/{basic_mage,basic_warrior}.yaml + README.
-      `FireplaceGymEnv` is exercisable via tests but not yet wired into
-      training. Old `HearthstoneEnv` continues to exist alongside.
+      mulligan_policy,discover_policy,choose_one_policy,fireplace_env}.py
+      + their test files + data/fireplace_decks/{basic_mage,basic_warrior}.yaml
+      + README.  `FireplaceGymEnv` is exercisable via tests but not yet
+      wired into training. Old `HearthstoneEnv` continues to exist alongside.
 
-PR-4  New reward / opponents / opponent_env. Implemented as new modules
-      under hearthstone/ai/env/ (e.g., env/fireplace_opponents.py,
-      env/fireplace_opponent_env.py, env/reward.py) so the existing
-      hearthstone/ai/{opponents,opponent_env,reward_functions}.py keep
-      working. Tested end-to-end against FireplaceGymEnv (synthetic agent
-      plays a few games via OpponentEnv → FireplaceGymEnv).
+PR-4  hearthstone/ai/env/{opponents,opponent_env,reward}.py + matching
+      tests/unit/ai/env/test_*. These are NEW modules under env/; the old
+      hearthstone/ai/{opponents,opponent_env,reward_functions}.py remain
+      untouched and unaffected, so existing tests targeting the old engine
+      keep passing. End-to-end tested by the new tests via
+      OpponentEnv → FireplaceGymEnv.
 
-PR-5  Wire training onto the new path. hearthstone/ai/network.py
-      adopts `slot_dim` / 21 scalars / 512 actions. scripts/train.py
-      switches to constructing FireplaceGymEnv + new opponents (this is
-      the largest change in this PR — see "high-risk areas" below).
-      hearthstone/ai/{evaluate,self_play,config}.py adapted.
-      configs/default.yaml diff applied.
+PR-5  Wire training onto the new path. hearthstone/ai/network.py adopts
+      `slot_dim` / 21 scalars / 512 actions. scripts/train.py switches
+      imports to hearthstone.ai.env.{fireplace_env, opponents, opponent_env,
+      reward} (this is the largest change in this PR — see "high-risk
+      areas" below). hearthstone/ai/{evaluate,self_play,config}.py adapted
+      to the new modules. configs/default.yaml diff applied.
       `test_train_smoke.py` updated and passing on the new path.
-      Old `HearthstoneEnv` and old `opponents.py` / `opponent_env.py`
-      may now be unimported, but are still on disk to keep main green.
+      Old hearthstone/ai/{opponents,opponent_env,reward_functions,
+      card_embedding,gym_env}.py are now unimported but still present
+      on disk to keep main green.
 
-PR-6  Cleanup. Delete: hearthstone/{engine,models,decks,data}/, data/cards/,
-      data/decks/, cli/, web/, main.py, run_web.py; old hearthstone/ai/
-      modules superseded by env/* (opponents.py, opponent_env.py,
-      reward_functions.py, card_embedding.py); all dependent tests under
-      tests/unit/ (test_action.py, test_card.py, etc.) and tests/integration/.
-      Verify nothing breaks; merge.
+PR-6  Cleanup. Delete in one PR:
+        hearthstone/{engine,models,decks,data}/
+        hearthstone/ai/{opponents,opponent_env,reward_functions,
+                        card_embedding,gym_env}.py
+        data/cards/, data/decks/
+        cli/, web/, main.py, run_web.py
+        tests/unit/test_{action,card,card_loader,card_display,
+                          attack_executor,attack_validator,command_parser,
+                          deck_manager,enums,game_controller,game_display,
+                          game_engine,game_state,gym_env,hero,input_handler,
+                          menu_display,player,state_cache}.py
+        tests/unit/ai/test_{opponents,opponent_env,reward_functions,
+                            build_observation,card_embedding,
+                            gym_env_observation}.py
+        tests/unit/{data,decks}/
+        tests/integration/
+      Run full test suite. If anything fails, the PR is fixing a missed
+      import in the new path, not bringing back the old engine.
 ```
 
 ### High-risk areas (called out for plan/review attention)
@@ -1087,17 +1206,39 @@ PR-6  Cleanup. Delete: hearthstone/{engine,models,decks,data}/, data/cards/,
   building, network construction (`slot_dim` propagation), self-play
   opponent instantiation (different signature), `--resume` config compat
   (old checkpoints are abandoned but the resume code path must error
-  cleanly, not crash mysteriously).
-- **PR-3: `_auto_resolve_choices` correctness.** Sign of mulligan policy
-  (cards-to-mulligan, not cards-to-keep) is a known footgun (see Mulligan
-  section). Test that a `KeepLowCost(3)` policy on a hand mixing high and
-  low cost cards results in **the high-cost cards** being mulliganed.
+  cleanly, not crash mysteriously). Also: import paths shift from
+  `hearthstone.ai.{opponents,opponent_env,reward_functions}` to
+  `hearthstone.ai.env.{opponents,opponent_env,reward}`.
+- **PR-3: Choose-One handling.** `card.play(choose=None)` raises
+  `InvalidAction` when `must_choose_one`. Action enumerator pre-picks a
+  sub-card via `ChooseOnePolicy` and uses the **sub-card's** `play_targets`,
+  not the outer card's. Test: enumerate a Choose-One card (e.g., a Druid
+  card via Discover/Generate path or a synthetic test deck) and assert
+  the resulting `PlayCardAction.choose` is non-None and dispatch succeeds.
+- **PR-3: `_auto_resolve_choices` mulligan direction.** `KeepLowCost(3)`
+  returns the cards to MULLIGAN (cost > 3), not the cards to keep (cost
+  ≤ 3). Regression test: hand with mixed costs, after reset the
+  high-cost cards have been mulliganed.
+- **PR-3: Observation feature bounds.** All slot features clipped to
+  `[0, 1]`; scalars have explicit per-key bounds (see `SCALAR_BOUNDS`).
+  `observation_space.contains(obs)` should be asserted in
+  `test_observation_shape_matches_space`. A second test
+  (`test_card_features_in_unit_range`) iterates the full `cards.db` and
+  asserts every encoded card stays in `[0, 1]`.
 - **PR-4: Reward sign at terminal.** `PlayState.WON / LOST / TIED` paths
   must be tested individually; missing branch (e.g., `CONCEDED` not handled)
   silently produces `WIN_REWARD` or `LOSS_REWARD` because of `ps == WON`
   / `ps == LOST` falsiness elsewhere. The spec routes everything not WON
   / LOST to TIE_REWARD; the test suite enforces this with parametrised
   states.
+- **PR-6: Atomic deletion.** PR-6 deletes the old engine, old
+  hearthstone/ai/ modules, and their tests in one shot. Before opening
+  the PR, run `grep -r "from hearthstone.ai.opponents import\|from
+  hearthstone.ai.opponent_env import\|from hearthstone.ai.reward_functions
+  import\|from hearthstone.ai.card_embedding import\|from hearthstone.ai.
+  gym_env import\|from hearthstone.engine import\|from hearthstone.models
+  import"` and confirm zero hits in the kept code. Any hit means PR-5
+  missed an import migration.
 
 ## Open questions
 
@@ -1162,3 +1303,20 @@ the relevant section is updated in this spec via amendment.
   bug, (d) PR-1 contradiction by reordering the migration so deletion
   follows the new path going green; added `evaluate()` action cap, action
   bound property test, AGPL README section, scripts/train.py risk callout.
+- **rev 3 (2026-05-01)**: corrected (a) Choose-One: cannot route through
+  `_auto_resolve_choices` because fireplace raises on
+  `card.play(choose=None)` with `must_choose_one`. Added
+  `ChooseOnePolicy` (default `FirstChoiceOne`) applied at action
+  enumeration; `play_targets` uses the chosen sub-card. Updated
+  `enumerate_valid_actions`, `dispatch`, action-type docstring, config,
+  and tests. (b) Observation feature bounds: switched slot Box from
+  `(-1, 1)` to `(0, 1)`; encoder explicitly clips every numeric feature
+  to that range; documented MAX divisors in feature tables; added
+  per-scalar bounds dict so `observation_space.contains(obs)` actually
+  validates. Added `test_card_features_in_unit_range` covering all of
+  `cards.db`. (c) Migration consistency: opponents / opponent_env /
+  reward all become NEW modules under `hearthstone/ai/env/` instead of
+  rewrites of the old paths. The old modules sit untouched until PR-6
+  deletes them atomically. PR-4 description and file layout updated
+  accordingly. (d) `reset()` flow now uses `cards_to_mulligan(...)`,
+  matching the policy interface introduced in rev 2.
