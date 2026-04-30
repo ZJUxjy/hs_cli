@@ -4,10 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hearthstone-cli"
-version = "0.1.0"
-description = "CLI-based Hearthstone game for AI training"
+version = "0.2.0"
+description = "PPO training driver on top of fireplace Hearthstone simulator"
+license = "AGPL-3.0-or-later"
 requires-python = ">=3.10"
 dependencies = [
+    "fireplace @ file:///home/xu/code/hstone/hearthstone/fireplace",
+    "hearthstone-data",
     "gymnasium>=0.29.0",
     "numpy>=1.24.0",
     "rich>=13.0.0",
@@ -21,11 +24,8 @@ dev = [
     "pytest-cov>=4.0.0",
 ]
 
-[project.scripts]
-hearthstone-cli = "main:main"
-
 [tool.setuptools.packages.find]
-include = ["hearthstone*", "cli*"]
+include = ["hearthstone*"]
 
 [tool.pytest.ini_options]
 markers = ["slow: marks slow integration tests"]

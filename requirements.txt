@@ -6,7 +6,11 @@ torch>=2.0.0
 rich>=13.0.0
 pyyaml>=6.0
 
-# Web dependencies
+# Fireplace simulator (AGPL-3.0). hs_glm becomes AGPL by import.
+-e file:///home/xu/code/hstone/hearthstone/fireplace
+hearthstone-data
+
+# Web dependencies — kept until phase 6 deletes web/.
 fastapi>=0.100.0
 uvicorn[standard]>=0.23.0
 websockets>=11.0
