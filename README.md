@@ -171,6 +171,38 @@ The `HearthstoneEnv` wraps the GameController with the standard Gymnasium API:
 - OpenAI Gymnasium interface for AI training
 - CLI interface for human play
 
-## License
+## Licensing
 
-License information to be determined.
+hs_glm imports [fireplace](https://github.com/jleclanche/fireplace), which is
+AGPL-3.0. As a transitive consequence, the combined work is licensed under
+AGPL-3.0-or-later.
+
+As of this release, the project is personal research and is not published
+or offered as a network service — private development is unaffected.
+**Any future decision to open-source hs_glm, distribute binaries, or run
+hs_glm as a network-accessible service (including model serving or a web
+demo) triggers AGPL §13: the entire combined work, including training code,
+configuration, and any service wrapper, must be released under
+AGPL-3.0-or-later with full source available to remote users.** Re-evaluate
+the license fit before any such change.
+
+## Installing card data
+
+Fireplace's runtime card database is distributed via the `hearthstone-data`
+package plus `CardDefs.xml` from HearthSim's `hsdata` repo. After
+`pip install -e ".[dev]"`:
+
+```bash
+python -c "import hearthstone, os; \
+  d = os.path.dirname(hearthstone.__file__); \
+  print(f'Drop CardDefs.xml in {d}')"
+aria2c -c -x 16 -s 16 \
+  https://raw.githubusercontent.com/HearthSim/hsdata/master/CardDefs.xml \
+  -d <path-printed-above>
+```
+
+Verify:
+
+```bash
+python -c "from fireplace import cards; cards.db.initialize(); print(len(cards.db))"
+```
