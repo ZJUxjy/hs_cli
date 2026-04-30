@@ -87,3 +87,58 @@ def test_unknown_op_silently_skipped():
     _walk(Mystery(), counters, fp_actions)
     # No exception. The counter dict has 'unknown' incremented.
     assert counters.get("unknown", 0) == 1
+
+
+def test_encoder_encodes_hand_card_with_zero_state():
+    from hearthstone.ai.env.card_features import (
+        CardFeatureEncoder, CARD_FEAT_DIM, MINION_STATE_DIM, SLOT_DIM,
+    )
+    enc = CardFeatureEncoder()
+    class FakeHandCard:
+        id = "CS2_182"
+    out = enc.encode_hand_card(FakeHandCard())
+    assert out.shape == (SLOT_DIM,)
+    # state channels (last 10) all zero for hand cards
+    assert (out[CARD_FEAT_DIM:] == 0).all()
+
+
+def test_encoder_encodes_minion_with_state():
+    from hearthstone.ai.env.card_features import (
+        CardFeatureEncoder, CARD_FEAT_DIM, SLOT_DIM,
+    )
+    enc = CardFeatureEncoder()
+    class FakeMinion:
+        id = "CS2_182"
+        atk = 4
+        health = 5
+        max_health = 5
+        attacks_this_turn = 0
+        max_attacks = 1
+        divine_shield = False
+        frozen = False
+        silenced = False
+        stealthed = False
+        exhausted = True
+    out = enc.encode_minion(FakeMinion())
+    assert out.shape == (SLOT_DIM,)
+    # current_atk = 4/20 = 0.2
+    assert out[CARD_FEAT_DIM + 0] == pytest.approx(0.2)
+    # current_hp = 5/20 = 0.25
+    assert out[CARD_FEAT_DIM + 1] == pytest.approx(0.25)
+    # summoning_sick (exhausted) = 1
+    assert out[CARD_FEAT_DIM + 8] == 1.0
+
+
+def test_card_features_in_unit_range():
+    """Iterate every card in fireplace.cards.db and assert each encoded
+    feature is in [0, 1]. Catches future cards that the encoder needs to clip."""
+    from fireplace import cards
+    from hearthstone.ai.env.card_features import (
+        _FEATURE_CACHE, build_card_feature_cache,
+    )
+    cards.db.initialize()
+    if not _FEATURE_CACHE:
+        build_card_feature_cache()
+    for cid, feat in _FEATURE_CACHE.items():
+        assert (feat >= 0.0).all(), f"card {cid} has negative feature"
+        assert (feat <= 1.0).all(), f"card {cid} exceeds 1.0"

@@ -295,3 +295,45 @@ def build_card_feature_cache() -> None:
         "[card_features] %d cards cached, %.1f%% fully covered",
         n_total, coverage_pct,
     )
+
+
+class CardFeatureEncoder:
+    """Stateful encoder; safe to instantiate multiple times (shares _FEATURE_CACHE)."""
+
+    def __init__(self) -> None:
+        if not _FEATURE_CACHE:
+            build_card_feature_cache()
+
+    def encode_hand_card(self, card: Any) -> np.ndarray:
+        static = _FEATURE_CACHE.get(card.id, _ZERO_STATIC)
+        return np.concatenate([static, _ZERO_STATE])
+
+    def encode_minion(self, minion: Any) -> np.ndarray:
+        static = _FEATURE_CACHE.get(minion.id, _ZERO_STATIC)
+        state = self._encode_minion_state(minion)
+        return np.concatenate([static, state])
+
+    def encode_empty(self) -> np.ndarray:
+        return np.zeros(SLOT_DIM, dtype=np.float32)
+
+    @staticmethod
+    def _encode_minion_state(minion: Any) -> np.ndarray:
+        s = np.zeros(MINION_STATE_DIM, dtype=np.float32)
+        atk = getattr(minion, "atk", 0)
+        hp = getattr(minion, "health", 0)
+        max_hp = getattr(minion, "max_health", hp) or hp
+        attacks_remaining = max(
+            0,
+            getattr(minion, "max_attacks", 1) - getattr(minion, "attacks_this_turn", 0),
+        )
+        s[0] = _clip_norm(atk, 20)
+        s[1] = _clip_norm(hp, 20)
+        s[2] = _clip_norm(max_hp - hp, 20)
+        s[3] = _clip_norm(attacks_remaining, 2)
+        s[4] = 1.0 if getattr(minion, "divine_shield", False) else 0.0
+        s[5] = 1.0 if getattr(minion, "frozen", False) else 0.0
+        s[6] = 1.0 if getattr(minion, "silenced", False) else 0.0
+        s[7] = 1.0 if getattr(minion, "stealthed", False) else 0.0
+        s[8] = 1.0 if getattr(minion, "exhausted", False) else 0.0
+        # s[9] reserved
+        return s
