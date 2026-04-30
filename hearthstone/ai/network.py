@@ -4,10 +4,14 @@ import torch.nn as nn
 
 
 SCALAR_KEYS = (
-    "player_health", "player_mana", "player_max_mana",
-    "player_hand_size", "player_board_size",
-    "opponent_health", "opponent_board_size",
-    "turn_number", "player_deck_size",
+    "player_health", "player_armor", "player_mana", "player_max_mana",
+    "player_overload", "player_hand_size", "player_board_size",
+    "player_deck_size", "player_secrets_count",
+    "opponent_health", "opponent_armor", "opponent_hand_size",
+    "opponent_board_size", "opponent_deck_size", "opponent_secrets_count",
+    "weapon_atk_player", "weapon_dur_player",
+    "weapon_atk_opponent", "weapon_dur_opponent",
+    "turn_number", "is_my_turn",
 )
 
 
@@ -41,9 +45,9 @@ class PolicyValueNetwork(nn.Module):
         if embedding_dim is not None:
             slot_dim = embedding_dim
         self.card_encoder = CardEncoder(slot_dim, hidden_dim)
-        self.num_scalars = len(SCALAR_KEYS)  # 9
+        self.num_scalars = len(SCALAR_KEYS)  # 21
 
-        # hand (10*hidden) + 2 boards (2*7*hidden) + 9 scalars
+        # hand (10*hidden) + 2 boards (2*7*hidden) + 21 scalars
         flat_dim = 10 * hidden_dim + 2 * 7 * hidden_dim + self.num_scalars
 
         self.shared = nn.Sequential(
@@ -70,7 +74,7 @@ class PolicyValueNetwork(nn.Module):
         p_board_flat = p_board_enc.reshape(batch_size, -1)
         o_board_flat = o_board_enc.reshape(batch_size, -1)
 
-        scalars = torch.cat([obs[k] for k in SCALAR_KEYS], dim=-1)  # (B, 9)
+        scalars = torch.cat([obs[k] for k in SCALAR_KEYS], dim=-1)  # (B, 21)
 
         flat = torch.cat([hand_flat, p_board_flat, o_board_flat, scalars], dim=-1)
         h = self.shared(flat)
