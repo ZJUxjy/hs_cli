@@ -32,12 +32,15 @@ class PolicyValueNetwork(nn.Module):
 
     def __init__(
         self,
-        embedding_dim: int = 64,
+        slot_dim: int = 90,
         hidden_dim: int = 128,
-        num_actions: int = 100,
+        num_actions: int = 512,
+        embedding_dim: int | None = None,
     ):
         super().__init__()
-        self.card_encoder = CardEncoder(embedding_dim, hidden_dim)
+        if embedding_dim is not None:
+            slot_dim = embedding_dim
+        self.card_encoder = CardEncoder(slot_dim, hidden_dim)
         self.num_scalars = len(SCALAR_KEYS)  # 9
 
         # hand (10*hidden) + 2 boards (2*7*hidden) + 9 scalars
