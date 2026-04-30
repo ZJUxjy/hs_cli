@@ -3,7 +3,8 @@ import sys
 import yaml
 import pytest
 from hearthstone.ai.config import (
-    TrainConfig, CurriculumConfig, load_config, parse_cli, apply_overrides,
+    TrainConfig, CurriculumConfig, SelfPlayConfig, CardFeaturesConfig,
+    load_config, parse_cli, apply_overrides,
 )
 
 
@@ -13,25 +14,41 @@ def _minimal_yaml(tmp_path, **overrides):
         "max_iters": 1000,
         "rollout_steps": 2048,
         "ppo_epochs": 4,
-        "deck1": "test_deck",
-        "deck2": "test_deck",
-        "training_player_name": "Player 1",
+        "deck_pool": ["basic_mage", "basic_warrior"],
+        "deck_selection": "fixed",
+        "fixed_deck1": "basic_mage",
+        "fixed_deck2": "basic_warrior",
+        "training_player_idx": 0,
+        "mulligan_policy": "keep_low_cost",
+        "mulligan_threshold": 3,
+        "discover_policy": "first",
+        "choose_one_policy": "first",
         "lr": 3.0e-4,
         "gamma": 0.99,
         "gae_lambda": 0.95,
         "clip_epsilon": 0.2,
         "value_coef": 0.5,
-        "entropy_coef": 0.01,
+        "entropy_coef": 0.03,
         "max_grad_norm": 0.5,
-        "embedding_dim": 64,
+        "slot_dim": 90,
         "hidden_dim": 128,
+        "num_actions": 512,
         "curriculum": {"switch_threshold": 0.80, "early_stop_patience": 5},
+        "self_play": {
+            "refresh_threshold": 0.80,
+            "refresh_eval_games": 20,
+            "refresh_every": 10,
+            "random_opponent_prob": 0.20,
+            "opponent_checkpoint_path": "checkpoints/self_play_opponent.pt",
+        },
         "eval_every": 10,
         "eval_games": 50,
+        "max_actions_per_game": 1000,
         "checkpoint_every": 25,
         "checkpoint_dir": "checkpoints",
         "best_checkpoint_path": "checkpoints/best.pt",
         "runs_dir": "runs",
+        "card_features": {"log_coverage": True},
     }
     base.update(overrides)
     path = tmp_path / "config.yaml"
@@ -86,6 +103,20 @@ class TestApplyOverrides:
         cfg = load_config(str(path), overrides=["max_iters=500"])
         assert cfg.max_iters == 500
         assert isinstance(cfg.max_iters, int)
+
+
+class TestDefaultYaml:
+    def test_default_yaml_loads_with_new_fields(self):
+        from hearthstone.ai.config import load_config
+        cfg = load_config("configs/default.yaml")
+        assert cfg.deck_pool == ["basic_mage", "basic_warrior"]
+        assert cfg.training_player_idx == 0
+        assert cfg.slot_dim == 90
+        assert cfg.num_actions == 512
+        assert cfg.mulligan_policy == "keep_low_cost"
+        assert cfg.discover_policy == "first"
+        assert cfg.choose_one_policy == "first"
+        assert cfg.max_actions_per_game == 1000
 
 
 class TestParseCli:

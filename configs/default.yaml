@@ -1,38 +1,53 @@
-# Default training config for Hearthstone PPO.
 seed: 42
 max_iters: 1000
 rollout_steps: 2048
 ppo_epochs: 4
-deck1: test_deck
-deck2: test_deck
-training_player_name: "Player 1"
 
-# PPO hyperparameters
+deck_pool:
+  - basic_mage
+  - basic_warrior
+deck_selection: fixed
+fixed_deck1: basic_mage
+fixed_deck2: basic_warrior
+training_player_idx: 0
+
+mulligan_policy: keep_low_cost
+mulligan_threshold: 3
+discover_policy: first
+choose_one_policy: first
+
 lr: 3.0e-4
 gamma: 0.99
 gae_lambda: 0.95
 clip_epsilon: 0.2
 value_coef: 0.5
-entropy_coef: 0.01
+entropy_coef: 0.03
 max_grad_norm: 0.5
 
-# Network
-embedding_dim: 64
+slot_dim: 90
 hidden_dim: 128
+num_actions: 512
 
-# Curriculum
 curriculum:
   switch_threshold: 0.80
   early_stop_patience: 5
 
-# Eval
+self_play:
+  refresh_threshold: 0.80
+  refresh_eval_games: 20
+  refresh_every: 10
+  random_opponent_prob: 0.20
+  opponent_checkpoint_path: checkpoints/self_play_opponent.pt
+
 eval_every: 10
 eval_games: 50
+max_actions_per_game: 1000
 
-# Checkpointing
 checkpoint_every: 25
 checkpoint_dir: checkpoints
 best_checkpoint_path: checkpoints/best.pt
 
-# Logging
 runs_dir: runs
+
+card_features:
+  log_coverage: true

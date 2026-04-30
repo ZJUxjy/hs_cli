@@ -13,14 +13,35 @@ class CurriculumConfig:
 
 
 @dataclass
+class SelfPlayConfig:
+    refresh_threshold: float
+    refresh_eval_games: int
+    refresh_every: int
+    random_opponent_prob: float
+    opponent_checkpoint_path: str
+
+
+@dataclass
+class CardFeaturesConfig:
+    log_coverage: bool = True
+
+
+@dataclass
 class TrainConfig:
     seed: int
     max_iters: int
     rollout_steps: int
     ppo_epochs: int
-    deck1: str
-    deck2: str
-    training_player_name: str
+    deck_pool: List[str]
+    deck_selection: str
+    fixed_deck1: str
+    fixed_deck2: str
+    training_player_idx: int
+
+    mulligan_policy: str
+    mulligan_threshold: int
+    discover_policy: str
+    choose_one_policy: str
 
     lr: float
     gamma: float
@@ -30,19 +51,25 @@ class TrainConfig:
     entropy_coef: float
     max_grad_norm: float
 
-    embedding_dim: int
+    slot_dim: int
     hidden_dim: int
+    num_actions: int
 
     curriculum: CurriculumConfig
 
+    self_play: SelfPlayConfig
+
     eval_every: int
     eval_games: int
+    max_actions_per_game: int
 
     checkpoint_every: int
     checkpoint_dir: str
     best_checkpoint_path: str
 
     runs_dir: str
+
+    card_features: CardFeaturesConfig
 
 
 def apply_overrides(raw: dict, overrides: List[str]) -> dict:
@@ -91,6 +118,8 @@ def load_config(path: str, overrides: Optional[List[str]] = None) -> TrainConfig
     if overrides:
         apply_overrides(raw, overrides)
     raw["curriculum"] = CurriculumConfig(**raw["curriculum"])
+    raw["self_play"] = SelfPlayConfig(**raw["self_play"])
+    raw["card_features"] = CardFeaturesConfig(**raw.get("card_features", {}))
     return TrainConfig(**raw)
 
 
