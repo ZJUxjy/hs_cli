@@ -18,14 +18,16 @@ import numpy as np
 import torch
 
 from hearthstone.ai.config import (
-    CurriculumConfig, TrainConfig, load_config, parse_cli,
+    CardFeaturesConfig, CurriculumConfig, SelfPlayConfig, TrainConfig,
+    load_config, parse_cli,
 )
 from hearthstone.ai.curriculum import CurriculumEvent, CurriculumFSM, Phase
 from hearthstone.ai.evaluate import evaluate
-from hearthstone.ai.gym_env import HearthstoneEnv
+from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
+from hearthstone.ai.env.opponent_env import OpponentEnv
+from hearthstone.ai.env.opponents import RandomOpponent, SelfPlayOpponent
+from hearthstone.ai.env.deck_source import load_deck
 from hearthstone.ai.network import PolicyValueNetwork
-from hearthstone.ai.opponent_env import OpponentEnv
-from hearthstone.ai.opponents import RandomOpponent, SelfPlayOpponent
 from hearthstone.ai.ppo_trainer import PPOTrainer
 from hearthstone.ai.rollout_buffer import RolloutBuffer
 from hearthstone.ai.training_utils import (
@@ -47,22 +49,35 @@ def _build_obs_for_network(obs: dict, device: str) -> dict:
 
 
 def _make_env(cfg: TrainConfig, opponent) -> OpponentEnv:
-    base = HearthstoneEnv(
-        deck1_name=cfg.deck1,
-        deck2_name=cfg.deck2,
-        training_player_name=cfg.training_player_name,
+    deck1, hero1 = load_deck(cfg.fixed_deck1)
+    deck2, hero2 = load_deck(cfg.fixed_deck2)
+
+    from hearthstone.ai.env.mulligan_policy import KeepAll, KeepLowCost
+    from hearthstone.ai.env.discover_policy import FirstOption, LowestCost
+    from hearthstone.ai.env.choose_one_policy import FirstChoiceOne
+
+    mp = (KeepAll() if cfg.mulligan_policy == "keep_all"
+          else KeepLowCost(cfg.mulligan_threshold))
+    dp = (FirstOption() if cfg.discover_policy == "first"
+          else LowestCost())
+    cop = FirstChoiceOne()
+
+    base = FireplaceGymEnv(
+        deck1=deck1, deck2=deck2, hero1=hero1, hero2=hero2,
+        training_player_idx=cfg.training_player_idx,
+        mulligan_policy=mp, discover_policy=dp, choose_one_policy=cop,
+        seed=cfg.seed,
     )
     return OpponentEnv(base, opponent)
 
 
-def _action_mask(controller, n_actions: int) -> np.ndarray:
-    valid = controller.get_valid_actions()
+def _action_mask(env: OpponentEnv, n_actions: int) -> np.ndarray:
+    valid = env._env.current_valid_actions
     n_valid = len(valid)
     if n_valid > n_actions:
         logger.warning(
-            "action-space truncation: %d valid actions but n_actions=%d "
-            "(tail %d actions are unreachable)",
-            n_valid, n_actions, n_valid - n_actions,
+            "action-space truncation: %d valid actions but n_actions=%d",
+            n_valid, n_actions,
         )
     mask = np.zeros(n_actions, dtype=np.float32)
     mask[: min(n_valid, n_actions)] = 1.0
@@ -102,9 +117,9 @@ def run_training_loop(
 
     # 3. Build agent components
     network = PolicyValueNetwork(
-        embedding_dim=config.embedding_dim,
+        slot_dim=config.slot_dim,
         hidden_dim=config.hidden_dim,
-        num_actions=100,
+        num_actions=config.num_actions,
     ).to(device)
     trainer = PPOTrainer(
         network,
@@ -146,11 +161,12 @@ def run_training_loop(
     if fsm.phase == Phase.SELF_PLAY:
         opp = SelfPlayOpponent(
             network_path=config.best_checkpoint_path,
-            embedding_dim=config.embedding_dim,
+            slot_dim=config.slot_dim,
             hidden_dim=config.hidden_dim,
+            num_actions=config.num_actions,
         )
     else:
-        opp = RandomOpponent(seed=config.seed)
+        opp = RandomOpponent()
     env = _make_env(config, opp)
 
     # 6. Open metrics logger
@@ -164,7 +180,7 @@ def run_training_loop(
             # --- Collect rollout ---
             buffer.reset()
             for _ in range(config.rollout_steps):
-                mask = _action_mask(env.controller, n_actions=100)
+                mask = _action_mask(env, n_actions=config.num_actions)
                 torch_obs = _build_obs_for_network(obs, device)
                 action, log_prob, value = trainer.select_action(torch_obs, mask)
                 next_obs, reward, terminated, truncated, _ = env.step(action)
@@ -211,12 +227,17 @@ def run_training_loop(
 
             # --- Eval ---
             if it % config.eval_every == 0:
+                deck1, hero1 = load_deck(config.fixed_deck1)
+                deck2, hero2 = load_deck(config.fixed_deck2)
                 winrate = evaluate(
                     network=network,
-                    opponent_factory=lambda: RandomOpponent(seed=config.seed + it),
+                    opponent_factory=lambda: RandomOpponent(),
                     n_games=config.eval_games,
-                    deck1=config.deck1, deck2=config.deck2,
-                    training_player_name=config.training_player_name,
+                    deck1=deck1, deck2=deck2,
+                    hero1=hero1, hero2=hero2,
+                    training_player_idx=config.training_player_idx,
+                    slot_dim=config.slot_dim, num_actions=config.num_actions,
+                    max_actions_per_game=config.max_actions_per_game,
                 )
                 event = fsm.update(winrate)
                 metrics.log_eval(
@@ -244,8 +265,9 @@ def run_training_loop(
                     print(f"[iter {it:04d}] curriculum: switching to SELF_PLAY", flush=True)
                     env.opponent = SelfPlayOpponent(
                         network_path=config.best_checkpoint_path,
-                        embedding_dim=config.embedding_dim,
+                        slot_dim=config.slot_dim,
                         hidden_dim=config.hidden_dim,
+                        num_actions=config.num_actions,
                     )
                     obs, _ = env.reset()  # restart episode against new opponent
 
@@ -290,9 +312,17 @@ def main(argv=None) -> int:
     if args.resume is not None:
         ckpt = load_checkpoint(args.resume)
         # Reconstruct TrainConfig from the checkpoint's saved config dict
-        cfg_dict = ckpt["config"]
-        cfg_dict["curriculum"] = CurriculumConfig(**cfg_dict["curriculum"])
-        config = TrainConfig(**cfg_dict)
+        raw = ckpt.get("config", {})
+        if "deck1" in raw or "embedding_dim" in raw:
+            sys.stderr.write(
+                f"ERROR: checkpoint {args.resume} was saved by the pre-fireplace trainer. "
+                f"Old checkpoints are not resumable; start a fresh run.\n"
+            )
+            sys.exit(1)
+        raw["curriculum"] = CurriculumConfig(**raw["curriculum"])
+        raw["self_play"] = SelfPlayConfig(**raw["self_play"])
+        raw["card_features"] = CardFeaturesConfig(**raw.get("card_features", {}))
+        config = TrainConfig(**raw)
         print(f"resuming from {args.resume}; --config is ignored", file=sys.stderr)
     else:
         config = load_config(args.config, overrides=args.override)

@@ -4,7 +4,9 @@ import os
 
 import pytest
 
-from hearthstone.ai.config import TrainConfig, CurriculumConfig
+from hearthstone.ai.config import (
+    CardFeaturesConfig, CurriculumConfig, SelfPlayConfig, TrainConfig,
+)
 
 
 @pytest.mark.slow
@@ -12,16 +14,26 @@ def test_two_iter_train_smoke(tmp_path):
     """Run 2 tiny iterations and verify metrics + checkpoint files exist."""
     cfg = TrainConfig(
         seed=42, max_iters=2, rollout_steps=64, ppo_epochs=2,
-        deck1="test_deck", deck2="test_deck", training_player_name="Player 1",
+        deck_pool=["basic_mage"], deck_selection="fixed",
+        fixed_deck1="basic_mage", fixed_deck2="basic_warrior",
+        training_player_idx=0,
+        mulligan_policy="keep_low_cost", mulligan_threshold=3,
+        discover_policy="first", choose_one_policy="first",
         lr=3e-4, gamma=0.99, gae_lambda=0.95, clip_epsilon=0.2,
         value_coef=0.5, entropy_coef=0.01, max_grad_norm=0.5,
-        embedding_dim=64, hidden_dim=128,
+        slot_dim=90, hidden_dim=128, num_actions=512,
         curriculum=CurriculumConfig(switch_threshold=0.80, early_stop_patience=5),
-        eval_every=1, eval_games=4,
+        self_play=SelfPlayConfig(
+            refresh_threshold=0.80, refresh_eval_games=4,
+            refresh_every=10, random_opponent_prob=0.20,
+            opponent_checkpoint_path=str(tmp_path / "sp_opp.pt"),
+        ),
+        eval_every=1, eval_games=4, max_actions_per_game=200,
         checkpoint_every=1,
         checkpoint_dir=str(tmp_path / "checkpoints"),
         best_checkpoint_path=str(tmp_path / "checkpoints" / "best.pt"),
         runs_dir=str(tmp_path / "runs"),
+        card_features=CardFeaturesConfig(log_coverage=True),
     )
     from scripts.train import run_training_loop
     run_dir = run_training_loop(cfg, resume_path=None, device="cpu")
