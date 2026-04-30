@@ -166,7 +166,11 @@ data/fireplace_decks/               NEW
 ├── basic_mage.yaml                 NEW
 └── basic_warrior.yaml              NEW
 
-scripts/train.py                    MODIFY   ~30 LOC   import paths, env construction
+scripts/train.py                    MODIFY   ~80–150 LOC  HIGH RISK: env factory,
+                                                          action mask, network ctor,
+                                                          self-play opponent, --resume
+                                                          compat. See "high-risk areas"
+                                                          in Migration steps.
 configs/default.yaml                MODIFY   field changes (see Configuration section)
 pyproject.toml                      MODIFY   +fireplace dep, AGPL note
 requirements.txt                    MODIFY   +fireplace, +hearthstone-data, +pyyaml (already there)
@@ -532,43 +536,70 @@ No structural change beyond constants. `RolloutBuffer`, `PPOTrainer`,
 
 ### Reward (`reward_functions.py`)
 
+**Terminal status detection.** Fireplace has no `Game.winning_player`
+attribute; the terminal outcome is recorded on each player's `playstate`
+(see `fireplace/game.py` `check_for_end_game`, which sets `WON / LOST /
+TIED` on the players). The snapshot reads
+`training_player.playstate` directly.
+
 ```python
+from hearthstone.enums import PlayState   # provided by hearthstone-data, not fireplace itself
+
 def _reward_snapshot(env) -> dict:
     """Cheap (non-deep-copy) snapshot for shaping reward."""
     p = env.training_player
     o = env.opponent_player
     return {
-        "p_health": p.hero.health,
-        "p_armor":  p.hero.armor,
-        "o_health": o.hero.health,
-        "o_armor":  o.hero.armor,
-        "p_board":  len(p.field),
-        "o_board":  len(o.field),
-        "ended":    env.game.ended,
-        "winner_is_training": (env.game.winning_player is p) if env.game.ended else None,
+        "p_health":  p.hero.health,
+        "p_armor":   p.hero.armor,
+        "o_health":  o.hero.health,
+        "o_armor":   o.hero.armor,
+        "p_board":   len(p.field),
+        "o_board":   len(o.field),
+        "ended":     env.game.ended,
+        "p_playstate": p.playstate,                    # PlayState enum
     }
 
 
 class RewardFunction:
-    DAMAGE_OPP_COEF  = 0.01
-    DAMAGE_SELF_COEF = -0.01
+    DAMAGE_OPP_COEF  = 0.01     # positive: damage to opponent → reward
+    DAMAGE_SELF_COEF = -0.01    # negative: damage to self → penalty
     BOARD_DELTA_COEF = 0.05
     WIN_REWARD  = 1.0
     LOSS_REWARD = -1.0
+    TIE_REWARD  = 0.0
 
     def calc(self, before: dict, after: dict, training_player) -> float:
+        # Terminal: read training player's playstate directly.
         if after["ended"] and not before["ended"]:
-            return self.WIN_REWARD if after["winner_is_training"] else self.LOSS_REWARD
+            ps = after["p_playstate"]
+            if ps == PlayState.WON:
+                return self.WIN_REWARD
+            if ps == PlayState.LOST:
+                return self.LOSS_REWARD
+            return self.TIE_REWARD                     # TIED / CONCEDED / etc.
+
         opp_eh_b = before["o_health"] + before["o_armor"]
         opp_eh_a = after["o_health"]  + after["o_armor"]
         own_eh_b = before["p_health"] + before["p_armor"]
         own_eh_a = after["p_health"]  + after["p_armor"]
-        r  = self.DAMAGE_OPP_COEF  * (opp_eh_b - opp_eh_a)
-        r += self.DAMAGE_SELF_COEF * (own_eh_a - own_eh_b)        # self damage = positive delta
+
+        # opp_damage_dealt is positive when we hurt the opponent
+        # self_damage_taken is positive when we got hurt
+        opp_damage_dealt = opp_eh_b - opp_eh_a
+        self_damage_taken = own_eh_b - own_eh_a
+
+        r  = self.DAMAGE_OPP_COEF  * opp_damage_dealt
+        r += self.DAMAGE_SELF_COEF * self_damage_taken     # negative coef → penalty
         r += self.BOARD_DELTA_COEF * (after["p_board"] - before["p_board"])
         r -= self.BOARD_DELTA_COEF * (after["o_board"] - before["o_board"])
         return r
 ```
+
+**Sign-walk:** when the opponent attacks training player from 30→27 HP,
+`self_damage_taken = 30 − 27 = +3`, and `r += −0.01 × 3 = −0.03` → penalty.
+When the agent damages opponent from 30→27, `opp_damage_dealt = +3` and
+`r += 0.01 × 3 = +0.03` → reward. Both signs verified.
 
 Reward is always from `training_player`'s perspective. On the opponent's
 turn, when the opponent attacks the training player, this returns a negative
@@ -669,21 +700,31 @@ class SelfPlayOpponent(OpponentPolicy):
 
 ### Mulligan / Discover policies
 
+**Fireplace API direction.** `MulliganChoice.choose(*cards)` (in
+`fireplace/actions.py`) takes the cards to **mulligan away** (send to
+deck and replace from top), not the cards to keep. This spec's policy
+interface matches that direction — the policy returns the cards to
+mulligan. `KeepLowCost(threshold=3)` therefore returns cards with `cost >
+threshold`, not the low-cost cards. Naming the method `cards_to_mulligan`
+keeps the intent unambiguous and prevents silent inversion bugs.
+
 ```python
 # mulligan_policy.py
 class MulliganPolicy:
-    def choose(self, hand: list["PlayableCard"]) -> list["PlayableCard"]:
-        """Return cards to KEEP; the rest are mulliganed (replaced)."""
+    def cards_to_mulligan(self, hand: list["PlayableCard"]) -> list["PlayableCard"]:
+        """Return cards to MULLIGAN AWAY; the rest are kept.
+        Passed directly to fireplace's MulliganChoice.choose(*cards)."""
         raise NotImplementedError
 
 class KeepAll(MulliganPolicy):
-    def choose(self, hand): return list(hand)
+    def cards_to_mulligan(self, hand): return []                  # mulligan nothing
 
 class KeepLowCost(MulliganPolicy):
+    """Aggressive baseline: keep cost <= threshold, mulligan the rest."""
     def __init__(self, threshold: int = 3):
         self.threshold = threshold
-    def choose(self, hand):
-        return [c for c in hand if c.cost <= self.threshold]
+    def cards_to_mulligan(self, hand):
+        return [c for c in hand if c.cost > self.threshold]       # mulligan high-cost
 
 
 # discover_policy.py
@@ -699,8 +740,34 @@ class LowestCost(DiscoverPolicy):
         return min(options, key=lambda c: c.cost)
 ```
 
-`FireplaceGymEnv._auto_resolve_choices()` calls these policies in a loop
-until no `player.choice` remains (or `MAX_CHOICE_RESOLUTIONS=50` is hit).
+`FireplaceGymEnv._auto_resolve_choices()` dispatches:
+
+```python
+def _auto_resolve_choices(self):
+    for _ in range(self.MAX_CHOICE_RESOLUTIONS):
+        for player in self.game.players:
+            choice = player.choice
+            if choice is None:
+                continue
+            if isinstance(choice, MulliganChoice):
+                muls = self.mulligan_policy.cards_to_mulligan(list(choice.cards))
+                choice.choose(*muls)              # fireplace expects unpacked args
+            else:
+                # Discover / Choose-One / GenericChoice: pick exactly one
+                pick = self.discover_policy.choose(list(choice.cards))
+                choice.choose(pick)
+        if all(p.choice is None for p in self.game.players):
+            return
+    raise RuntimeError(
+        f"Choice resolution did not converge within {self.MAX_CHOICE_RESOLUTIONS} "
+        f"iterations; game state: {self.game!r}"
+    )
+```
+
+The two policy interfaces differ intentionally — `MulliganChoice.choose(*cards)`
+accepts a variadic list (zero or more cards to mulligan), while
+`Choice.choose(card)` accepts exactly one card. Trying to unify them
+would push casework into the policies; keep them separate.
 
 ### Deck source (`deck_source.py`)
 
@@ -736,8 +803,11 @@ shield, charge).
 ### Evaluate (`evaluate.py`) loop adaptation
 
 ```python
+DEFAULT_MAX_ACTIONS_PER_GAME = 1000   # carried over from existing evaluate.py
+
 def evaluate(network, opponent_factory, n_games, deck1, deck2, hero1, hero2,
-             training_player_idx, slot_dim=90, num_actions=512) -> float:
+             training_player_idx, slot_dim=90, num_actions=512,
+             max_actions_per_game: int = DEFAULT_MAX_ACTIONS_PER_GAME) -> float:
     eval_agent = SelfPlayOpponent(network_path=None, slot_dim=slot_dim, num_actions=num_actions)
     eval_agent.network = network
     eval_agent.network.eval()
@@ -748,21 +818,28 @@ def evaluate(network, opponent_factory, n_games, deck1, deck2, hero1, hero2,
         opp = opponent_factory()
         obs, _ = env.reset()
         terminated = truncated = False
-        while not (terminated or truncated):
+        action_count = 0
+        cap_hit = False
+        while not (terminated or truncated) and action_count < max_actions_per_game:
             if env.game.current_player is env.training_player:
                 action = eval_agent.act(env)
             else:
                 action = opp.act(env)
             obs, _, terminated, truncated, _ = env.step(action)
-        winner = env.game.winning_player
-        if winner is env.training_player:
+            action_count += 1
+        if action_count >= max_actions_per_game and not terminated:
+            cap_hit = True
+        if not cap_hit and env.training_player.playstate == PlayState.WON:
             wins += 1
+        # cap_hit games count as non-wins (defense-in-depth against stuck states)
     return wins / n_games
 ```
 
-This is greedy on the agent's side, opponent-supplied policy on the other
-side. Used identically by curriculum (Random eval) and self-play refresh
-checks (frozen self-play opponent).
+This carries over the existing `max_actions_per_game=1000` cap (defense
+against deterministic stuck states); cap-hit games are counted as
+non-wins. Greedy on the agent's side, opponent-supplied policy on the
+other side. Used identically by curriculum (Random eval) and self-play
+refresh checks (frozen self-play opponent).
 
 ## Configuration
 
@@ -817,7 +894,17 @@ dependencies = [
 license = "AGPL-3.0-or-later"     # fireplace dependency forces this
 ```
 
-A note in README explains the AGPL transitive obligation.
+`README.md` gains a "Licensing" section that states clearly:
+
+> hs_glm imports fireplace, which is AGPL-3.0. As of S1', the project is
+> personal research and is not published or offered as a network service —
+> private development is unaffected. **Any future decision to open-source
+> hs_glm, distribute binaries, or run hs_glm as a network-accessible
+> service (including model serving or a web demo) triggers AGPL §13: the
+> entire combined work, including training code, configuration, and any
+> service wrapper, must be released under AGPL-3.0-or-later with full
+> source available to remote users.** Re-evaluate the license fit before
+> any such change.
 
 ## Failure modes
 
@@ -884,14 +971,19 @@ silently break on fireplace upgrades, defeating the purpose of integration).
 ### `tests/unit/ai/env/test_fireplace_env.py`
 
 - `test_reset_runs_mulligan_and_settles_to_normal_state` — after reset, no player has pending choice
+- `test_mulligan_keeps_low_cost_cards` — `KeepLowCost(3)` on a hand of mixed costs: low-cost cards remain in hand after reset, high-cost cards are gone
 - `test_reset_returns_observation_from_training_perspective`
 - `test_step_play_card_changes_state` — agent plays Frostbolt, opponent hero loses 3 HP
 - `test_step_invalid_action_returns_negative_reward_no_state_change`
-- `test_step_terminates_when_opponent_dies` — set up scenario where lethal is available; agent plays it; terminated=True, reward includes WIN_REWARD
+- `test_step_terminates_when_opponent_dies` — set up scenario where lethal is available; agent plays it; `terminated=True`, reward = `WIN_REWARD`, `training_player.playstate == PlayState.WON`
+- `test_step_terminal_loss` — opponent kills training player; `terminated=True`, reward = `LOSS_REWARD`
+- `test_step_terminal_tie` — both players die same step; reward = `TIE_REWARD`
 - `test_step_reward_is_from_training_perspective` — when it's opponent's turn and opponent damages training player, reward < 0
+- `test_step_reward_self_damage_sign` — directly assert that taking 3 damage produces a negative shaping reward (regression for the original sign-flip bug)
 - `test_seed_reproducibility` — two envs with same seed deal identical hands
 - `test_build_observation_for_arbitrary_perspective`
 - `test_current_valid_actions_endturn_invariant`
+- `test_valid_actions_under_num_actions_bound` — property-style: run 20 games of `basic_mage` vs `basic_warrior`, assert `len(env.current_valid_actions) <= NUM_ACTIONS` at every step. Catches future cards that explode the action space beyond the 512 cap.
 
 ### `tests/unit/ai/env/test_deck_source.py`
 
@@ -941,36 +1033,71 @@ under `tests/unit/ai/` are superseded.
 ## Migration steps (PR series)
 
 A rough chunking; the actual implementation plan (writing-plans phase) will
-expand each into detailed tasks. Each PR is independently mergeable; main
-stays passing throughout.
+expand each into detailed tasks. **Sequencing principle: build the new path
+end-to-end before deleting the old.** Each PR keeps `main` green; tests pass
+on every commit. The old hs_glm engine sits unused but functional through
+PR-1 to PR-5; PR-6 removes it.
 
 ```
-PR-1  Delete old engine: hearthstone/{engine,models,decks,data}/, data/cards/,
-      data/decks/, cli/, web/, main.py, run_web.py, and all dependent tests.
-      Add fireplace dependency to pyproject.toml + AGPL note. CI may briefly
-      have many failing imports until PR-2/3 land — coordinate by parking
-      the affected tests behind a `pytest.skip("S1' migration in progress")`
-      decorator inside this same PR if necessary, OR sequence PR-1 immediately
-      before PR-2/3 in a single review batch.
+PR-1  Setup. pyproject.toml: add fireplace as a local-path dependency;
+      bump license metadata to AGPL-3.0-or-later; README note on AGPL
+      transitivity. Add hearthstone-data install instructions and
+      CardDefs.xml fetch step. requirements.txt updated. CI installs
+      fireplace successfully. No source code touched yet.
 
 PR-2  hearthstone/ai/env/card_features.py + test_card_features.py.
-      Independent of env; can be tested in isolation. Adds
-      hearthstone-data download instructions to README.
+      Independent of env wiring; runs in isolation. DSL-walker behaviour
+      unit-tested against fireplace card definitions.
 
-PR-3  hearthstone/ai/env/{action_enum,observation,deck_source,mulligan_policy,
-      discover_policy,fireplace_env}.py + their test files +
-      data/fireplace_decks/{basic_mage,basic_warrior}.yaml + README.
+PR-3  hearthstone/ai/env/{action_enum,observation,deck_source,
+      mulligan_policy,discover_policy,fireplace_env}.py + their test files
+      + data/fireplace_decks/{basic_mage,basic_warrior}.yaml + README.
+      `FireplaceGymEnv` is exercisable via tests but not yet wired into
+      training. Old `HearthstoneEnv` continues to exist alongside.
 
-PR-4  Rewrite hearthstone/ai/{reward_functions,opponents,opponent_env}.py +
-      tests. Old card_embedding.py deleted.
+PR-4  New reward / opponents / opponent_env. Implemented as new modules
+      under hearthstone/ai/env/ (e.g., env/fireplace_opponents.py,
+      env/fireplace_opponent_env.py, env/reward.py) so the existing
+      hearthstone/ai/{opponents,opponent_env,reward_functions}.py keep
+      working. Tested end-to-end against FireplaceGymEnv (synthetic agent
+      plays a few games via OpponentEnv → FireplaceGymEnv).
 
-PR-5  hearthstone/ai/network.py constants; scripts/train.py adaptation;
-      configs/default.yaml diff; hearthstone/ai/{evaluate,self_play,config}.py
-      adaptation; test_train_smoke.py update. Smoke test passing here gates
-      the merge.
+PR-5  Wire training onto the new path. hearthstone/ai/network.py
+      adopts `slot_dim` / 21 scalars / 512 actions. scripts/train.py
+      switches to constructing FireplaceGymEnv + new opponents (this is
+      the largest change in this PR — see "high-risk areas" below).
+      hearthstone/ai/{evaluate,self_play,config}.py adapted.
+      configs/default.yaml diff applied.
+      `test_train_smoke.py` updated and passing on the new path.
+      Old `HearthstoneEnv` and old `opponents.py` / `opponent_env.py`
+      may now be unimported, but are still on disk to keep main green.
 
-PR-6  Optional: documentation updates, CHANGELOG, migration notes.
+PR-6  Cleanup. Delete: hearthstone/{engine,models,decks,data}/, data/cards/,
+      data/decks/, cli/, web/, main.py, run_web.py; old hearthstone/ai/
+      modules superseded by env/* (opponents.py, opponent_env.py,
+      reward_functions.py, card_embedding.py); all dependent tests under
+      tests/unit/ (test_action.py, test_card.py, etc.) and tests/integration/.
+      Verify nothing breaks; merge.
 ```
+
+### High-risk areas (called out for plan/review attention)
+
+- **PR-5: `scripts/train.py`.** Estimated change is **80–150 LOC**, not 30.
+  Affected paths: env construction (`_make_env` factory), action mask
+  building, network construction (`slot_dim` propagation), self-play
+  opponent instantiation (different signature), `--resume` config compat
+  (old checkpoints are abandoned but the resume code path must error
+  cleanly, not crash mysteriously).
+- **PR-3: `_auto_resolve_choices` correctness.** Sign of mulligan policy
+  (cards-to-mulligan, not cards-to-keep) is a known footgun (see Mulligan
+  section). Test that a `KeepLowCost(3)` policy on a hand mixing high and
+  low cost cards results in **the high-cost cards** being mulliganed.
+- **PR-4: Reward sign at terminal.** `PlayState.WON / LOST / TIED` paths
+  must be tested individually; missing branch (e.g., `CONCEDED` not handled)
+  silently produces `WIN_REWARD` or `LOSS_REWARD` because of `ps == WON`
+  / `ps == LOST` falsiness elsewhere. The spec routes everything not WON
+  / LOST to TIE_REWARD; the test suite enforces this with parametrised
+  states.
 
 ## Open questions
 
@@ -983,8 +1110,9 @@ the relevant section is updated in this spec via amendment.
 ## Spec self-review
 
 - **Placeholders.** None. All defaults are concrete (slot_dim=90,
-  num_actions=512, MAX_OPP_ACTIONS=200, MAX_CHOICE_RESOLUTIONS=50, mulligan
-  threshold=3, reward coefficients, fingerprint dim layout).
+  num_actions=512, MAX_OPP_ACTIONS=200, MAX_CHOICE_RESOLUTIONS=50,
+  max_actions_per_game=1000, mulligan threshold=3, reward coefficients,
+  fingerprint dim layout).
 - **Internal consistency.**
   - `SLOT_DIM = CARD_FEAT_DIM + MINION_STATE_DIM` referenced consistently
     across encoder, network, observation sections.
@@ -995,6 +1123,16 @@ the relevant section is updated in this spec via amendment.
     section, reward section, and OpponentEnv accumulation justification.
   - `build_observation_for(player)` is the single perspective-swap point;
     used by env (default training_player) and SelfPlayOpponent (current_player).
+  - Terminal status read from `Player.playstate` (not `Game.winning_player`
+    which does not exist in fireplace). Verified against fireplace source
+    `game.py:check_for_end_game`.
+  - `MulliganChoice.choose(*cards)` semantics: cards passed are mulliganed
+    away, not kept. `MulliganPolicy.cards_to_mulligan(hand)` matches the
+    fireplace API direction. `KeepLowCost(threshold=3).cards_to_mulligan`
+    returns `cost > threshold` (high-cost cards), not low-cost ones.
+  - Reward sign-walk verified: self-damage of +3 HP produces
+    `r += −0.01 × 3 = −0.03` (penalty), opponent-damage of +3 HP produces
+    `r += +0.01 × 3 = +0.03` (reward).
 - **Scope.** Single sub-project (S1'). Defers: agent-driven mulligan/Discover,
   random deck pool, NLP card text, two-stage action space, draw quality
   auxiliary head. Each is named in non-goals.
@@ -1008,5 +1146,19 @@ the relevant section is updated in this spec via amendment.
     same `step` API and same valid-action enumeration.
   - Cards with unknown DSL ops fall back to zero fingerprint but retain
     static features (cost / atk / hp / mechanic / class / rarity) — explicit.
-  - PR-1 might leave CI red briefly; mitigation called out (skip decorators
-    or batched review).
+  - PR sequence (PR-1 setup → PR-2 features → PR-3 env → PR-4 opponents →
+    PR-5 wire training → PR-6 cleanup) keeps `main` green throughout. The
+    old `HearthstoneEnv` continues to work in parallel until PR-6 deletes it.
+  - `evaluate()` retains `max_actions_per_game=1000` cap from the existing
+    implementation; cap-hit games count as non-wins.
+  - `NUM_ACTIONS=512` upper bound is asserted at runtime by a
+    property-style test exercising 20 games over the chosen deck pair.
+
+### Changelog
+
+- **rev 2 (2026-05-01)**: corrected (a) winner detection to use
+  `Player.playstate`, (b) mulligan policy direction to match
+  `MulliganChoice.choose(*cards_to_mulligan)`, (c) self-damage reward sign
+  bug, (d) PR-1 contradiction by reordering the migration so deletion
+  follows the new path going green; added `evaluate()` action cap, action
+  bound property test, AGPL README section, scripts/train.py risk callout.
