@@ -1,10 +1,11 @@
-"""Evaluation of an agent's win-rate against an opponent factory."""
+"""Evaluation against an opponent factory; greedy on agent side."""
 from typing import Callable
 
-from hearthstone.ai.gym_env import HearthstoneEnv
+from hearthstone.enums import PlayState
+
 from hearthstone.ai.network import PolicyValueNetwork
-from hearthstone.ai.opponent_env import OpponentEnv
-from hearthstone.ai.opponents import OpponentPolicy, SelfPlayOpponent
+from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
+from hearthstone.ai.env.opponents import OpponentPolicy, SelfPlayOpponent
 
 
 DEFAULT_MAX_ACTIONS_PER_GAME = 1000
@@ -14,47 +15,42 @@ def evaluate(
     network: PolicyValueNetwork,
     opponent_factory: Callable[[], OpponentPolicy],
     n_games: int,
-    deck1: str,
-    deck2: str,
-    training_player_name: str,
+    deck1: list[str],
+    deck2: list[str],
+    hero1: str,
+    hero2: str,
+    training_player_idx: int = 0,
+    slot_dim: int = 90,
+    num_actions: int = 512,
     max_actions_per_game: int = DEFAULT_MAX_ACTIONS_PER_GAME,
 ) -> float:
-    """Play n_games using `network` (greedy) against fresh opponents.
-
-    Returns win-rate from the training player's perspective.
-
-    The agent uses the same greedy-act logic as SelfPlayOpponent — a
-    SelfPlayOpponent instance is constructed without loading weights and
-    its network is replaced with the provided network (no copy).
-
-    `opponent_factory` is called once per game so opponents that carry
-    state get a fresh instance each match.
-
-    Each game is capped at `max_actions_per_game` agent actions. If the
-    cap is hit (which should not happen with a well-behaved engine), the
-    game is treated as not-a-win — defense-in-depth against deterministic
-    stuck states.
-    """
-    eval_agent = SelfPlayOpponent(network_path=None)
+    """Greedy agent vs opponent; return win-rate from training player's perspective."""
+    eval_agent = SelfPlayOpponent(
+        network_path=None, slot_dim=slot_dim, num_actions=num_actions,
+    )
     eval_agent.network = network
     eval_agent.network.eval()
 
     wins = 0
     for _ in range(n_games):
-        base = HearthstoneEnv(
-            deck1_name=deck1, deck2_name=deck2,
-            training_player_name=training_player_name,
+        env = FireplaceGymEnv(
+            deck1=deck1, deck2=deck2, hero1=hero1, hero2=hero2,
+            training_player_idx=training_player_idx,
         )
-        env = OpponentEnv(base, opponent_factory())
-        obs, _ = env.reset()
-        terminated = truncated = False
+        opp = opponent_factory()
+        env.reset()
         action_count = 0
-        while not (terminated or truncated) and action_count < max_actions_per_game:
-            action = eval_agent.act(env.controller)
-            obs, _, terminated, truncated, _ = env.step(action)
+        cap_hit = False
+        while not env.game.ended and action_count < max_actions_per_game:
+            if env.game.current_player is env.training_player:
+                action = eval_agent.act(env)
+            else:
+                action = opp.act(env)
+            env.step(action)
             action_count += 1
-        winner = env.controller.get_winner()
-        if winner is not None and winner.name == env.training_player_name:
+        if action_count >= max_actions_per_game and not env.game.ended:
+            cap_hit = True
+        if not cap_hit and env.training_player.playstate == PlayState.WON:
             wins += 1
         env.close()
     return wins / n_games

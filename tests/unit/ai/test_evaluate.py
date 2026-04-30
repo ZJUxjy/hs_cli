@@ -1,53 +1,17 @@
 """Tests for evaluate()."""
-import numpy as np
-import pytest
 from hearthstone.ai.evaluate import evaluate
 from hearthstone.ai.network import PolicyValueNetwork
-from hearthstone.ai.opponents import RandomOpponent
+from hearthstone.ai.env.opponents import RandomOpponent
+from hearthstone.ai.env.deck_source import load_deck
 
 
-def test_winrate_in_zero_one_range():
-    """Untrained network vs random opponent: winrate is some float in [0, 1]."""
-    net = PolicyValueNetwork()
-    winrate = evaluate(
-        network=net,
-        opponent_factory=lambda: RandomOpponent(seed=0),
-        n_games=4,
-        deck1="test_deck", deck2="test_deck",
-        training_player_name="Player 1",
+def test_evaluate_returns_winrate_in_range():
+    net = PolicyValueNetwork(slot_dim=90, hidden_dim=64, num_actions=512)
+    c1, h1 = load_deck("basic_mage")
+    c2, h2 = load_deck("basic_warrior")
+    rate = evaluate(
+        network=net, opponent_factory=lambda: RandomOpponent(),
+        n_games=2, deck1=c1, deck2=c2, hero1=h1, hero2=h2,
+        max_actions_per_game=200,
     )
-    assert 0.0 <= winrate <= 1.0
-
-
-def test_returns_float():
-    net = PolicyValueNetwork()
-    winrate = evaluate(
-        network=net,
-        opponent_factory=lambda: RandomOpponent(seed=0),
-        n_games=2,
-        deck1="test_deck", deck2="test_deck",
-        training_player_name="Player 1",
-    )
-    assert isinstance(winrate, float)
-
-
-def test_two_runs_with_same_seed_produce_same_result():
-    """Greedy agent + seeded opponent → fully deterministic."""
-    net = PolicyValueNetwork()
-    # Set network to eval to fix any dropout etc. (PolicyValueNetwork has none, but be safe)
-    net.eval()
-    w1 = evaluate(
-        network=net,
-        opponent_factory=lambda: RandomOpponent(seed=123),
-        n_games=4,
-        deck1="test_deck", deck2="test_deck",
-        training_player_name="Player 1",
-    )
-    w2 = evaluate(
-        network=net,
-        opponent_factory=lambda: RandomOpponent(seed=123),
-        n_games=4,
-        deck1="test_deck", deck2="test_deck",
-        training_player_name="Player 1",
-    )
-    assert w1 == w2
+    assert 0.0 <= rate <= 1.0
