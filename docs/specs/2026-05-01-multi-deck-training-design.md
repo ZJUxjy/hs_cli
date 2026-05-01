@@ -449,10 +449,12 @@ def evaluate_pool(
     mirror) and training_player_idx ∈ {0, 1} independently.
     """
     return {
-        "winrate": float,
+        "winrate": float,             # cap-hit games count as non-wins; do NOT
+                                       # subtract cap_hit_count when interpreting
         "n_games": int,
         "matchups_seen": int,        # distinct (deck_a, deck_b, training_player_idx) triples
         "cap_hit_count": int,         # how many games hit max_actions_per_game
+                                       # (already deducted from numerator of winrate)
     }
 ```
 
@@ -609,14 +611,31 @@ def _run_round_robin(
     from hearthstone.ai.network import PolicyValueNetwork
     from hearthstone.enums import PlayState
 
-    # Load checkpoint into a fresh network.
-    net = PolicyValueNetwork(slot_dim=slot_dim, num_actions=num_actions)
+    # Load checkpoint and read network shape from its embedded config so
+    # the subprocess works with non-default hidden_dim/num_actions/slot_dim.
+    # The args from submit() (slot_dim/num_actions) act as fallbacks when
+    # the checkpoint predates the config embedding.
     ckpt = torch.load(checkpoint_path, map_location="cpu")
+    ckpt_cfg = ckpt.get("config", {})
+    eff_slot_dim = int(ckpt_cfg.get("slot_dim", slot_dim))
+    eff_hidden_dim = int(ckpt_cfg.get("hidden_dim", 128))
+    eff_num_actions = int(ckpt_cfg.get("num_actions", num_actions))
+
+    net = PolicyValueNetwork(
+        slot_dim=eff_slot_dim,
+        hidden_dim=eff_hidden_dim,
+        num_actions=eff_num_actions,
+    )
     net.load_state_dict(ckpt["network"] if "network" in ckpt else ckpt)
     net.eval()
 
     decks = load_decks(deck_names)
-    agent = SelfPlayOpponent(network_path=None, slot_dim=slot_dim, num_actions=num_actions)
+    agent = SelfPlayOpponent(
+        network_path=None,
+        slot_dim=eff_slot_dim,
+        hidden_dim=eff_hidden_dim,
+        num_actions=eff_num_actions,
+    )
     agent.network = net
     agent.network.eval()
 
@@ -729,11 +748,26 @@ if not os.path.exists(cfg.best_checkpoint_path):
         iter_num=0, config=cfg, best_winrate=0.0, phase=fsm.phase,
     )
 
-# In the per-iteration loop, after fast-eval and checkpoint save:
-#   1. fast eval (every eval_every)
-#   2. save checkpoint (every checkpoint_every; updates best.pt if winrate improved)
-#   3. submit milestone (every milestone_every) — uses the just-saved best.pt
-#   4. collect completed milestones (every iter, non-blocking)
+# Per-iteration sequencing (matches existing scripts/train.py + new milestone hooks):
+#   1. PPO update for this iter
+#   2. Fast eval (every eval_every iters): evaluate_pool → fsm.update(winrate)
+#      → if event ∈ {NEW_BEST, SWITCH_TO_SELF_PLAY}, save_checkpoint(best.pt).
+#      log_eval includes cap_hit_count from evaluate_pool's dict.
+#   3. Submit milestone (every milestone_every iters, iter > 0): copy best.pt
+#      snapshot and dispatch round-robin subprocess (non-blocking). Uses
+#      whatever best.pt currently exists (may be from a prior iter if no
+#      improvement happened this iter).
+#   4. Collect completed milestones (every iter, non-blocking): for any
+#      finished subprocess, log_milestone(completed_iter, csv_path).
+#   5. Periodic checkpoint (every checkpoint_every iters): save iter_NNNN.pt
+#      independently of best.pt — preserves training history snapshots.
+#
+# `best.pt` is ONLY written in step 2 (eval block, on NEW_BEST or
+# SWITCH_TO_SELF_PLAY). The periodic-checkpoint block in step 5 writes
+# iter_NNNN.pt only — it does NOT touch best.pt. This is the existing
+# behaviour from S1' and is load-bearing: SelfPlayOpponent in self-play
+# phase loads best.pt and must reflect the network at the iter where
+# best_winrate was achieved.
 if cfg.milestone_every > 0 and iter_num > 0 and iter_num % cfg.milestone_every == 0:
     if os.path.exists(cfg.best_checkpoint_path):
         milestone_runner.submit(
@@ -797,23 +831,47 @@ Plateau detection unchanged: strict `> best_winrate` comparison in
 
 ### MetricsLogger
 
-`_HEADER` adds one column at the end:
+`_HEADER` adds **two** columns: `cap_hit_count` (only filled on eval rows)
+and `milestone_path` (only filled on milestone rows). 11 columns total.
 
 ```python
 _HEADER = [
     "iter", "phase", "total_loss", "policy_loss", "value_loss",
     "entropy", "eval_winrate", "best_winrate", "plateau_count",
-    "milestone_path",
+    "cap_hit_count",        # NEW: from evaluate_pool, eval rows only
+    "milestone_path",       # NEW: relative CSV path, milestone rows only
 ]
 ```
 
-`log_iter` and `log_eval` write `""` for the new column. New method:
+Method signatures:
 
 ```python
+def log_iter(self, iter, phase, total_loss, policy_loss, value_loss, entropy):
+    self._writer.writerow([
+        iter, phase, total_loss, policy_loss, value_loss, entropy,
+        "", "", "",       # eval cols blank
+        "",                # cap_hit_count blank
+        "",                # milestone_path blank
+    ])
+    self._file.flush()
+
+
+def log_eval(self, iter, phase, eval_winrate, best_winrate, plateau_count, cap_hit_count):
+    self._writer.writerow([
+        iter, phase, "", "", "", "",       # loss cols blank
+        eval_winrate, best_winrate, plateau_count,
+        cap_hit_count,                      # NEW
+        "",                                  # milestone_path blank
+    ])
+    self._file.flush()
+
+
 def log_milestone(self, iter_num: int, csv_path: str) -> None:
     """Mark a milestone heatmap as completed at this iter."""
     self._writer.writerow([
-        iter_num, "", "", "", "", "", "", "", "",
+        iter_num, "", "", "", "", "",       # iter loss cols blank
+        "", "", "",                          # eval cols blank
+        "",                                  # cap_hit_count blank
         csv_path,
     ])
     self._file.flush()
@@ -821,6 +879,11 @@ def log_milestone(self, iter_num: int, csv_path: str) -> None:
 
 `csv_path` is stored as a relative path (relative to `runs/<timestamp>/`)
 so the metrics CSV is portable.
+
+`scripts/train.py` extracts `cap_hit_count` from `evaluate_pool`'s return
+dict and passes it to `metrics_logger.log_eval(...)`. This makes
+`cap_hit_count` actually queryable from the CSV (matching the
+`evaluate_pool` docstring claim that the value flags pathological pools).
 
 ### Druid bias (Choose-One)
 
@@ -943,9 +1006,11 @@ checkpoints (whose `ckpt["config"]` field embeds the same raw dict) carry
 `fixed_deck1` / `fixed_deck2`, which would now raise `TypeError` on
 construction.
 
-`load_config(path, overrides)` and the `--resume` path in
-`scripts/train.py` add a small migration shim that strips deprecated keys
-and emits a deprecation warning:
+The migration shim is implemented as **a single helper in
+`hearthstone/ai/config.py`**, called from BOTH `load_config` (file path)
+AND `scripts/train.py`'s `--resume` path (checkpoint path). Refactoring
+to one helper means a single test covers both call sites; otherwise the
+two paths drift independently.
 
 ```python
 _DEPRECATED_KEYS = ("fixed_deck1", "fixed_deck2")
@@ -962,9 +1027,23 @@ def _strip_deprecated(raw: dict, source: str) -> dict:
     return raw
 ```
 
-Called from both `load_config` (file source) and resume (checkpoint
-source). The shim is small and removable in a future S3' once nothing
-in the wild carries the old keys.
+Called from both `load_config` (file source) and the `--resume` branch
+in `scripts/train.py` (checkpoint source). The shim is small and
+removable in a future S3' once nothing in the wild carries the old keys.
+
+Tests for the shim cover BOTH call sites:
+
+- `test_load_config_strips_deprecated_fixed_deck_keys` exercises the
+  file path: write a YAML with `fixed_deck1: foo`, call `load_config`,
+  assert `DeprecationWarning` was emitted, assert no `TypeError`, assert
+  the loaded config has no `fixed_deck1` attribute.
+- `test_resume_strips_deprecated_fixed_deck_keys_from_checkpoint_config`
+  exercises the resume path: write a checkpoint with
+  `ckpt["config"] = {... "fixed_deck1": "x", "fixed_deck2": "y", ...}`,
+  invoke the resume code (e.g., `python scripts/train.py --resume <path>
+  --override max_iters=0`), assert `DeprecationWarning` was emitted,
+  assert no `TypeError`, assert the resumed `TrainConfig` has no
+  `fixed_deck1` attribute.
 
 ## Failure modes
 
@@ -1035,30 +1114,42 @@ in the wild carries the old keys.
     `milestone_every=0`. Assert metrics.csv has 2 iter rows + 2 eval rows,
     no milestone_path entries.
   - `test_two_iter_train_smoke_with_milestone` — 2 iters, 2-deck pool,
-    `milestone_every=1`. Assert at least 1 milestone CSV produced under
-    `runs/<ts>/milestones/`. Use `games_per_matchup=1` to keep test fast
-    (~30s).
+    `milestone_every=1`, `games_per_matchup=1` (~30s). The training
+    harness (or test fixture) must call `milestone_runner.shutdown(
+    wait=True)` after the loop ends — overriding the `finally`'s
+    `wait=False` — so all submitted milestones complete before the test
+    asserts. Without `wait=True`, subprocess imports + 4-game round-robin
+    may not finish in CI timing budget; assertion races. Then assert
+    at least 1 milestone CSV exists under `runs/<ts>/milestones/`.
 
 - `tests/unit/ai/test_training_utils.py`:
-  - Update `_HEADER` assertion: 10 columns now (was 9 in S1' rev 2; S1's
-    `_HEADER` had `iter / phase / total_loss / policy_loss / value_loss /
-    entropy / eval_winrate / best_winrate / plateau_count`. Adding
-    `milestone_path` brings it to 10.)
-  - `test_log_milestone_writes_csv_path_in_correct_column`
-  - Update `test_log_iter_blanks_eval_columns` to check **4 trailing
-    blanks** (`log_iter` writes 6 fields: iter / phase / total_loss /
-    policy_loss / value_loss / entropy. The remaining 4 columns —
-    `eval_winrate / best_winrate / plateau_count / milestone_path` —
-    are blank. The S1' rev 2 assertion of 3 blanks was correct for the
-    9-column header; PR-5 adds one column → 4 blanks.)
-  - Update `test_log_eval_fills_eval_columns` to expect 1 trailing blank
-    (`milestone_path`).
+  - Update `_HEADER` assertion: 11 columns now (S1's 9 columns + new
+    `cap_hit_count` + new `milestone_path`).
+  - `test_log_milestone_writes_csv_path_in_correct_column` —
+    `milestone_path` populated; all other 10 columns blank.
+  - Update `test_log_iter_blanks_eval_columns` to check **5 trailing
+    blanks** (`log_iter` writes 6 fields. The remaining 5 columns —
+    `eval_winrate / best_winrate / plateau_count / cap_hit_count /
+    milestone_path` — are blank).
+  - Update `test_log_eval_fills_eval_columns` to write the new
+    `cap_hit_count` field (non-empty) and expect 1 trailing blank
+    (`milestone_path`). Test signature: pass `cap_hit_count=3` and
+    assert it appears in column 9.
 
 - `tests/unit/ai/test_config.py`:
   - `test_default_yaml_has_swap_training_player_and_milestone_fields`
-  - `test_load_config_strips_deprecated_fixed_deck_keys` — write a YAML
-    with `fixed_deck1: foo`; `load_config` should warn (capture
-    `DeprecationWarning`) and not raise.
+  - `test_load_config_strips_deprecated_fixed_deck_keys` — write a
+    YAML with `fixed_deck1: foo`; call `load_config`; assert a
+    `DeprecationWarning` was emitted (via `warnings.catch_warnings`)
+    and no `TypeError` raised.
+  - `test_resume_strips_deprecated_fixed_deck_keys_from_checkpoint_config`
+    — write a checkpoint with
+    `ckpt["config"] = {... "fixed_deck1": "x", "fixed_deck2": "y", ...}`;
+    invoke the `--resume` code path (`run_training_loop` with
+    `resume_path=<ckpt>` or its equivalent); assert
+    `DeprecationWarning` emitted and no `TypeError` raised. Without
+    this test, refactors that touch `scripts/train.py:_load_checkpoint_config`
+    can silently break checkpoint resume.
 
 ### New tests
 
@@ -1118,17 +1209,34 @@ PR-3  Author 18 deck YAMLs (data only, no code changes — lands FIRST)
       and unaffected. Main green: trivially.
 
 PR-1  Deck dataclass + archetype validation + load_decks
-      hearthstone/ai/env/deck_source.py + test_deck_source.py (incl.
-      test_all_18_decks_load_successfully — runs against the 18 YAMLs
-      authored in PR-3)
-      DELETE: data/fireplace_decks/{basic_mage,basic_warrior}.yaml
-      DELETE: hearthstone/ai/self_play.py + tests/unit/ai/test_self_play.py
-      Update test_evaluate.py / test_train_smoke.py / test_fireplace_env.py
-      to switch from basic_mage / basic_warrior to aggro_mage /
-      control_warrior (now real files thanks to PR-3).
+      MODIFY hearthstone/ai/env/deck_source.py — Deck dataclass +
+        load_deck() returning Deck (was tuple) + load_decks() helper
+      MODIFY tests/unit/ai/env/test_deck_source.py (incl.
+        test_all_18_decks_load_successfully — runs against the 18 YAMLs
+        authored in PR-3)
+      DELETE data/fireplace_decks/basic_mage.yaml
+      DELETE data/fireplace_decks/basic_warrior.yaml
+      DELETE hearthstone/ai/self_play.py
+      DELETE tests/unit/ai/test_self_play.py
+      MODIFY (switch tuple-unpacking + basic_mage/basic_warrior strings):
+        - tests/unit/ai/env/test_observation.py
+        - tests/unit/ai/env/test_fireplace_env.py
+        - tests/unit/ai/env/test_opponent_env.py
+        - tests/unit/ai/env/test_opponents.py
+        - tests/unit/ai/test_evaluate.py
+        - tests/unit/ai/test_train_smoke.py
+        - tests/unit/ai/test_config.py (basic_mage / basic_warrior strings)
+
+      VERIFICATION before opening the PR — run from repo root:
+        rg -n 'load_deck\(|basic_mage|basic_warrior' \
+            hearthstone/ scripts/ tests/ configs/ data/ docs/
+      Confirm zero matches for `basic_mage` / `basic_warrior` and that
+      every `load_deck(` matches the new signature semantics. Any
+      forgotten caller will turn into a runtime TypeError.
+
       Main green throughout: PR-3 added the new YAMLs without breaking
-      anything; PR-1 swaps callers to the new names atomically with the
-      basic_*.yaml deletion.
+      anything; PR-1 swaps every caller to the new names atomically
+      with the basic_*.yaml deletion.
 
 PR-2  FireplaceGymEnv multi-deck signature + evaluate_pool
       hearthstone/ai/env/fireplace_env.py: new constructor, reset() flow
@@ -1228,6 +1336,20 @@ authoring YAMLs first (PR-3), tests in PR-1 can directly use
   - SelfPlayOpponent perspective invariant
     (`env.game.current_player`, NOT `env.training_player`) called out
     explicitly so future refactors don't break swap mode.
+  - Per-iter ordering matches the actual `scripts/train.py` code: `best.pt`
+    is written ONLY in the eval block on `NEW_BEST` /
+    `SWITCH_TO_SELF_PLAY` events, never in the periodic-checkpoint block
+    (which writes `iter_NNNN.pt` only). Documented in step (5) of the
+    per-iteration sequencing block.
+  - `_run_round_robin` reads network shape from
+    `ckpt["config"]["hidden_dim"]` (and slot_dim/num_actions) so milestone
+    works with non-default hyperparameters. The submit-time slot_dim/
+    num_actions args are fallbacks for checkpoints predating the embedded
+    config.
+  - `_HEADER` is **11 columns** (S1's 9 + `cap_hit_count` + `milestone_path`).
+    `log_iter` writes 5 trailing blanks; `log_eval` fills `cap_hit_count`
+    and writes 1 trailing blank; `log_milestone` writes 9 leading blanks
+    + the path.
 - **Scope check**: focused on multi-deck training infrastructure. Defers:
   smarter ChooseOnePolicy, draw-quality head, deck pool changes at
   runtime, GPU support. Each named in non-goals.
@@ -1301,3 +1423,36 @@ authoring YAMLs first (PR-3), tests in PR-1 can directly use
     `data/fireplace_decks/README.md`; (15) renamed milestone CSV
     column `agent_idx` → `training_player_idx` to match the env
     constructor terminology and avoid downstream confusion.
+
+- **rev 3 (2026-05-01)**: third subagent self-review found 0 blockers,
+  6 important issues, 1 nice-to-have; all 7 incorporated.
+  - (F1) `_strip_deprecated` shim is now a single helper called from
+    both `load_config` and `--resume`; new test
+    `test_resume_strips_deprecated_fixed_deck_keys_from_checkpoint_config`
+    covers the resume path explicitly.
+  - (F2) `_run_round_robin` reads `hidden_dim` (and slot_dim,
+    num_actions) from `ckpt["config"]` so non-default hyperparameters
+    don't silently break milestones via `load_state_dict` shape
+    mismatch. submit-time args are fallbacks for old checkpoints.
+  - (F3) `_HEADER` is now **11 columns** — added `cap_hit_count`
+    between `plateau_count` and `milestone_path`. `log_eval` accepts
+    `cap_hit_count` arg; `scripts/train.py` extracts it from
+    `evaluate_pool`'s return dict. CSV consumers can now query
+    pathological-pool signals.
+  - (F4) Per-iter ordering description rewritten to match the actual
+    `scripts/train.py` code: `best.pt` is written ONLY in the eval
+    block on `NEW_BEST` / `SWITCH_TO_SELF_PLAY` events. Periodic
+    checkpoint block writes `iter_NNNN.pt` only — never `best.pt`.
+    This is load-bearing for SelfPlayOpponent semantics.
+  - (F5) `test_two_iter_train_smoke_with_milestone` explicitly calls
+    `runner.shutdown(wait=True)` (overriding the `finally`'s
+    `wait=False`) so subprocess completes before assertion. Eliminates
+    CI race.
+  - (F6) PR-1 file list expanded to enumerate every caller of
+    `load_deck` / `basic_mage` / `basic_warrior`: `test_observation.py`,
+    `test_fireplace_env.py`, `test_opponent_env.py`, `test_opponents.py`,
+    `test_evaluate.py`, `test_train_smoke.py`, `test_config.py`. Added
+    `rg` verification step pre-PR.
+  - (F7) Added comments to `evaluate_pool`'s return dict clarifying
+    that `winrate` already deducts cap-hits as non-wins (don't
+    double-count `cap_hit_count`).
