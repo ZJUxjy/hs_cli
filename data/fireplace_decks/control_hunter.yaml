@@ -1,0 +1,34 @@
+name: Control Hunter
+archetype: control
+hero_id: HERO_05
+cards:
+  - DS1_184       # Tracking (1)
+  - DS1_184
+  - EX1_544       # Flare (1)
+  - EX1_611       # Freezing Trap (2)
+  - EX1_611
+  - EX1_610       # Explosive Trap (2)
+  - EX1_536       # Eaglehorn Bow (3)
+  - EX1_536
+  - EX1_617       # Deadly Shot (3)
+  - EX1_617
+  - NEW1_031      # Animal Companion (3)
+  - NEW1_031
+  - DS1_183       # Multi-Shot (4)
+  - DS1_183
+  - EX1_007       # Acolyte of Pain (3)
+  - EX1_007
+  - EX1_537       # Explosive Shot (5)
+  - EX1_537
+  - DS1_178       # Tundra Rhino (5)
+  - EX1_534       # Savannah Highmane (6)
+  - EX1_534
+  - EX1_283       # Frost Elemental (6)
+  - EX1_283
+  - DS1_188       # Gladiator's Longbow (7)
+  - EX1_249       # Baron Geddon (7) [legendary]
+  - EX1_543       # King Krush (9) [legendary]
+  - EX1_298       # Ragnaros the Firelord (8) [legendary]
+  - EX1_561       # Alexstrasza (9) [legendary]
+  - EX1_110       # Cairne Bloodhoof (6) [legendary]
+  - EX1_016       # Sylvanas Windrunner (6) [legendary]
