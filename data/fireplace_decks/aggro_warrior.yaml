@@ -1,0 +1,34 @@
+name: Aggro Warrior
+archetype: aggro
+hero_id: HERO_01
+cards:
+  - EX1_607       # Inner Rage (0)
+  - EX1_607
+  - CS2_188       # Abusive Sergeant (1)
+  - CS2_188
+  - EX1_029       # Leper Gnome (1)
+  - EX1_029
+  - CS2_108       # Execute (1)
+  - EX1_391       # Slam (1)
+  - EX1_391
+  - EX1_410       # Shield Slam (1)
+  - CS2_146       # Southsea Deckhand (1)
+  - CS2_146
+  - CS2_105       # Heroic Strike (2)
+  - CS2_105
+  - CS2_106       # Fiery War Axe (2)
+  - CS2_106
+  - CS2_172       # Bloodfen Raptor (2)
+  - CS2_172
+  - EX1_392       # Battle Rage (2)
+  - NEW1_018      # Bloodsail Raider (2)
+  - NEW1_018
+  - CS2_103       # Charge (3)
+  - CS2_103
+  - EX1_604       # Frothing Berserker (3)
+  - EX1_604
+  - NEW1_011      # Kor'kron Elite (4)
+  - NEW1_011
+  - EX1_408       # Mortal Strike (4)
+  - EX1_408
+  - CS2_124       # Wolfrider (3)
