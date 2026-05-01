@@ -1,0 +1,34 @@
+name: Aggro Warlock
+archetype: aggro
+hero_id: HERO_07
+cards:
+  - CS2_059       # Blood Imp (1)
+  - CS2_059
+  - CS2_063       # Corruption (1)
+  - CS2_065       # Voidwalker (1)
+  - CS2_065
+  - EX1_302       # Mortal Coil (1)
+  - EX1_302
+  - EX1_308       # Soulfire (1)
+  - EX1_308
+  - EX1_316       # Power Overwhelming (1)
+  - EX1_316
+  - EX1_319       # Flame Imp (1)
+  - EX1_319
+  - CS2_188       # Abusive Sergeant (1)
+  - CS2_188
+  - EX1_029       # Leper Gnome (1)
+  - EX1_029
+  - EX1_306       # Felstalker (2)
+  - EX1_306
+  - EX1_596       # Demonfire (2)
+  - NEW1_019      # Knife Juggler (2)
+  - NEW1_019
+  - CS2_172       # Bloodfen Raptor (2)
+  - CS2_172
+  - EX1_304       # Void Terror (3)
+  - EX1_301       # Felguard (3)
+  - EX1_301
+  - CS2_124       # Wolfrider (3)
+  - CS2_124
+  - EX1_310       # Doomguard (5)

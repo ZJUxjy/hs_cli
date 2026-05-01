@@ -1,0 +1,34 @@
+name: Control Warlock
+archetype: control
+hero_id: HERO_07
+cards:
+  - EX1_302       # Mortal Coil (1)
+  - EX1_302
+  - CS2_065       # Voidwalker (1)
+  - CS2_065
+  - CS2_063       # Corruption (1)
+  - CS2_057       # Shadow Bolt (3)
+  - CS2_057
+  - CS2_061       # Drain Life (3)
+  - CS2_062       # Hellfire (3)
+  - CS2_062
+  - EX1_303       # Shadowflame (4)
+  - EX1_309       # Siphon Soul (4)
+  - EX1_309
+  - EX1_313       # Pit Lord (4)
+  - EX1_005       # Big Game Hunter (4) [epic]
+  - EX1_320       # Bane of Doom (5)
+  - EX1_310       # Doomguard (5)
+  - EX1_310
+  - EX1_312       # Twisting Nether (8)
+  - CS2_064       # Dread Infernal (6)
+  - CS2_064
+  - EX1_323       # Lord Jaraxxus (8) [legendary]
+  - EX1_249       # Baron Geddon (7) [legendary]
+  - EX1_298       # Ragnaros the Firelord (8) [legendary]
+  - EX1_561       # Alexstrasza (9) [legendary]
+  - EX1_110       # Cairne Bloodhoof (6) [legendary]
+  - EX1_016       # Sylvanas Windrunner (6) [legendary]
+  - EX1_105       # Mountain Giant (12)
+  - EX1_105
+  - EX1_043       # Twilight Drake (4)
