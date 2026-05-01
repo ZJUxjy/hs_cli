@@ -46,7 +46,7 @@ enough variance to be learnable.
 | Deck source | Online competitive lists, prioritising decks with all card_ids in fireplace `cards.db` |
 | Training player swap | Randomly chosen p1/p2 per episode |
 | Milestone runner | `ProcessPoolExecutor(max_workers=1, mp_context='spawn')`; non-blocking submit + poll-collect |
-| Milestone matchup | Loaded checkpoint (greedy via `SelfPlayOpponent`) vs `RandomOpponent`; both `agent_idx` ∈ {0, 1} |
+| Milestone matchup | Loaded checkpoint (greedy via `SelfPlayOpponent`) vs `RandomOpponent`; both `training_player_idx` ∈ {0, 1} |
 | Milestone games per matchup | 5 (configurable) → 18 × 17 × 2 × 5 = 3060 games |
 
 ## Context
@@ -276,15 +276,38 @@ shim.
 
 #### RNG & reproducibility
 
-The env owns `self._rng = np.random.default_rng(seed)`. Every random
-decision in `reset()` reads from this generator. To make
-`fireplace.RandomOpponent` (uses Python `random.randrange`) and fireplace's
-internal bare-`random` calls (e.g., `card.py:241`) reproducible, the env
-also calls `random.seed(int(self._rng.integers(0, 2**31)))` at the start of
-each `reset()`. `np.random.seed()` is **not** called (numpy random in this
-codebase is only via the env's local generator).
+Three RNG sources cooperate:
 
-This makes `(seed, episode_index)` → identical episode trajectory.
+1. **`self._rng = np.random.default_rng(seed)`** — env-owned generator.
+   Drives deck pair sampling, swap decision, and seed derivation for
+   the other two sources. Every random decision in `reset()` reads from
+   this generator.
+2. **`fireplace.Game(seed=fp_seed)`** — fireplace's internal RNG (a
+   `random.Random()` instance per `Game`, see `fireplace/game.py:41`).
+   Drives card draw, mulligan replacements, fireplace's bare-`random`
+   helpers in card scripts (when present), and any in-game randomness.
+   `fp_seed` is derived from `self._rng` so it's reproducible across
+   resets with the same env seed.
+3. **Python's global `random`** — used by `RandomOpponent.act` (which
+   calls `random.randrange`). The env reseeds it at the start of every
+   `reset()` via `random.seed(int(self._rng.integers(0, 2**31)))` so
+   `RandomOpponent` plays reproducibly under a fixed env seed. The
+   primary fireplace gameplay RNG is *not* the global `random` (it's
+   `Game.random` per #2), so this propagation is solely for
+   `RandomOpponent`. `np.random.seed()` is **not** called (numpy random
+   in this codebase is only via the env's local generator).
+
+The combination makes `(seed, episode_index)` → identical episode
+trajectory: same deck pair, same swap, same shuffled deck, same
+`RandomOpponent` actions.
+
+**Limitation**: within a single episode, `random.seed` is called once at
+`reset()`. Subsequent calls to `RandomOpponent.act` consume the global
+state, but so do any fireplace card scripts that happen to use bare
+`random` (rare; `Game.random` is the canonical path). Two simulations
+with the same seed and same action sequence remain reproducible because
+the global state advances identically — but if the agent picks different
+actions, divergence is expected and not a bug.
 
 #### `reset()` flow
 
@@ -347,10 +370,11 @@ info = {
 When `swap_training_player=True` and a particular `reset()` picks
 `training_player_idx == 1`, fireplace's standard p1-acts-first rule means
 the **opponent has played their entire turn 1 before the training agent
-sees its first observation**. (`OpponentEnv._loop_opponent` correctly
+sees its first observation**. `OpponentEnv._loop_opponent` correctly
 defers control to the agent only when `current_player is training_player`,
-including from `reset` — this path is already tested in S1's
-`test_reset_runs_opponent_first_when_p2_is_training`.)
+including from `reset()`. **This code path was untested in S1'**; PR-2
+adds the first coverage via
+`test_swap_training_player_when_idx_1_opponent_acts_first`.
 
 This is a deliberate behavior change relative to S1', not a bug. Three
 implications for downstream consumers:
@@ -383,6 +407,16 @@ All **unchanged from S1'**.
 - The S1' invariant `current_valid_actions[0] == EndTurnAction()` is
   preserved (action enumeration logic untouched).
 
+**Load-bearing invariant under swap**: `SelfPlayOpponent.act()` MUST use
+`env.game.current_player`'s perspective, NOT `env.training_player`'s.
+Under `swap_training_player=True`, when the opponent's turn comes up,
+`game.current_player` is the opponent (who may now be the side training
+player was last episode), and the frozen network must observe the board
+from the opponent's seat. Tying the perspective to `env.training_player`
+would make SelfPlayOpponent see its own hand instead. Future refactors
+that "simplify" SelfPlayOpponent to use `env.training_player` will break
+swap-mode silently.
+
 ### `evaluate_pool`
 
 Replaces the single-matchup `evaluate()`.
@@ -403,28 +437,42 @@ def evaluate_pool(
     opponent_factory(). Returns aggregate winrate (cap-hit games count as
     non-wins).
 
-    When stratified=True (default), the (deck_a, deck_b, agent_idx) sampler
-    cycles through all 612 directed matchups in shuffled order so that over
-    one eval call all 612 are hit at least once iff n_games >= 612, and any
-    extra games are uniform random samples.
+    When stratified=True (default), each call generates a fresh shuffle
+    of all 612 directed (deck_a, deck_b, training_player_idx) triples and
+    samples the first n_games in that order. If n_games >= 612, all
+    matchups appear at least once (with extras drawn uniformly at random
+    from the same shuffle). The shuffle is REGENERATED PER CALL — there
+    is no cross-call state — so successive evals over short n_games may
+    miss the same matchups.
 
-    When stratified=False, every game samples (i, j) ∈ random_pair and
-    agent_idx ∈ {0, 1} independently.
+    When stratified=False, every game samples (i, j) ∈ random_pair (no
+    mirror) and training_player_idx ∈ {0, 1} independently.
     """
     return {
         "winrate": float,
         "n_games": int,
-        "matchups_seen": int,        # distinct (deck_a, deck_b, agent_idx) triples
+        "matchups_seen": int,        # distinct (deck_a, deck_b, training_player_idx) triples
         "cap_hit_count": int,         # how many games hit max_actions_per_game
     }
 ```
 
-**Why stratified by default**: with 18 decks, 306 directed matchups, and
-the curriculum's old `n_games=50`, ~83% of matchups never get sampled in a
-single eval, and adjacent eval calls oversample whatever happens to come
-up. Stratified at `n_games=100` covers ~33% of matchups per eval (with
-agent_idx noise) and dramatically reduces eval-to-eval winrate variance —
-critical for the curriculum FSM to detect plateaus reliably.
+**Why stratified by default**: with 18 decks, 612 directed matchups (306
+unordered × 2 training_player_idx), and the curriculum's old `n_games=50`,
+~92% of directed matchups never get sampled in a single eval, and adjacent
+eval calls oversample whatever happens to come up. Stratified at
+`n_games=100` covers ~16% of matchups per eval but eliminates the
+within-call replacement noise (each sampled matchup appears exactly once
+per call), reducing eval-to-eval **conditional** variance.
+
+**Variance disclaimer**: stratified-without-replacement within a call is
+anti-correlated, but successive calls re-shuffle independently, so
+eval-to-eval variance is driven by which 100 matchups land in the first
+slot of each shuffle. The σ ≈ 0.05 figure below assumes IID Bernoulli
+trials (p = 0.5, n = 100), which is an approximation; true variance
+depends on per-matchup winrate dispersion. If post-launch the FSM proves
+too noisy at threshold = 0.65, options are (a) bump `eval_games` to 200
+or higher, or (b) introduce a persistent shuffle (`EvaluateState`) so
+successive calls together cover all 612.
 
 The default `n_games` is bumped from 50 (S1's value) to **100** in
 `configs/default.yaml`. Sampling-noise floor at p=0.5: σ ≈ 0.05 (was 0.07).
@@ -451,8 +499,25 @@ class MilestoneRunner:
     snapshot path (avoiding torch.save races with the next iter's
     checkpoint), then submits the round-robin job. collect_completed()
     polls without blocking. shutdown() with cancel_futures=True
-    immediately cancels not-yet-started jobs and waits for the in-flight
-    one (or doesn't, if wait=False).
+    cancels not-yet-started jobs; the in-flight subprocess is NOT
+    signalled and continues running until completion regardless of
+    `wait`.
+
+    Caveats:
+    - max_workers=1 means the same worker process is reused across
+      submits. Imports run once per worker lifetime; cards.db re-init is
+      idempotent. State leaks across submits in principle (any
+      module-level mutation persists in fireplace / torch); covered by
+      `test_two_milestones_produce_identical_csv_for_same_ckpt`.
+    - If milestones run slower than `milestone_every` iters of training,
+      submits queue up in the executor's internal queue; `_pending`
+      grows unboundedly. Mitigation: log warning when `len(_pending) > 3`.
+    - On parent KeyboardInterrupt → shutdown(wait=False, cancel_futures
+      =True): running subprocess survives parent death (not daemonic;
+      `concurrent.futures` doesn't expose a kill API). User may see
+      `python` processes lingering until milestone completes; manual
+      `pkill -f _run_round_robin` is the workaround. The .partial CSV
+      may finish writing after the parent exits.
     """
 
     def __init__(self, output_dir: str):
@@ -484,6 +549,12 @@ class MilestoneRunner:
             slot_dim, num_actions,
         )
         self._pending.append((f, iter_num, out_csv))
+        if len(self._pending) > 3:
+            logger.warning(
+                "[milestone] _pending length %d — milestones running slower "
+                "than milestone_every; consider increasing the interval",
+                len(self._pending),
+            )
         logger.info("[milestone] submitted iter=%d → %s", iter_num, out_csv)
         return out_csv
 
@@ -513,13 +584,19 @@ def _run_round_robin(
     checkpoint_path: str, deck_names: list[str], games_per_matchup: int,
     output_path: str, slot_dim: int, num_actions: int,
 ) -> None:
-    """Subprocess entry point — cold start: re-imports everything.
+    """Subprocess entry point.
+
+    With ProcessPoolExecutor(max_workers=1), this function is called once
+    per submit but the worker process is REUSED across submits — so the
+    imports run ONCE per worker lifetime, not per submit. cards.db is
+    re-init-safe (idempotent). State leaks across submits in principle
+    (any module-level mutation persists); call this out in test_milestone
+    via test_two_milestones_produce_identical_csv_for_same_ckpt.
 
     Order matters: torch threading must be set BEFORE the first torch op.
     Pickle-safety: this function only takes basic types (str/int/list[str]),
     so spawn-context pickling is trivial.
     """
-    import random
     import torch
     torch.set_num_threads(1)            # match conftest.py main-process setting
 
@@ -551,18 +628,21 @@ def _run_round_robin(
         for j, deck_b in enumerate(decks):
             if i == j:
                 continue
-            for agent_idx in (0, 1):
+            for tp_idx in (0, 1):
                 wins = 0
                 cap_hits = 0
                 for g in range(games_per_matchup):
-                    # Per-matchup deterministic seed
-                    random.seed(1000 + g)                    # for RandomOpponent
+                    # Per (matchup, game) deterministic seed. The env's
+                    # reset() reseeds Python's global random from this,
+                    # so RandomOpponent is reproducible. There's no need
+                    # for an outer random.seed() — the env handles it.
+                    matchup_seed = (i * 31 + j * 17 + tp_idx * 7 + g) & 0x7FFFFFFF
                     env = FireplaceGymEnv(
                         decks=[deck_a, deck_b],
                         pair_strategy="fixed",
                         swap_training_player=False,
-                        training_player_idx=agent_idx,
-                        seed=1000 + g,
+                        training_player_idx=tp_idx,
+                        seed=matchup_seed,
                     )
                     env.reset()
                     opp = RandomOpponent()
@@ -580,14 +660,16 @@ def _run_round_robin(
                         wins += 1
                 rows.append({
                     "deck_a": deck_a.name, "deck_b": deck_b.name,
-                    "agent_idx": agent_idx, "n_games": games_per_matchup,
+                    "training_player_idx": tp_idx,
+                    "n_games": games_per_matchup,
                     "winrate": wins / games_per_matchup,
                     "cap_hit_count": cap_hits,
                 })
 
     with open(partial, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=[
-            "deck_a", "deck_b", "agent_idx", "n_games", "winrate", "cap_hit_count",
+            "deck_a", "deck_b", "training_player_idx",
+            "n_games", "winrate", "cap_hit_count",
         ])
         w.writeheader()
         w.writerows(rows)
@@ -598,11 +680,12 @@ def _run_round_robin(
 #### Milestone matchup semantics
 
 For **every** of the 612 directed matchups, **the loaded checkpoint
-plays as `agent_idx`-side via greedy `SelfPlayOpponent`**, and **the
-other side is `RandomOpponent`**. Both `agent_idx ∈ {0, 1}` are run
-(so each unordered pair contributes 2 rows: agent-as-p1 and agent-as-p2).
-This matches the fast-eval semantics ("agent vs random opponent") and
-makes the heatmap directly comparable to the curriculum's eval winrate.
+plays as `training_player_idx`-side via greedy `SelfPlayOpponent`**, and
+**the other side is `RandomOpponent`**. Both `training_player_idx ∈ {0, 1}`
+are run (so each unordered pair contributes 2 rows: agent-as-p1 and
+agent-as-p2). This matches the fast-eval semantics ("agent vs random
+opponent") and makes the heatmap directly comparable to the curriculum's
+eval winrate.
 
 Self-play heatmap (agent vs agent across matchups) is intentionally not
 included: it averages to 50% by construction and is uninformative for
@@ -611,7 +694,7 @@ curriculum decisions. A future S3' spec can add `_run_round_robin_self_play`.
 #### Subprocess output CSV format
 
 ```
-deck_a,deck_b,agent_idx,n_games,winrate,cap_hit_count
+deck_a,deck_b,training_player_idx,n_games,winrate,cap_hit_count
 aggro_mage,control_mage,0,5,0.80,0
 aggro_mage,control_mage,1,5,0.40,1
 aggro_mage,aggro_warrior,0,5,1.00,0
@@ -636,26 +719,47 @@ milestone_runner = MilestoneRunner(
     output_dir=os.path.join(run_dir, "milestones"),
 )
 
+# Bootstrap: ensure best.pt exists at iter 0 so the first milestone submit
+# (potentially at iter == milestone_every) has a checkpoint to copy. Without
+# this, if the agent hasn't crossed any plateau by iter==milestone_every,
+# best.pt may not yet exist (best.pt is normally only written on NEW_BEST).
+if not os.path.exists(cfg.best_checkpoint_path):
+    save_checkpoint(
+        cfg.best_checkpoint_path, network=network, optimizer=optimizer,
+        iter_num=0, config=cfg, best_winrate=0.0, phase=fsm.phase,
+    )
+
 # In the per-iteration loop, after fast-eval and checkpoint save:
 #   1. fast eval (every eval_every)
 #   2. save checkpoint (every checkpoint_every; updates best.pt if winrate improved)
 #   3. submit milestone (every milestone_every) — uses the just-saved best.pt
 #   4. collect completed milestones (every iter, non-blocking)
 if cfg.milestone_every > 0 and iter_num > 0 and iter_num % cfg.milestone_every == 0:
-    milestone_runner.submit(
-        iter_num=iter_num,
-        checkpoint_path=cfg.best_checkpoint_path,
-        deck_names=cfg.deck_pool,
-        games_per_matchup=cfg.milestone_games_per_matchup,
-        slot_dim=cfg.slot_dim,
-        num_actions=cfg.num_actions,
-    )
+    if os.path.exists(cfg.best_checkpoint_path):
+        milestone_runner.submit(
+            iter_num=iter_num,
+            checkpoint_path=cfg.best_checkpoint_path,
+            deck_names=cfg.deck_pool,
+            games_per_matchup=cfg.milestone_games_per_matchup,
+            slot_dim=cfg.slot_dim,
+            num_actions=cfg.num_actions,
+        )
+    else:
+        logger.warning(
+            "[milestone] iter=%d: best.pt missing at %s; skipping submission",
+            iter_num, cfg.best_checkpoint_path,
+        )
+
 for completed_iter, csv_path in milestone_runner.collect_completed():
     metrics_logger.log_milestone(completed_iter, csv_path)
 
 # Try/finally and KeyboardInterrupt handlers:
 finally:
-    milestone_runner.shutdown(wait=False)   # cancel pending; let in-flight finish
+    # cancel pending submits; in-flight subprocess is NOT signalled and
+    # will continue running until completion (writing its .partial file).
+    # If the user pressed Ctrl-C and wants the subprocess gone immediately,
+    # they need to `pkill -f _run_round_robin` separately.
+    milestone_runner.shutdown(wait=False)
     metrics_logger.close()
 ```
 
@@ -752,6 +856,15 @@ state-aware policy (e.g., "if any enemy minion has ≤4 HP and Wrath
 is being played, choose Heavy; else choose Light + draw"). That work is
 out of scope here.
 
+**Authoring fallback for Druid YAMLs**: Druid's basic+classic card pool
+is small and Choose-One-heavy. If `aggro_druid.yaml` cannot satisfy
+`mean_cost ≤ 3.0` given the available cards (after filling with neutral
+1-mana drops like Stonetusk Boar, Argent Squire, Leper Gnome, Goldshire
+Footman), the invariant relaxes to `mean_cost ≤ 3.3` and the deviation
+is documented in `data/fireplace_decks/README.md`. The same fallback
+applies to other classes with thin pools (Priest aggro is the most likely
+candidate). PR-3 enumerates which decks took the relaxation, if any.
+
 ### Cleanup: `hearthstone/ai/self_play.py`
 
 `hearthstone/ai/self_play.py` (77 LOC) defines a `SelfPlayTrainer` class
@@ -822,6 +935,37 @@ eval_games: 100                    # was: 50 (halve sampling noise: σ ≈ 0.05)
 `fixed_deck1` / `fixed_deck2` removed. `training_player_idx` retained
 (now an initial-value field).
 
+### Backwards-compat: deprecated config keys
+
+`TrainConfig(**raw)` is strict on unknown keyword args. Old config YAMLs
+(saved by S1' / pre-S2-A trainings as `runs/<ts>/config.yaml`) and old
+checkpoints (whose `ckpt["config"]` field embeds the same raw dict) carry
+`fixed_deck1` / `fixed_deck2`, which would now raise `TypeError` on
+construction.
+
+`load_config(path, overrides)` and the `--resume` path in
+`scripts/train.py` add a small migration shim that strips deprecated keys
+and emits a deprecation warning:
+
+```python
+_DEPRECATED_KEYS = ("fixed_deck1", "fixed_deck2")
+
+def _strip_deprecated(raw: dict, source: str) -> dict:
+    for key in _DEPRECATED_KEYS:
+        if key in raw:
+            warnings.warn(
+                f"{source}: '{key}' is deprecated; ignored. "
+                "Decks are now drawn from `deck_pool` per `pair_strategy`.",
+                DeprecationWarning,
+            )
+            raw.pop(key)
+    return raw
+```
+
+Called from both `load_config` (file source) and resume (checkpoint
+source). The shim is small and removable in a future S3' once nothing
+in the wild carries the old keys.
+
 ## Failure modes
 
 | Failure | Detection | Response |
@@ -833,11 +977,16 @@ eval_games: 100                    # was: 50 (halve sampling noise: σ ≈ 0.05)
 | Milestone subprocess crash (bad ckpt path / fireplace exception) | `future.result()` raises in `collect_completed` | `logger.error` one line; main process continues; next milestone unaffected |
 | Milestone game hits 1000-action cap | per-game cap inside `_run_round_robin` | Counted in `cap_hit_count`; game tallied as non-win |
 | Disk full during milestone CSV write | `open(partial)` raises | Future raises; main logs error; partial file remains for cleanup |
-| KeyboardInterrupt (Ctrl-C) | `try/finally` in `scripts/train.py` | `milestone_runner.shutdown(wait=False, cancel_futures=True)` cancels pending; in-flight subprocess continues writing to its `.partial` file; OS reaps when done. On next run, `MilestoneRunner.__init__` deletes any stale `.csv.partial` |
+| KeyboardInterrupt (Ctrl-C) | `try/finally` in `scripts/train.py` | `milestone_runner.shutdown(wait=False, cancel_futures=True)` cancels pending submits; the in-flight subprocess is **not signalled** and continues to completion (writing to `.partial` then `os.replace` to final path), even after parent exits. User may see `python` processes lingering; manual `pkill -f _run_round_robin` is the workaround. On next run, `MilestoneRunner.__init__` deletes any stale `.csv.partial` files. |
 | Hard kill (SIGKILL on parent) | n/a | OS reaps subprocess; `.partial` file may persist; cleanup on next run |
+| **best.pt missing at first milestone** (training hasn't crossed any winrate threshold by `iter == milestone_every`, so `NEW_BEST` never fired) | `os.path.exists(cfg.best_checkpoint_path)` check before `submit` | Mitigations layered: (a) `scripts/train.py` writes a baseline `best.pt` at iter=0 before the loop starts; (b) the `submit` site guards with `if os.path.exists(...): submit(...) else: logger.warning(...) and skip`. If both layers fail, `shutil.copy` raises `FileNotFoundError`, future raises, `collect_completed` logs and continues. |
 | best.pt overwritten while subprocess `torch.load`s | parent copies best.pt to `iter_NNNN/checkpoint.pt` before submit | Race eliminated by design |
 | `fork` vs `spawn` PyTorch issue | `mp_context='spawn'` mandatory | Documented; `batch_simulator.py` shipped with the same pattern |
-| `random.seed` not propagated to subprocess | `_run_round_robin` calls `random.seed(1000 + g)` per game | Reproducible per-matchup outcomes |
+| **Resume + swap_training_player=True replays RNG sequence** | `--resume` reconstructs env with `seed=cfg.seed`; first reset draws same `_training_player_idx` as iter=0 of the original run | Document in `--resume` warning. Mitigation: include `env._rng.bit_generator.state` and the `random.getstate()` snapshot in `save_checkpoint`; on resume, restore. Plan task; cosmetic for PPO (which resets buffers) but matters for `evaluate_pool(seed=...)` reproducibility post-resume. |
+| Stratified `evaluate_pool` shuffle is per-call fresh | designed; documented in `evaluate_pool` docstring | If FSM is too noisy at `switch_threshold=0.65`, bump `eval_games` to 200+ or introduce persistent `EvaluateState` (deferred) |
+| `_pending` queue grows when milestones run slower than `milestone_every` iters | `MilestoneRunner.submit` warns when `len(_pending) > 3` | Operational signal, not a fault. User increases `milestone_every` or reduces `milestone_games_per_matchup` |
+| Worker process crashes mid-submit (`BrokenProcessPool`) | `future.result()` raises `concurrent.futures.process.BrokenProcessPool` | Logged in `collect_completed`; future submits also raise. Plan note: production-grade recovery would recreate `self._executor`; not in scope for S2-A (rare; user can restart training). |
+| Milestone CSV `training_player_idx` column meaning ambiguous to humans | column rename from `agent_idx` to `training_player_idx` matches env API | Documented in spec + `data/fireplace_decks/README.md` |
 | Curriculum FSM never switches phase (multi-deck winrate plateau below threshold) | manual review of `metrics.csv` `eval_winrate` column | User lowers `curriculum.switch_threshold` via `--override` (or in YAML for next run) |
 
 ## Testing strategy
@@ -855,17 +1004,24 @@ eval_games: 100                    # was: 50 (halve sampling noise: σ ≈ 0.05)
 
 - `tests/unit/ai/env/test_fireplace_env.py`:
   - `test_random_pair_no_mirror` — 1000 resets over 18 decks, zero mirrors,
-    distribution check (each unordered pair ≈ 1000/C(18,2) ≈ 6.5 ± reasonable σ)
-  - `test_swap_training_player_balanced` — 200 resets, counts within ±20 of 100
+    distribution check (each unordered pair ≈ 1000/C(18,2) ≈ 6.5 with at
+    least 1 occurrence per pair)
+  - `test_swap_training_player_balanced` — **deterministic seed test**:
+    `seed=42`, run 50 resets, assert exact counts (no statistical band).
+    Mechanism check, not probabilistic — eliminates CI flakiness.
   - `test_seed_reproducibility_with_pool` — same seed → identical
-    `(deck_pair, agent_idx, fp_seed)` and identical first observation
+    `(deck_pair, training_player_idx, fp_seed)` and identical first
+    observation
   - `test_pair_strategy_random_pair_requires_two_decks`
   - `test_pair_strategy_fixed_requires_two_decks`
-  - `test_swap_training_player_when_idx_1_opponent_acts_first` — assert that
-    when `swap_training_player=True` selects p2 as training, the first
-    obs after `OpponentEnv.reset()` reflects opponent's turn-1 board
+  - `test_swap_training_player_when_idx_1_opponent_acts_first` — assert
+    that when `swap_training_player=True` selects p2 as training, the
+    first obs after `OpponentEnv.reset()` reflects opponent's turn-1
+    board (this code path was not covered in S1')
   - `test_info_dict_contains_deck_names_and_seed`
-  - `test_random_seed_propagates_to_python_random_for_RandomOpponent`
+  - `test_random_seed_propagates_to_python_random_for_RandomOpponent` —
+    two envs same seed → record `random.random()` sample after each
+    `reset()` → assert equal
 
 - `tests/unit/ai/test_evaluate.py`:
   - `test_evaluate_pool_returns_dict_with_winrate_n_games_matchups_seen`
@@ -884,13 +1040,25 @@ eval_games: 100                    # was: 50 (halve sampling noise: σ ≈ 0.05)
     (~30s).
 
 - `tests/unit/ai/test_training_utils.py`:
-  - Update `_HEADER` assertion (10 columns now)
+  - Update `_HEADER` assertion: 10 columns now (was 9 in S1' rev 2; S1's
+    `_HEADER` had `iter / phase / total_loss / policy_loss / value_loss /
+    entropy / eval_winrate / best_winrate / plateau_count`. Adding
+    `milestone_path` brings it to 10.)
   - `test_log_milestone_writes_csv_path_in_correct_column`
-  - Update `test_log_iter_blanks_eval_columns` to check 9 trailing blanks
-    (was 3 — was wrong even in S1' rev 2)
+  - Update `test_log_iter_blanks_eval_columns` to check **4 trailing
+    blanks** (`log_iter` writes 6 fields: iter / phase / total_loss /
+    policy_loss / value_loss / entropy. The remaining 4 columns —
+    `eval_winrate / best_winrate / plateau_count / milestone_path` —
+    are blank. The S1' rev 2 assertion of 3 blanks was correct for the
+    9-column header; PR-5 adds one column → 4 blanks.)
+  - Update `test_log_eval_fills_eval_columns` to expect 1 trailing blank
+    (`milestone_path`).
 
 - `tests/unit/ai/test_config.py`:
   - `test_default_yaml_has_swap_training_player_and_milestone_fields`
+  - `test_load_config_strips_deprecated_fixed_deck_keys` — write a YAML
+    with `fixed_deck1: foo`; `load_config` should warn (capture
+    `DeprecationWarning`) and not raise.
 
 ### New tests
 
@@ -921,11 +1089,18 @@ def test_failed_subprocess_logs_and_continues(tmp_path, caplog):
 def test_shutdown_with_cancel_futures(): ...
 
 def test_round_robin_csv_format(tmp_path):
-    # Run a 2-deck milestone; load output CSV; assert header has 6 columns;
-    # assert N rows = 2 * 1 * 2 (decks × pairs × agent_idx) = 4.
+    # Run a 2-deck milestone; load output CSV; assert header is exactly
+    # ["deck_a", "deck_b", "training_player_idx", "n_games", "winrate",
+    #  "cap_hit_count"]; assert N rows = 2 * 1 * 2 = 4 (2 decks → 1
+    # ordered pair, both directions, × 2 training_player_idx).
 
 def test_round_robin_uses_spawn_context():
     # Patch ProcessPoolExecutor; assert spawn context is requested.
+
+def test_two_milestones_produce_identical_csv_for_same_ckpt(tmp_path):
+    # Submit the same checkpoint + same deck pair twice via the same runner.
+    # Worker is reused; assert second CSV byte-equal to first. Catches
+    # cross-submit state leaks (fireplace cache, torch module state).
 ```
 
 ### Test deletions
@@ -935,18 +1110,25 @@ def test_round_robin_uses_spawn_context():
 ## Migration steps (PR series)
 
 ```
+PR-3  Author 18 deck YAMLs (data only, no code changes — lands FIRST)
+      18 × YAML in data/fireplace_decks/
+      data/fireplace_decks/README.md updated (archetype convention + sources)
+      No tests yet (validation lands in PR-1); the YAML files just sit on
+      disk. Existing basic_mage.yaml / basic_warrior.yaml remain in place
+      and unaffected. Main green: trivially.
+
 PR-1  Deck dataclass + archetype validation + load_decks
-      hearthstone/ai/env/deck_source.py + test_deck_source.py
+      hearthstone/ai/env/deck_source.py + test_deck_source.py (incl.
+      test_all_18_decks_load_successfully — runs against the 18 YAMLs
+      authored in PR-3)
       DELETE: data/fireplace_decks/{basic_mage,basic_warrior}.yaml
       DELETE: hearthstone/ai/self_play.py + tests/unit/ai/test_self_play.py
       Update test_evaluate.py / test_train_smoke.py / test_fireplace_env.py
-      to NOT depend on basic_*.yaml: substitute in-test stub Deck objects
-      until PR-3 lands the real archetype YAMLs.
-
-PR-3  Author 18 deck YAMLs (data only, no code changes)
-      18 × YAML in data/fireplace_decks/
-      data/fireplace_decks/README.md updated (archetype convention + sources)
-      test_deck_source.py::test_all_18_decks_load_successfully passes.
+      to switch from basic_mage / basic_warrior to aggro_mage /
+      control_warrior (now real files thanks to PR-3).
+      Main green throughout: PR-3 added the new YAMLs without breaking
+      anything; PR-1 swaps callers to the new names atomically with the
+      basic_*.yaml deletion.
 
 PR-2  FireplaceGymEnv multi-deck signature + evaluate_pool
       hearthstone/ai/env/fireplace_env.py: new constructor, reset() flow
@@ -974,21 +1156,29 @@ PR-5  Milestone subprocess
 
 ### PR ordering rationale
 
-Order is **PR-1 → PR-3 → PR-2 → PR-4 → PR-5**:
+Order is **PR-3 → PR-1 → PR-2 → PR-4 → PR-5**:
 
-- PR-1 introduces the `Deck` dataclass and archetype validation. Delete the
-  basic_* YAMLs and `self_play.py` here. Tests that previously called
-  `load_deck("basic_mage")` switch to in-test stub `Deck` objects.
-- PR-3 (data-only) immediately follows so the 18 archetype YAMLs exist and
-  validate. After PR-3, `load_deck("aggro_mage")` works.
-- PR-2 changes `FireplaceGymEnv`'s constructor and replaces `evaluate()` with
-  `evaluate_pool()`. Bundled into one PR because separating them would
-  leave `evaluate.py` calling the old constructor, which PR-2 removes.
-- PR-4 wires multi-deck training in `scripts/train.py` against the now-functional
+- **PR-3 first** (data only): land 18 archetype YAMLs alongside the
+  existing basic_*.yaml. No code changes. Existing tests still pass
+  against basic_*.yaml; new YAMLs are unreferenced. Trivially green.
+- **PR-1**: introduces the `Deck` dataclass + archetype validation +
+  `load_decks`. Deletes `basic_*.yaml` AND `self_play.py` simultaneously
+  with switching the surviving callers (`test_evaluate.py`,
+  `test_train_smoke.py`, `test_fireplace_env.py`) to `aggro_mage` /
+  `control_warrior` (now real files thanks to PR-3). All within one
+  PR — atomic transition.
+- **PR-2**: changes `FireplaceGymEnv`'s constructor and replaces
+  `evaluate()` with `evaluate_pool()`. Bundled into one PR because
+  separating them would leave `evaluate.py` calling the old constructor,
+  which PR-2 removes.
+- **PR-4**: wires multi-deck training in `scripts/train.py` against the
   18-deck pool. Smoke test passing here gates merge.
-- PR-5 adds milestone subprocess machinery on top.
+- **PR-5**: adds milestone subprocess machinery on top.
 
-`main` stays green throughout. Each PR's tests pass before merge.
+`main` stays green throughout. Each PR's tests pass before merge. The
+prior in-test-stub-Deck workaround (rev 1 plan) is unnecessary: by
+authoring YAMLs first (PR-3), tests in PR-1 can directly use
+`aggro_mage` / `control_warrior` without stubs.
 
 ### High-risk areas (called out for plan/review attention)
 
@@ -1031,8 +1221,13 @@ Order is **PR-1 → PR-3 → PR-2 → PR-4 → PR-5**:
     chain; `max_actions_per_game=1000` is for milestone games. Different
     constants, different scopes. Documented.
   - Milestone matchup is "loaded checkpoint via SelfPlayOpponent vs
-    RandomOpponent", `agent_idx ∈ {0, 1}` (Section 4 + Failure modes).
+    RandomOpponent", `training_player_idx ∈ {0, 1}` (Section 4 +
+    Failure modes). CSV column name matches the env constructor arg:
+    `training_player_idx`, not `agent_idx`.
   - `self_play.py` deletion is in PR-1 file list and Cleanup section.
+  - SelfPlayOpponent perspective invariant
+    (`env.game.current_player`, NOT `env.training_player`) called out
+    explicitly so future refactors don't break swap mode.
 - **Scope check**: focused on multi-deck training infrastructure. Defers:
   smarter ChooseOnePolicy, draw-quality head, deck pool changes at
   runtime, GPU support. Each named in non-goals.
@@ -1064,3 +1259,45 @@ Order is **PR-1 → PR-3 → PR-2 → PR-4 → PR-5**:
   nice-to-haves (1000-reset distribution test, PR ordering, basic_*.yaml
   deletion in PR-1, self_play.py cleanup, notes-field removal,
   per-iter sequencing).
+
+- **rev 2 (2026-05-01)**: second subagent self-review found 3 blockers,
+  9 important issues, 3 nice-to-haves; all incorporated.
+  - **Blockers**: (1) test arithmetic — `log_iter` writes 4 trailing
+    blanks (not 9); the S1' rev 2 assertion of 3 was correct; (2)
+    `best.pt` may not exist at first milestone — added bootstrap
+    save_checkpoint at iter=0 + skip-with-warning guard at submit site
+    + failure-mode entry; (3) PR ordering — moved PR-3 (deck YAMLs)
+    to land FIRST so PR-1 can switch test callers to real
+    `aggro_mage`/`control_warrior` files atomically with basic_*.yaml
+    deletion (no in-test stubs).
+  - **Important**: (4) removed false claim about S1' having
+    `test_reset_runs_opponent_first_when_p2_is_training` — this code
+    path was untested in S1' and is first covered by PR-2's new test;
+    (5) refined RNG model — `random.seed` propagation is solely for
+    `RandomOpponent`, fireplace gameplay uses `Game.random` (the
+    `card.py:241` reference was a docstring example, not real code);
+    (6) removed dead `random.seed(1000+g)` in `_run_round_robin` (env's
+    own reset() reseeds immediately) and switched to deterministic
+    per-(matchup, game) seed; (7) documented that
+    `ProcessPoolExecutor(max_workers=1)` reuses one worker process
+    across submits + added `_pending` length warning + new test
+    `test_two_milestones_produce_identical_csv_for_same_ckpt`;
+    (8) clarified `cancel_futures=True` does not signal in-flight
+    subprocess; documented `pkill -f _run_round_robin` workaround;
+    (9) added failure mode for resume + swap RNG replay; future plan
+    task: store `env._rng.bit_generator.state` in checkpoint;
+    (10) clarified `evaluate_pool(stratified=True)` shuffle is
+    per-call fresh (no cross-call state) + variance disclaimer;
+    (11) added migration shim — `load_config` and `--resume` strip
+    deprecated `fixed_deck1`/`fixed_deck2` keys with DeprecationWarning;
+    (12) added load-bearing invariant note: SelfPlayOpponent.act()
+    MUST use `env.game.current_player`'s perspective, not
+    `env.training_player`'s.
+  - **Nice-to-haves**: (13) `test_swap_training_player_balanced` is now
+    a deterministic seed test (not a probabilistic band) — eliminates
+    CI flakiness; (14) added authoring-fallback rule: if a Druid (or
+    other thin-pool class) deck cannot satisfy `mean_cost ≤ 3.0`,
+    relax to `≤ 3.3` and document the deviation in
+    `data/fireplace_decks/README.md`; (15) renamed milestone CSV
+    column `agent_idx` → `training_player_idx` to match the env
+    constructor terminology and avoid downstream confusion.
