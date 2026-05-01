@@ -1,0 +1,34 @@
+name: Control Druid
+archetype: control
+hero_id: HERO_06
+cards:
+  - EX1_169       # Innervate (0)
+  - EX1_169
+  - EX1_154       # Wrath (2)
+  - EX1_154
+  - CS2_013       # Wild Growth (2)
+  - CS2_013
+  - EX1_007       # Acolyte of Pain (3)
+  - EX1_007
+  - CS2_007       # Healing Touch (3)
+  - CS2_007
+  - CS2_012       # Swipe (3)
+  - CS2_012
+  - EX1_166       # Keeper of the Grove (4)
+  - EX1_166
+  - EX1_164       # Nourish (5)
+  - EX1_164
+  - NEW1_007      # Starfall (5)
+  - NEW1_007
+  - EX1_165       # Druid of the Claw (6)
+  - EX1_165
+  - EX1_173       # Starfire (6)
+  - EX1_173
+  - EX1_178       # Ancient of War (7) [epic]
+  - NEW1_008      # Ancient of Lore (7) [epic]
+  - CS2_232       # Ironbark Protector (8)
+  - EX1_573       # Cenarius (8) [legendary]
+  - EX1_249       # Baron Geddon (7) [legendary]
+  - EX1_110       # Cairne Bloodhoof (6) [legendary]
+  - EX1_298       # Ragnaros the Firelord (8) [legendary]
+  - EX1_561       # Alexstrasza (9) [legendary]
