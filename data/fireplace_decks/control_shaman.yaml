@@ -1,0 +1,34 @@
+name: Control Shaman
+archetype: control
+hero_id: HERO_02
+cards:
+  - EX1_238       # Lightning Bolt (1)
+  - EX1_238
+  - CS2_045       # Rockbiter Weapon (2)
+  - EX1_575       # Mana Tide Totem (3)
+  - EX1_575
+  - EX1_246       # Hex (3)
+  - EX1_246
+  - EX1_259       # Lightning Storm (3)
+  - EX1_259
+  - EX1_007       # Acolyte of Pain (3)
+  - EX1_007
+  - EX1_241       # Lava Burst (3)
+  - EX1_587       # Windspeaker (4)
+  - EX1_587
+  - EX1_567       # Doomhammer (5)
+  - EX1_250       # Earth Elemental (5)
+  - EX1_250
+  - CS2_046       # Bloodlust (5)
+  - EX1_284       # Azure Drake (5)
+  - EX1_284
+  - CS2_042       # Fire Elemental (6)
+  - CS2_042
+  - NEW1_010      # Al'Akir the Windlord (8) [legendary]
+  - EX1_249       # Baron Geddon (7) [legendary]
+  - EX1_298       # Ragnaros the Firelord (8) [legendary]
+  - EX1_561       # Alexstrasza (9) [legendary]
+  - EX1_110       # Cairne Bloodhoof (6) [legendary]
+  - EX1_016       # Sylvanas Windrunner (6) [legendary]
+  - CS2_186       # War Golem (7)
+  - CS2_200       # Boulderfist Ogre (6)

@@ -1,0 +1,34 @@
+name: Aggro Shaman
+archetype: aggro
+hero_id: HERO_02
+cards:
+  - CS2_041       # Ancestral Healing (0)
+  - CS2_037       # Frost Shock (1)
+  - CS2_037
+  - EX1_238       # Lightning Bolt (1)
+  - EX1_238
+  - EX1_245       # Earth Shock (1)
+  - EX1_245
+  - EX1_251       # Forked Lightning (1)
+  - EX1_251
+  - CS2_188       # Abusive Sergeant (1)
+  - CS2_188
+  - EX1_029       # Leper Gnome (1)
+  - EX1_029
+  - CS2_146       # Southsea Deckhand (1)
+  - CS2_146
+  - CS2_045       # Rockbiter Weapon (2)
+  - CS2_045
+  - EX1_565       # Flametongue Totem (2)
+  - EX1_565
+  - CS2_172       # Bloodfen Raptor (2)
+  - CS2_172
+  - NEW1_019      # Knife Juggler (2)
+  - NEW1_019
+  - EX1_241       # Lava Burst (3)
+  - EX1_241
+  - CS2_124       # Wolfrider (3)
+  - CS2_124
+  - EX1_258       # Unbound Elemental (3)
+  - EX1_258
+  - EX1_587       # Windspeaker (4)
