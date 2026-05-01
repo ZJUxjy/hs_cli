@@ -1,0 +1,34 @@
+name: Control Paladin
+archetype: control
+hero_id: HERO_04
+cards:
+  - EX1_619       # Equality (2)
+  - EX1_619
+  - CS2_089       # Holy Light (2)
+  - CS2_089
+  - CS2_093       # Consecration (3)
+  - CS2_093
+  - CS2_094       # Hammer of Wrath (3)
+  - CS2_094
+  - EX1_382       # Aldor Peacekeeper (3)
+  - EX1_382
+  - EX1_007       # Acolyte of Pain (3)
+  - EX1_007
+  - CS2_092       # Blessing of Kings (4)
+  - CS2_092
+  - CS2_097       # Truesilver Champion (4)
+  - CS2_097
+  - EX1_005       # Big Game Hunter (4) [epic]
+  - EX1_354       # Lay on Hands (6)
+  - EX1_354
+  - EX1_384       # Avenging Wrath (6)
+  - CS2_088       # Guardian of Kings (7)
+  - CS2_088
+  - CS2_200       # Boulderfist Ogre (6)
+  - CS2_200
+  - EX1_383       # Tirion Fordring (8) [legendary]
+  - EX1_249       # Baron Geddon (7) [legendary]
+  - EX1_298       # Ragnaros the Firelord (8) [legendary]
+  - EX1_561       # Alexstrasza (9) [legendary]
+  - EX1_110       # Cairne Bloodhoof (6) [legendary]
+  - EX1_016       # Sylvanas Windrunner (6) [legendary]
