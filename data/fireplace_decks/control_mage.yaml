@@ -1,0 +1,34 @@
+name: Control Mage
+archetype: control
+hero_id: HERO_08
+cards:
+  - CS2_024       # Frostbolt (2)
+  - CS2_024
+  - EX1_096       # Loot Hoarder (2)
+  - EX1_096
+  - CS2_023       # Arcane Intellect (3)
+  - CS2_023
+  - EX1_287       # Counterspell (3)
+  - EX1_295       # Ice Block (3)
+  - EX1_289       # Ice Barrier (3)
+  - CS2_026       # Frost Nova (3)
+  - CS2_029       # Fireball (4)
+  - CS2_029
+  - CS2_022       # Polymorph (4)
+  - CS2_022
+  - CS2_033       # Water Elemental (4)
+  - CS2_033
+  - EX1_007       # Acolyte of Pain (3)
+  - EX1_007
+  - CS2_028       # Blizzard (6)
+  - CS2_028
+  - CS2_032       # Flamestrike (7)
+  - CS2_032
+  - EX1_559       # Archmage Antonidas (7) [legendary]
+  - EX1_283       # Frost Elemental (6)
+  - EX1_283
+  - EX1_284       # Azure Drake (5)
+  - EX1_284
+  - EX1_249       # Baron Geddon (7) [legendary]
+  - EX1_561       # Alexstrasza (9) [legendary]
+  - EX1_279       # Pyroblast (10)
