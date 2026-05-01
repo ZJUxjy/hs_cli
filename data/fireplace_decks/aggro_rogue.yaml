@@ -1,0 +1,34 @@
+name: Aggro Rogue
+archetype: aggro
+hero_id: HERO_03
+cards:
+  - CS2_072       # Backstab (0)
+  - CS2_072
+  - EX1_145       # Preparation (0)
+  - EX1_145
+  - EX1_144       # Shadowstep (0)
+  - CS2_073       # Cold Blood (1)
+  - CS2_073
+  - CS2_074       # Deadly Poison (1)
+  - CS2_074
+  - CS2_075       # Sinister Strike (1)
+  - CS2_075
+  - EX1_008       # Argent Squire (1)
+  - EX1_008
+  - EX1_010       # Worgen Infiltrator (1)
+  - EX1_010
+  - CS2_146       # Southsea Deckhand (1)
+  - CS2_146
+  - EX1_124       # Eviscerate (2)
+  - EX1_124
+  - EX1_131       # Defias Ringleader (2)
+  - EX1_131
+  - CS2_233       # Blade Flurry (2)
+  - EX1_278       # Shiv (2)
+  - EX1_134       # SI:7 Agent (3)
+  - EX1_134
+  - EX1_137       # Headcrack (3)
+  - EX1_137
+  - EX1_133       # Perdition's Blade (3)
+  - CS2_124       # Wolfrider (3)
+  - CS2_124
