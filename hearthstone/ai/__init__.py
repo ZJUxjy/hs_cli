@@ -1,14 +1,7 @@
-"""AI module for Hearthstone."""
-from hearthstone.ai.gym_env import HearthstoneEnv
-from hearthstone.ai.card_embedding import CardEmbedding
-from hearthstone.ai.reward_functions import RewardFunction
-from hearthstone.ai.self_play import SelfPlayTrainer
-from hearthstone.ai.batch_simulator import BatchSimulator
+"""AI module: PPO training driver + fireplace adapter.
 
-__all__ = [
-    'HearthstoneEnv',
-    'CardEmbedding',
-    'RewardFunction',
-    'SelfPlayTrainer',
-    'BatchSimulator',
-]
+Public types live in submodules; import from there directly:
+    from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
+    from hearthstone.ai.env.opponents import RandomOpponent, SelfPlayOpponent
+    from hearthstone.ai.network import PolicyValueNetwork
+"""

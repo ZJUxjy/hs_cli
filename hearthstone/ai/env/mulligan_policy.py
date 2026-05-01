@@ -1,4 +1,5 @@
 """Mulligan policies. Return cards to mulligan away."""
+from __future__ import annotations
 
 from typing import Any
 

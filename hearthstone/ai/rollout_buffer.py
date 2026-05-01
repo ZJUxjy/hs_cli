@@ -1,4 +1,6 @@
 """Sequential rollout buffer with Generalized Advantage Estimation."""
+from __future__ import annotations
+
 from typing import Dict, Optional
 import numpy as np
 

@@ -1,4 +1,6 @@
 """Evaluation against an opponent factory; greedy on agent side."""
+from __future__ import annotations
+
 from typing import Callable
 
 from hearthstone.enums import PlayState

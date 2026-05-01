@@ -1,4 +1,5 @@
 """Discover / Choose policies (mid-turn 1-of-N pick). Always pick exactly one."""
+from __future__ import annotations
 
 from typing import Any
 
