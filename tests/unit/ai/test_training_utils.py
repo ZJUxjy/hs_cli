@@ -5,7 +5,9 @@ from dataclasses import asdict
 import pytest
 import torch
 
-from hearthstone.ai.config import TrainConfig, CurriculumConfig
+from hearthstone.ai.config import (
+    CardFeaturesConfig, CurriculumConfig, SelfPlayConfig, TrainConfig,
+)
 from hearthstone.ai.network import PolicyValueNetwork
 from hearthstone.ai.training_utils import (
     MetricsLogger, save_checkpoint, load_checkpoint,
@@ -15,15 +17,26 @@ from hearthstone.ai.training_utils import (
 def _minimal_config() -> TrainConfig:
     return TrainConfig(
         seed=42, max_iters=10, rollout_steps=64, ppo_epochs=2,
-        deck1="test_deck", deck2="test_deck", training_player_name="Player 1",
+        deck_pool=["basic_mage", "basic_warrior"],
+        deck_selection="fixed",
+        fixed_deck1="basic_mage", fixed_deck2="basic_warrior",
+        training_player_idx=0,
+        mulligan_policy="keep_low_cost", mulligan_threshold=3,
+        discover_policy="first", choose_one_policy="first",
         lr=3e-4, gamma=0.99, gae_lambda=0.95, clip_epsilon=0.2,
         value_coef=0.5, entropy_coef=0.01, max_grad_norm=0.5,
-        embedding_dim=64, hidden_dim=128,
+        slot_dim=90, hidden_dim=128, num_actions=512,
         curriculum=CurriculumConfig(switch_threshold=0.8, early_stop_patience=5),
-        eval_every=2, eval_games=4,
+        self_play=SelfPlayConfig(
+            refresh_threshold=0.8, refresh_eval_games=4, refresh_every=2,
+            random_opponent_prob=0.2,
+            opponent_checkpoint_path="checkpoints/self_play_opponent.pt",
+        ),
+        eval_every=2, eval_games=4, max_actions_per_game=200,
         checkpoint_every=5, checkpoint_dir="checkpoints",
         best_checkpoint_path="checkpoints/best.pt",
         runs_dir="runs",
+        card_features=CardFeaturesConfig(log_coverage=False),
     )
 
 

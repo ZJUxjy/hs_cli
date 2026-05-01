@@ -1,28 +1,27 @@
 """Tests for PPOTrainer."""
 import numpy as np
 import torch
-from hearthstone.ai.network import PolicyValueNetwork
+from hearthstone.ai.network import PolicyValueNetwork, SCALAR_KEYS
 from hearthstone.ai.ppo_trainer import PPOTrainer
 
 
+SLOT_DIM = 90
+NUM_ACTIONS = 512
+
+
 def make_dummy_rollout(batch_size: int = 16):
-    """Mimic the output of RolloutBuffer.get() with realistic shapes."""
+    """Mimic the output of RolloutBuffer.get() with the post-fireplace shape:
+    slot_dim=90, 21 scalars, num_actions=512.
+    """
     rng = np.random.default_rng(0)
     obs = {
-        "player_hand": rng.standard_normal((batch_size, 10, 64)).astype(np.float32) * 0.1,
-        "player_board": rng.standard_normal((batch_size, 7, 64)).astype(np.float32) * 0.1,
-        "opponent_board": rng.standard_normal((batch_size, 7, 64)).astype(np.float32) * 0.1,
-        "player_health": rng.uniform(0, 30, (batch_size, 1)).astype(np.float32),
-        "player_mana": rng.uniform(0, 10, (batch_size, 1)).astype(np.float32),
-        "player_max_mana": rng.uniform(0, 10, (batch_size, 1)).astype(np.float32),
-        "player_hand_size": rng.uniform(0, 10, (batch_size, 1)).astype(np.float32),
-        "player_board_size": rng.uniform(0, 7, (batch_size, 1)).astype(np.float32),
-        "opponent_health": rng.uniform(0, 30, (batch_size, 1)).astype(np.float32),
-        "opponent_board_size": rng.uniform(0, 7, (batch_size, 1)).astype(np.float32),
-        "turn_number": rng.uniform(0, 50, (batch_size, 1)).astype(np.float32),
-        "player_deck_size": rng.uniform(0, 30, (batch_size, 1)).astype(np.float32),
+        "player_hand": rng.standard_normal((batch_size, 10, SLOT_DIM)).astype(np.float32) * 0.1,
+        "player_board": rng.standard_normal((batch_size, 7, SLOT_DIM)).astype(np.float32) * 0.1,
+        "opponent_board": rng.standard_normal((batch_size, 7, SLOT_DIM)).astype(np.float32) * 0.1,
     }
-    obs["actions"] = rng.integers(0, 100, batch_size).astype(np.int64)
+    for k in SCALAR_KEYS:
+        obs[k] = rng.uniform(0, 1, (batch_size, 1)).astype(np.float32)
+    obs["actions"] = rng.integers(0, NUM_ACTIONS, batch_size).astype(np.int64)
     obs["rewards"] = rng.standard_normal(batch_size).astype(np.float32)
     obs["dones"] = np.zeros(batch_size, dtype=np.float32)
     obs["values"] = rng.standard_normal(batch_size).astype(np.float32)
@@ -61,20 +60,13 @@ class TestPPOTrainer:
         net = PolicyValueNetwork()
         trainer = PPOTrainer(net)
         torch_obs = {
-            "player_hand": torch.zeros(1, 10, 64),
-            "player_board": torch.zeros(1, 7, 64),
-            "opponent_board": torch.zeros(1, 7, 64),
-            "player_health": torch.tensor([[30.0]]),
-            "player_mana": torch.tensor([[1.0]]),
-            "player_max_mana": torch.tensor([[1.0]]),
-            "player_hand_size": torch.tensor([[3.0]]),
-            "player_board_size": torch.tensor([[0.0]]),
-            "opponent_health": torch.tensor([[30.0]]),
-            "opponent_board_size": torch.tensor([[0.0]]),
-            "turn_number": torch.tensor([[1.0]]),
-            "player_deck_size": torch.tensor([[27.0]]),
+            "player_hand": torch.zeros(1, 10, SLOT_DIM),
+            "player_board": torch.zeros(1, 7, SLOT_DIM),
+            "opponent_board": torch.zeros(1, 7, SLOT_DIM),
         }
-        mask = np.zeros(100, dtype=np.float32)
+        for k in SCALAR_KEYS:
+            torch_obs[k] = torch.zeros(1, 1)
+        mask = np.zeros(NUM_ACTIONS, dtype=np.float32)
         mask[0] = 1.0  # only end-turn valid
         action, log_prob, value = trainer.select_action(torch_obs, mask)
         assert action == 0, "Masked-out actions should never be selected"

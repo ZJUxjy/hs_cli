@@ -9,18 +9,16 @@ def test_self_play_trainer_exists():
 
 
 def test_select_decks():
-    """Test deck selection."""
-    from hearthstone.ai.self_play import SelfPlayTrainer
-    from hearthstone.models.card import Minion
-    from hearthstone.models.enums import CardType
+    """Test deck selection.
 
-    deck1 = [
-        Minion(id='1', name='A', cost=1, card_type=CardType.MINION, attack=1, health=1),
-        Minion(id='2', name='B', cost=2, card_type=CardType.MINION, attack=2, health=2),
-    ]
-    deck2 = [
-        Minion(id='3', name='C', cost=3, card_type=CardType.MINION, attack=3, health=3),
-    ]
+    SelfPlayTrainer is engine-agnostic — deck_pool entries are just opaque
+    list-shaped values. Use plain card-id strings (matching the fireplace
+    deck representation) as stand-ins.
+    """
+    from hearthstone.ai.self_play import SelfPlayTrainer
+
+    deck1 = ["CS2_182", "CS2_120"]
+    deck2 = ["CS2_124"]
 
     trainer = SelfPlayTrainer(agent_class=None, deck_pool=[deck1, deck2])
     d1, d2 = trainer.select_decks()
