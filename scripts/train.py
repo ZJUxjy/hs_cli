@@ -49,8 +49,12 @@ def _build_obs_for_network(obs: dict, device: str) -> dict:
 
 
 def _make_env(cfg: TrainConfig, opponent) -> OpponentEnv:
-    deck1, hero1 = load_deck(cfg.fixed_deck1)
-    deck2, hero2 = load_deck(cfg.fixed_deck2)
+    # Adapt new Deck dataclass to legacy FireplaceGymEnv signature.
+    # Phase D.2 will rewrite this entirely to use the multi-deck constructor.
+    _deck_a = load_deck(cfg.fixed_deck1)
+    _deck_b = load_deck(cfg.fixed_deck2)
+    deck1, hero1 = list(_deck_a.card_ids), _deck_a.hero_id
+    deck2, hero2 = list(_deck_b.card_ids), _deck_b.hero_id
 
     from hearthstone.ai.env.mulligan_policy import KeepAll, KeepLowCost
     from hearthstone.ai.env.discover_policy import FirstOption, LowestCost
@@ -227,8 +231,10 @@ def run_training_loop(
 
             # --- Eval ---
             if it % config.eval_every == 0:
-                deck1, hero1 = load_deck(config.fixed_deck1)
-                deck2, hero2 = load_deck(config.fixed_deck2)
+                _deck_a = load_deck(config.fixed_deck1)
+                _deck_b = load_deck(config.fixed_deck2)
+                deck1, hero1 = list(_deck_a.card_ids), _deck_a.hero_id
+                deck2, hero2 = list(_deck_b.card_ids), _deck_b.hero_id
                 winrate = evaluate(
                     network=network,
                     opponent_factory=lambda: RandomOpponent(),

@@ -4,11 +4,11 @@ rollout_steps: 2048
 ppo_epochs: 4
 
 deck_pool:
-  - basic_mage
-  - basic_warrior
+  - aggro_mage
+  - control_warrior
 deck_selection: fixed
-fixed_deck1: basic_mage
-fixed_deck2: basic_warrior
+fixed_deck1: aggro_mage
+fixed_deck2: control_warrior
 training_player_idx: 0
 
 mulligan_policy: keep_low_cost

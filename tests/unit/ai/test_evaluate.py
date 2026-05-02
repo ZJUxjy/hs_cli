@@ -7,8 +7,10 @@ from hearthstone.ai.env.deck_source import load_deck
 
 def test_evaluate_returns_winrate_in_range():
     net = PolicyValueNetwork(slot_dim=90, hidden_dim=64, num_actions=512)
-    c1, h1 = load_deck("basic_mage")
-    c2, h2 = load_deck("basic_warrior")
+    deck_a = load_deck("aggro_mage")
+    deck_b = load_deck("control_warrior")
+    c1, h1 = list(deck_a.card_ids), deck_a.hero_id
+    c2, h2 = list(deck_b.card_ids), deck_b.hero_id
     rate = evaluate(
         network=net, opponent_factory=lambda: RandomOpponent(),
         n_games=2, deck1=c1, deck2=c2, hero1=h1, hero2=h2,

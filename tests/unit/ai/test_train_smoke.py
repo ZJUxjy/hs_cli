@@ -14,8 +14,8 @@ def test_two_iter_train_smoke(tmp_path):
     """Run 2 tiny iterations and verify metrics + checkpoint files exist."""
     cfg = TrainConfig(
         seed=42, max_iters=2, rollout_steps=64, ppo_epochs=2,
-        deck_pool=["basic_mage"], deck_selection="fixed",
-        fixed_deck1="basic_mage", fixed_deck2="basic_warrior",
+        deck_pool=["aggro_mage"], deck_selection="fixed",
+        fixed_deck1="aggro_mage", fixed_deck2="control_warrior",
         training_player_idx=0,
         mulligan_policy="keep_low_cost", mulligan_threshold=3,
         discover_policy="first", choose_one_policy="first",

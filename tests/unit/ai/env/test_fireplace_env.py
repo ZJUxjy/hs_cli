@@ -7,10 +7,13 @@ def env():
     from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
     from hearthstone.ai.env.deck_source import load_deck
 
-    cards1, h1 = load_deck("basic_mage")
-    cards2, h2 = load_deck("basic_warrior")
+    deck_a = load_deck("aggro_mage")
+    deck_b = load_deck("control_warrior")
+    # Adapt new Deck dataclass to legacy FireplaceGymEnv tuple signature.
+    # Phase C.1 will switch the env to take Deck instances directly.
     return FireplaceGymEnv(
-        deck1=cards1, deck2=cards2, hero1=h1, hero2=h2,
+        deck1=list(deck_a.card_ids), deck2=list(deck_b.card_ids),
+        hero1=deck_a.hero_id, hero2=deck_b.hero_id,
         training_player_idx=0, seed=42,
     )
 
@@ -52,8 +55,10 @@ def test_step_end_turn_advances_state(env):
 def test_seed_reproducibility():
     from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
     from hearthstone.ai.env.deck_source import load_deck
-    c1, h1 = load_deck("basic_mage")
-    c2, h2 = load_deck("basic_warrior")
+    deck_a = load_deck("aggro_mage")
+    deck_b = load_deck("control_warrior")
+    c1, h1 = list(deck_a.card_ids), deck_a.hero_id
+    c2, h2 = list(deck_b.card_ids), deck_b.hero_id
     e1 = FireplaceGymEnv(c1, c2, h1, h2, seed=99)
     e2 = FireplaceGymEnv(c1, c2, h1, h2, seed=99)
     obs1, _ = e1.reset()
@@ -64,8 +69,10 @@ def test_seed_reproducibility():
 def test_valid_actions_under_num_actions_bound():
     from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
     from hearthstone.ai.env.deck_source import load_deck
-    c1, h1 = load_deck("basic_mage")
-    c2, h2 = load_deck("basic_warrior")
+    deck_a = load_deck("aggro_mage")
+    deck_b = load_deck("control_warrior")
+    c1, h1 = list(deck_a.card_ids), deck_a.hero_id
+    c2, h2 = list(deck_b.card_ids), deck_b.hero_id
     for seed in range(5):
         env = FireplaceGymEnv(c1, c2, h1, h2, seed=seed)
         env.reset()

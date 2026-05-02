@@ -14,10 +14,10 @@ def _minimal_yaml(tmp_path, **overrides):
         "max_iters": 1000,
         "rollout_steps": 2048,
         "ppo_epochs": 4,
-        "deck_pool": ["basic_mage", "basic_warrior"],
+        "deck_pool": ["aggro_mage", "control_warrior"],
         "deck_selection": "fixed",
-        "fixed_deck1": "basic_mage",
-        "fixed_deck2": "basic_warrior",
+        "fixed_deck1": "aggro_mage",
+        "fixed_deck2": "control_warrior",
         "training_player_idx": 0,
         "mulligan_policy": "keep_low_cost",
         "mulligan_threshold": 3,
@@ -109,7 +109,7 @@ class TestDefaultYaml:
     def test_default_yaml_loads_with_new_fields(self):
         from hearthstone.ai.config import load_config
         cfg = load_config("configs/default.yaml")
-        assert cfg.deck_pool == ["basic_mage", "basic_warrior"]
+        assert cfg.deck_pool == ["aggro_mage", "control_warrior"]
         assert cfg.training_player_idx == 0
         assert cfg.slot_dim == 90
         assert cfg.num_actions == 512

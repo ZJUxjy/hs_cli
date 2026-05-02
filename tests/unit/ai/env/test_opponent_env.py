@@ -8,8 +8,10 @@ def opp_env():
     from hearthstone.ai.env.opponents import RandomOpponent
     from hearthstone.ai.env.deck_source import load_deck
 
-    c1, h1 = load_deck("basic_mage")
-    c2, h2 = load_deck("basic_warrior")
+    deck_a = load_deck("aggro_mage")
+    deck_b = load_deck("control_warrior")
+    c1, h1 = list(deck_a.card_ids), deck_a.hero_id
+    c2, h2 = list(deck_b.card_ids), deck_b.hero_id
     base = FireplaceGymEnv(c1, c2, h1, h2, training_player_idx=0, seed=42)
     return OpponentEnv(base, RandomOpponent())
 
@@ -35,8 +37,10 @@ def test_terminated_during_opponent_turn():
     from hearthstone.ai.env.opponents import RandomOpponent
     from hearthstone.ai.env.deck_source import load_deck
 
-    c1, h1 = load_deck("basic_mage")
-    c2, h2 = load_deck("basic_warrior")
+    deck_a = load_deck("aggro_mage")
+    deck_b = load_deck("control_warrior")
+    c1, h1 = list(deck_a.card_ids), deck_a.hero_id
+    c2, h2 = list(deck_b.card_ids), deck_b.hero_id
 
     saw_terminal = False
     for seed in range(20):
