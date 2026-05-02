@@ -9,14 +9,17 @@ import torch
 _HEADER = [
     "iter", "phase", "total_loss", "policy_loss", "value_loss",
     "entropy", "eval_winrate", "best_winrate", "plateau_count",
+    "cap_hit_count",       # NEW (S2-A): filled on eval rows
+    "milestone_path",      # NEW (S2-A): filled on milestone rows
 ]
 
 
 class MetricsLogger:
-    """Append-only CSV logger for per-iter and per-eval metrics.
+    """Append-only CSV logger for per-iter, per-eval, and per-milestone rows.
 
-    Iter rows fill loss columns; eval columns are blank.
-    Eval rows fill eval columns; loss columns are blank.
+    Iter rows fill loss columns; eval / cap_hit / milestone_path are blank.
+    Eval rows fill eval + cap_hit columns; loss / milestone_path are blank.
+    Milestone rows fill milestone_path; everything else is blank.
     Header is written on open.
     """
 
@@ -32,17 +35,31 @@ class MetricsLogger:
     ) -> None:
         self._writer.writerow([
             iter, phase, total_loss, policy_loss, value_loss, entropy,
-            "", "", "",
+            "", "", "",     # eval cols blank
+            "", "",         # cap_hit_count + milestone_path blank
         ])
         self._file.flush()
 
     def log_eval(
         self, iter: int, phase: str,
         eval_winrate: float, best_winrate: float, plateau_count: int,
+        cap_hit_count: int = 0,
     ) -> None:
         self._writer.writerow([
-            iter, phase, "", "", "", "",
+            iter, phase, "", "", "", "",   # loss cols blank
             eval_winrate, best_winrate, plateau_count,
+            cap_hit_count,                 # NEW
+            "",                            # milestone_path blank
+        ])
+        self._file.flush()
+
+    def log_milestone(self, iter_num: int, csv_path: str) -> None:
+        """Mark a milestone heatmap as completed at this iter."""
+        self._writer.writerow([
+            iter_num, "", "", "", "", "",     # iter loss cols blank
+            "", "", "",                       # eval cols blank
+            "",                               # cap_hit_count blank
+            csv_path,
         ])
         self._file.flush()
 

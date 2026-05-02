@@ -177,8 +177,23 @@ def run_training_loop(
 
     env = _make_env(config, opp, decks)
 
-    # 6. Open metrics logger
+    # 6. Open metrics logger + milestone runner
     metrics = MetricsLogger(os.path.join(run_dir, "metrics.csv"))
+
+    from hearthstone.ai.milestone import MilestoneRunner
+    milestone_runner = MilestoneRunner(
+        output_dir=os.path.join(run_dir, "milestones"),
+    )
+
+    # Bootstrap best.pt at iter=0 so the first milestone (potentially at
+    # iter == milestone_every) has something to copy. Without this, if no
+    # NEW_BEST has fired by milestone_every, shutil.copy raises.
+    if not os.path.exists(config.best_checkpoint_path):
+        save_checkpoint(
+            config.best_checkpoint_path,
+            network=network, optimizer=trainer.optimizer, iter_num=0,
+            config=config, best_winrate=0.0, phase=fsm.phase.value,
+        )
 
     # 7. Main loop
     obs, _ = env.reset()
@@ -253,6 +268,7 @@ def run_training_loop(
                     eval_winrate=winrate,
                     best_winrate=fsm.best_winrate,
                     plateau_count=fsm.plateau_count,
+                    cap_hit_count=eval_result["cap_hit_count"],
                 )
                 print(
                     f"[iter {it:04d}] phase={fsm.phase.value} "
@@ -287,6 +303,36 @@ def run_training_loop(
                     )
                     break
 
+            # --- Milestone subprocess (non-blocking; runs round-robin in
+            #     a spawn-context worker against best.pt) ---
+            if (config.milestone_every > 0
+                    and it > 0
+                    and it % config.milestone_every == 0):
+                if os.path.exists(config.best_checkpoint_path):
+                    milestone_runner.submit(
+                        iter_num=it,
+                        checkpoint_path=config.best_checkpoint_path,
+                        deck_names=config.deck_pool,
+                        games_per_matchup=config.milestone_games_per_matchup,
+                        slot_dim=config.slot_dim,
+                        num_actions=config.num_actions,
+                    )
+                else:
+                    logger.warning(
+                        "[milestone] iter=%d: best.pt missing at %s; "
+                        "skipping submission", it, config.best_checkpoint_path,
+                    )
+
+            # Collect any milestones that finished since last poll
+            for completed_iter, csv_path in milestone_runner.collect_completed():
+                # Use a relative path in the CSV so the metrics file is portable.
+                rel = os.path.relpath(csv_path, run_dir)
+                metrics.log_milestone(completed_iter, rel)
+                print(
+                    f"[iter {it:04d}] milestone iter={completed_iter} "
+                    f"completed → {rel}", flush=True,
+                )
+
             # --- Periodic checkpoint ---
             if it % config.checkpoint_every == 0:
                 ckpt_path = os.path.join(config.checkpoint_dir, f"iter_{it:04d}.pt")
@@ -307,6 +353,10 @@ def run_training_loop(
         )
         print(f"\n[interrupted] checkpoint saved to {interrupted_path}", flush=True)
     finally:
+        # cancel pending submits; in-flight subprocess survives until done
+        # (writing its .partial file). User may need pkill -f
+        # _run_round_robin if they want it dead immediately.
+        milestone_runner.shutdown(wait=False)
         metrics.close()
         env.close()
 

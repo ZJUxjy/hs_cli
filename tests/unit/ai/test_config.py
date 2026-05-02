@@ -141,6 +141,48 @@ class TestStripDeprecated:
         assert any("fixed_deck1" in str(w.message) for w in deprecation)
         assert not hasattr(cfg, "fixed_deck1")
 
+    def test_strip_deprecated_helper_exercises_resume_path(self):
+        """The resume branch in scripts/train.py uses _strip_deprecated +
+        _dict_to_config to handle old checkpoints' embedded config dicts.
+        Exercise that helper with a synthetic raw dict that has
+        fixed_deck1/2 (mimicking ckpt['config'] from S1' / pre-S2-A)."""
+        import warnings
+        from hearthstone.ai.config import _strip_deprecated, _dict_to_config
+
+        raw = {
+            "seed": 42, "max_iters": 1, "rollout_steps": 16, "ppo_epochs": 1,
+            "deck_pool": ["aggro_mage", "control_warrior"],
+            "deck_selection": "random_pair",
+            "fixed_deck1": "aggro_mage",     # deprecated
+            "fixed_deck2": "control_warrior",  # deprecated
+            "training_player_idx": 0,
+            "swap_training_player": True,
+            "mulligan_policy": "keep_low_cost", "mulligan_threshold": 3,
+            "discover_policy": "first", "choose_one_policy": "first",
+            "lr": 3e-4, "gamma": 0.99, "gae_lambda": 0.95, "clip_epsilon": 0.2,
+            "value_coef": 0.5, "entropy_coef": 0.03, "max_grad_norm": 0.5,
+            "slot_dim": 90, "hidden_dim": 64, "num_actions": 512,
+            "curriculum": {"switch_threshold": 0.65, "early_stop_patience": 5},
+            "self_play": {
+                "refresh_threshold": 0.80, "refresh_eval_games": 4,
+                "refresh_every": 2, "random_opponent_prob": 0.20,
+                "opponent_checkpoint_path": "x.pt",
+            },
+            "eval_every": 1, "eval_games": 4, "max_actions_per_game": 100,
+            "milestone_every": 0, "milestone_games_per_matchup": 1,
+            "checkpoint_every": 1, "checkpoint_dir": "ckpts",
+            "best_checkpoint_path": "ckpts/best.pt",
+            "runs_dir": "runs",
+            "card_features": {"log_coverage": False},
+        }
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            stripped = _strip_deprecated(raw, source="checkpoint test.pt")
+            cfg = _dict_to_config(stripped)
+        deprecation = [w for w in caught if issubclass(w.category, DeprecationWarning)]
+        assert any("fixed_deck1" in str(w.message) for w in deprecation)
+        assert not hasattr(cfg, "fixed_deck1")
+
 
 class TestParseCli:
     def test_parse_basic(self):
