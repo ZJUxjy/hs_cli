@@ -1,19 +1,45 @@
-"""Tests for evaluate()."""
-from hearthstone.ai.evaluate import evaluate
-from hearthstone.ai.network import PolicyValueNetwork
-from hearthstone.ai.env.opponents import RandomOpponent
-from hearthstone.ai.env.deck_source import load_deck
+"""Tests for evaluate_pool."""
+import pytest
 
 
-def test_evaluate_returns_winrate_in_range():
+@pytest.fixture(scope="module", autouse=True)
+def _init_cards_db():
+    from fireplace import cards
+    cards.db.initialize()
+
+
+def test_evaluate_pool_returns_dict_with_required_keys():
+    from hearthstone.ai.network import PolicyValueNetwork
+    from hearthstone.ai.evaluate import evaluate_pool
+    from hearthstone.ai.env.opponents import RandomOpponent
+    from hearthstone.ai.env.deck_source import load_deck
+
     net = PolicyValueNetwork(slot_dim=90, hidden_dim=64, num_actions=512)
-    deck_a = load_deck("aggro_mage")
-    deck_b = load_deck("control_warrior")
-    c1, h1 = list(deck_a.card_ids), deck_a.hero_id
-    c2, h2 = list(deck_b.card_ids), deck_b.hero_id
-    rate = evaluate(
+    decks = [load_deck("aggro_mage"), load_deck("control_warrior")]
+    result = evaluate_pool(
         network=net, opponent_factory=lambda: RandomOpponent(),
-        n_games=2, deck1=c1, deck2=c2, hero1=h1, hero2=h2,
-        max_actions_per_game=200,
+        decks=decks, n_games=2, max_actions_per_game=100, seed=1,
+        hidden_dim=64,
     )
-    assert 0.0 <= rate <= 1.0
+    assert set(result.keys()) >= {"winrate", "n_games", "matchups_seen", "cap_hit_count"}
+    assert 0.0 <= result["winrate"] <= 1.0
+    assert result["n_games"] == 2
+    assert result["matchups_seen"] >= 1
+    assert result["cap_hit_count"] >= 0
+
+
+def test_evaluate_pool_cap_hit_counted():
+    """Tight cap forces cap-hits; cap_hit_count > 0."""
+    from hearthstone.ai.network import PolicyValueNetwork
+    from hearthstone.ai.evaluate import evaluate_pool
+    from hearthstone.ai.env.opponents import RandomOpponent
+    from hearthstone.ai.env.deck_source import load_deck
+
+    net = PolicyValueNetwork(slot_dim=90, hidden_dim=64, num_actions=512)
+    decks = [load_deck("aggro_mage"), load_deck("control_warrior")]
+    result = evaluate_pool(
+        network=net, opponent_factory=lambda: RandomOpponent(),
+        decks=decks, n_games=2, max_actions_per_game=10,    # very tight
+        seed=1, hidden_dim=64,
+    )
+    assert result["cap_hit_count"] >= 1

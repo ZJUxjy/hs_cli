@@ -22,7 +22,7 @@ from hearthstone.ai.config import (
     load_config, parse_cli,
 )
 from hearthstone.ai.curriculum import CurriculumEvent, CurriculumFSM, Phase
-from hearthstone.ai.evaluate import evaluate
+from hearthstone.ai.evaluate import evaluate_pool
 from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
 from hearthstone.ai.env.opponent_env import OpponentEnv
 from hearthstone.ai.env.opponents import RandomOpponent, SelfPlayOpponent
@@ -49,12 +49,9 @@ def _build_obs_for_network(obs: dict, device: str) -> dict:
 
 
 def _make_env(cfg: TrainConfig, opponent) -> OpponentEnv:
-    # Adapt new Deck dataclass to legacy FireplaceGymEnv signature.
-    # Phase D.2 will rewrite this entirely to use the multi-deck constructor.
-    _deck_a = load_deck(cfg.fixed_deck1)
-    _deck_b = load_deck(cfg.fixed_deck2)
-    deck1, hero1 = list(_deck_a.card_ids), _deck_a.hero_id
-    deck2, hero2 = list(_deck_b.card_ids), _deck_b.hero_id
+    # Phase D.2 will replace cfg.fixed_deck1/2 with the deck_pool list when
+    # the new TrainConfig fields ship. For now, two-deck fixed pairing.
+    decks = [load_deck(cfg.fixed_deck1), load_deck(cfg.fixed_deck2)]
 
     from hearthstone.ai.env.mulligan_policy import KeepAll, KeepLowCost
     from hearthstone.ai.env.discover_policy import FirstOption, LowestCost
@@ -67,7 +64,7 @@ def _make_env(cfg: TrainConfig, opponent) -> OpponentEnv:
     cop = FirstChoiceOne()
 
     base = FireplaceGymEnv(
-        deck1=deck1, deck2=deck2, hero1=hero1, hero2=hero2,
+        decks=decks, pair_strategy="fixed",
         training_player_idx=cfg.training_player_idx,
         mulligan_policy=mp, discover_policy=dp, choose_one_policy=cop,
         seed=cfg.seed,
@@ -231,20 +228,22 @@ def run_training_loop(
 
             # --- Eval ---
             if it % config.eval_every == 0:
-                _deck_a = load_deck(config.fixed_deck1)
-                _deck_b = load_deck(config.fixed_deck2)
-                deck1, hero1 = list(_deck_a.card_ids), _deck_a.hero_id
-                deck2, hero2 = list(_deck_b.card_ids), _deck_b.hero_id
-                winrate = evaluate(
+                # Phase D.2 will swap to config.deck_pool. For now use the
+                # fixed pair from config.
+                eval_decks = [load_deck(config.fixed_deck1),
+                              load_deck(config.fixed_deck2)]
+                eval_result = evaluate_pool(
                     network=network,
                     opponent_factory=lambda: RandomOpponent(),
+                    decks=eval_decks,
                     n_games=config.eval_games,
-                    deck1=deck1, deck2=deck2,
-                    hero1=hero1, hero2=hero2,
-                    training_player_idx=config.training_player_idx,
-                    slot_dim=config.slot_dim, num_actions=config.num_actions,
+                    slot_dim=config.slot_dim,
+                    hidden_dim=config.hidden_dim,
+                    num_actions=config.num_actions,
                     max_actions_per_game=config.max_actions_per_game,
+                    seed=config.seed + it,
                 )
+                winrate = eval_result["winrate"]
                 event = fsm.update(winrate)
                 metrics.log_eval(
                     iter=it, phase=fsm.phase.value,

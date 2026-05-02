@@ -7,11 +7,8 @@ import torch
 def env_ready():
     from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
     from hearthstone.ai.env.deck_source import load_deck
-    deck_a = load_deck("aggro_mage")
-    deck_b = load_deck("control_warrior")
-    c1, h1 = list(deck_a.card_ids), deck_a.hero_id
-    c2, h2 = list(deck_b.card_ids), deck_b.hero_id
-    env = FireplaceGymEnv(c1, c2, h1, h2, seed=42)
+    decks = [load_deck("aggro_mage"), load_deck("control_warrior")]
+    env = FireplaceGymEnv(decks=decks, pair_strategy="fixed", seed=42)
     env.reset()
     return env
 
