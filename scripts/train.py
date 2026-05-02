@@ -26,7 +26,7 @@ from hearthstone.ai.evaluate import evaluate_pool
 from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
 from hearthstone.ai.env.opponent_env import OpponentEnv
 from hearthstone.ai.env.opponents import RandomOpponent, SelfPlayOpponent
-from hearthstone.ai.env.deck_source import load_deck
+from hearthstone.ai.env.deck_source import load_deck, load_decks
 from hearthstone.ai.network import PolicyValueNetwork
 from hearthstone.ai.ppo_trainer import PPOTrainer
 from hearthstone.ai.rollout_buffer import RolloutBuffer
@@ -48,11 +48,12 @@ def _build_obs_for_network(obs: dict, device: str) -> dict:
     return {k: torch.from_numpy(v).unsqueeze(0).to(device) for k, v in obs.items()}
 
 
-def _make_env(cfg: TrainConfig, opponent) -> OpponentEnv:
-    # Phase D.2 will replace cfg.fixed_deck1/2 with the deck_pool list when
-    # the new TrainConfig fields ship. For now, two-deck fixed pairing.
-    decks = [load_deck(cfg.fixed_deck1), load_deck(cfg.fixed_deck2)]
+def _make_env(cfg: TrainConfig, opponent, decks: list) -> OpponentEnv:
+    """Build OpponentEnv from a pre-loaded deck pool + opponent.
 
+    `decks` is loaded once at startup (load_decks(cfg.deck_pool)) and passed
+    in to avoid re-validating archetype invariants on every env construction.
+    """
     from hearthstone.ai.env.mulligan_policy import KeepAll, KeepLowCost
     from hearthstone.ai.env.discover_policy import FirstOption, LowestCost
     from hearthstone.ai.env.choose_one_policy import FirstChoiceOne
@@ -64,7 +65,9 @@ def _make_env(cfg: TrainConfig, opponent) -> OpponentEnv:
     cop = FirstChoiceOne()
 
     base = FireplaceGymEnv(
-        decks=decks, pair_strategy="fixed",
+        decks=decks,
+        pair_strategy=cfg.deck_selection,           # "fixed" | "random_pair"
+        swap_training_player=cfg.swap_training_player,
         training_player_idx=cfg.training_player_idx,
         mulligan_policy=mp, discover_policy=dp, choose_one_policy=cop,
         seed=cfg.seed,
@@ -168,7 +171,11 @@ def run_training_loop(
         )
     else:
         opp = RandomOpponent()
-    env = _make_env(config, opp)
+    # Load deck pool once (used for env + eval); validates each deck against
+    # archetype invariants.
+    decks = load_decks(config.deck_pool)
+
+    env = _make_env(config, opp, decks)
 
     # 6. Open metrics logger
     metrics = MetricsLogger(os.path.join(run_dir, "metrics.csv"))
@@ -228,14 +235,10 @@ def run_training_loop(
 
             # --- Eval ---
             if it % config.eval_every == 0:
-                # Phase D.2 will swap to config.deck_pool. For now use the
-                # fixed pair from config.
-                eval_decks = [load_deck(config.fixed_deck1),
-                              load_deck(config.fixed_deck2)]
                 eval_result = evaluate_pool(
                     network=network,
                     opponent_factory=lambda: RandomOpponent(),
-                    decks=eval_decks,
+                    decks=decks,
                     n_games=config.eval_games,
                     slot_dim=config.slot_dim,
                     hidden_dim=config.hidden_dim,
@@ -324,10 +327,11 @@ def main(argv=None) -> int:
                 f"Old checkpoints are not resumable; start a fresh run.\n"
             )
             sys.exit(1)
-        raw["curriculum"] = CurriculumConfig(**raw["curriculum"])
-        raw["self_play"] = SelfPlayConfig(**raw["self_play"])
-        raw["card_features"] = CardFeaturesConfig(**raw.get("card_features", {}))
-        config = TrainConfig(**raw)
+        # Strip S2-A-deprecated keys (fixed_deck1/fixed_deck2) so older
+        # in-the-wild checkpoints from S1' / pre-S2-A loads cleanly.
+        from hearthstone.ai.config import _strip_deprecated, _dict_to_config
+        raw = _strip_deprecated(raw, source=f"checkpoint {args.resume}")
+        config = _dict_to_config(raw)
         print(f"resuming from {args.resume}; --config is ignored", file=sys.stderr)
     else:
         config = load_config(args.config, overrides=args.override)

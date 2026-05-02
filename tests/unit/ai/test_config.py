@@ -15,10 +15,9 @@ def _minimal_yaml(tmp_path, **overrides):
         "rollout_steps": 2048,
         "ppo_epochs": 4,
         "deck_pool": ["aggro_mage", "control_warrior"],
-        "deck_selection": "fixed",
-        "fixed_deck1": "aggro_mage",
-        "fixed_deck2": "control_warrior",
+        "deck_selection": "random_pair",
         "training_player_idx": 0,
+        "swap_training_player": True,
         "mulligan_policy": "keep_low_cost",
         "mulligan_threshold": 3,
         "discover_policy": "first",
@@ -33,7 +32,7 @@ def _minimal_yaml(tmp_path, **overrides):
         "slot_dim": 90,
         "hidden_dim": 128,
         "num_actions": 512,
-        "curriculum": {"switch_threshold": 0.80, "early_stop_patience": 5},
+        "curriculum": {"switch_threshold": 0.65, "early_stop_patience": 5},
         "self_play": {
             "refresh_threshold": 0.80,
             "refresh_eval_games": 20,
@@ -42,8 +41,10 @@ def _minimal_yaml(tmp_path, **overrides):
             "opponent_checkpoint_path": "checkpoints/self_play_opponent.pt",
         },
         "eval_every": 10,
-        "eval_games": 50,
+        "eval_games": 100,
         "max_actions_per_game": 1000,
+        "milestone_every": 0,
+        "milestone_games_per_matchup": 1,
         "checkpoint_every": 25,
         "checkpoint_dir": "checkpoints",
         "best_checkpoint_path": "checkpoints/best.pt",
@@ -64,7 +65,7 @@ class TestLoadConfig:
         assert cfg.seed == 42
         assert cfg.lr == 3.0e-4
         assert isinstance(cfg.curriculum, CurriculumConfig)
-        assert cfg.curriculum.switch_threshold == 0.80
+        assert cfg.curriculum.switch_threshold == 0.65
 
     def test_missing_key_raises(self, tmp_path):
         path = _minimal_yaml(tmp_path)
@@ -109,14 +110,36 @@ class TestDefaultYaml:
     def test_default_yaml_loads_with_new_fields(self):
         from hearthstone.ai.config import load_config
         cfg = load_config("configs/default.yaml")
-        assert cfg.deck_pool == ["aggro_mage", "control_warrior"]
+        assert len(cfg.deck_pool) == 18
         assert cfg.training_player_idx == 0
+        assert cfg.swap_training_player is True
+        assert cfg.deck_selection == "random_pair"
         assert cfg.slot_dim == 90
         assert cfg.num_actions == 512
         assert cfg.mulligan_policy == "keep_low_cost"
         assert cfg.discover_policy == "first"
         assert cfg.choose_one_policy == "first"
         assert cfg.max_actions_per_game == 1000
+        assert cfg.milestone_every == 100
+        assert cfg.milestone_games_per_matchup == 5
+        assert cfg.curriculum.switch_threshold == 0.65
+        assert cfg.eval_games == 100
+
+
+class TestStripDeprecated:
+    def test_load_config_strips_deprecated_fixed_deck_keys(self, tmp_path):
+        """A YAML carrying deprecated fixed_deck1/2 loads with a
+        DeprecationWarning, not a TypeError."""
+        import warnings
+        path = _minimal_yaml(tmp_path,
+                             fixed_deck1="aggro_mage",
+                             fixed_deck2="control_warrior")
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            cfg = load_config(str(path))
+        deprecation = [w for w in caught if issubclass(w.category, DeprecationWarning)]
+        assert any("fixed_deck1" in str(w.message) for w in deprecation)
+        assert not hasattr(cfg, "fixed_deck1")
 
 
 class TestParseCli:

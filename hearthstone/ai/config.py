@@ -1,9 +1,36 @@
 """Training configuration: dataclass schema, YAML loading, CLI parsing."""
+from __future__ import annotations
+
 import argparse
+import warnings
 from dataclasses import dataclass
 from typing import List, Optional
 
 import yaml
+
+
+# Keys deprecated in S2-A. Kept for migration only; stripped before TrainConfig
+# construction so old config YAMLs and old checkpoints don't TypeError.
+_DEPRECATED_KEYS = ("fixed_deck1", "fixed_deck2")
+
+
+def _strip_deprecated(raw: dict, source: str) -> dict:
+    """Remove deprecated keys from a raw config dict in-place; warn for each.
+
+    Called from BOTH load_config (YAML path) AND scripts/train.py's
+    --resume branch (checkpoint path). Single helper so both paths track
+    the same set.
+    """
+    for key in _DEPRECATED_KEYS:
+        if key in raw:
+            warnings.warn(
+                f"{source}: '{key}' is deprecated; ignored. "
+                "Decks are now drawn from `deck_pool` per `pair_strategy`.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            raw.pop(key)
+    return raw
 
 
 @dataclass
@@ -32,12 +59,12 @@ class TrainConfig:
     max_iters: int
     rollout_steps: int
     ppo_epochs: int
+
     deck_pool: List[str]
-    deck_selection: str
-    fixed_deck1: str
-    fixed_deck2: str
+    deck_selection: str          # "fixed" | "random_pair"
     training_player_idx: int
 
+    swap_training_player: bool
     mulligan_policy: str
     mulligan_threshold: int
     discover_policy: str
@@ -56,12 +83,14 @@ class TrainConfig:
     num_actions: int
 
     curriculum: CurriculumConfig
-
     self_play: SelfPlayConfig
 
     eval_every: int
     eval_games: int
     max_actions_per_game: int
+
+    milestone_every: int
+    milestone_games_per_matchup: int
 
     checkpoint_every: int
     checkpoint_dir: str
@@ -73,25 +102,12 @@ class TrainConfig:
 
 
 def apply_overrides(raw: dict, overrides: List[str]) -> dict:
-    """Apply --override key=value pairs to a raw config dict in-place.
-
-    Supports dotted keys for nested fields, e.g.
-    'curriculum.switch_threshold=0.75'. Values are parsed via yaml.safe_load
-    so types are preserved (1e-4 → float, true → bool).
-
-    Caveat: PyYAML 6 (YAML 1.2) parses bare scientific notation like '1e-4'
-    as a string; we fall back to float() in that case so the documented
-    type preservation works. As a side effect, overriding a string-typed
-    field with a value that happens to parse as float (e.g. 'deck1=1e3' or
-    'deck1=inf') will silently coerce to float — avoid such collisions.
-    """
+    """Apply --override key=value pairs to a raw config dict in-place."""
     for item in overrides:
         if "=" not in item:
             raise ValueError(f"--override expects key=value, got: {item!r}")
         key, value_str = item.split("=", 1)
         value = yaml.safe_load(value_str)
-        # PyYAML 6 (YAML 1.2) treats bare scientific notation like '1e-4' as a
-        # string.  Try float() so '--override lr=1e-4' still yields a float.
         if isinstance(value, str):
             try:
                 value = float(value)
@@ -107,20 +123,27 @@ def apply_overrides(raw: dict, overrides: List[str]) -> dict:
     return raw
 
 
-def load_config(path: str, overrides: Optional[List[str]] = None) -> TrainConfig:
-    """Load a YAML config file, apply overrides, return a validated TrainConfig.
-
-    Missing keys → TypeError from dataclass constructor.
-    Extra keys → TypeError from dataclass constructor.
-    """
-    with open(path) as f:
-        raw = yaml.safe_load(f)
-    if overrides:
-        apply_overrides(raw, overrides)
+def _dict_to_config(raw: dict) -> TrainConfig:
+    """Build TrainConfig from a raw dict (after _strip_deprecated)."""
     raw["curriculum"] = CurriculumConfig(**raw["curriculum"])
     raw["self_play"] = SelfPlayConfig(**raw["self_play"])
     raw["card_features"] = CardFeaturesConfig(**raw.get("card_features", {}))
     return TrainConfig(**raw)
+
+
+def load_config(path: str, overrides: Optional[List[str]] = None) -> TrainConfig:
+    """Load a YAML config file, strip deprecated keys, apply overrides,
+    return a validated TrainConfig.
+
+    Missing keys → TypeError from dataclass constructor.
+    Extra keys (other than deprecated) → TypeError from dataclass constructor.
+    """
+    with open(path) as f:
+        raw = yaml.safe_load(f)
+    raw = _strip_deprecated(raw, source=f"config file {path}")
+    if overrides:
+        apply_overrides(raw, overrides)
+    return _dict_to_config(raw)
 
 
 def parse_cli(argv: Optional[List[str]] = None) -> argparse.Namespace:

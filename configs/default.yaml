@@ -1,15 +1,33 @@
+# Default training config for fireplace-backed Hearthstone PPO with multi-deck.
 seed: 42
 max_iters: 1000
 rollout_steps: 2048
 ppo_epochs: 4
 
+# 18-deck pool: 9 classes × 2 archetypes
 deck_pool:
   - aggro_mage
+  - control_mage
+  - aggro_warrior
   - control_warrior
-deck_selection: fixed
-fixed_deck1: aggro_mage
-fixed_deck2: control_warrior
-training_player_idx: 0
+  - aggro_hunter
+  - control_hunter
+  - aggro_druid
+  - control_druid
+  - aggro_rogue
+  - control_rogue
+  - aggro_paladin
+  - control_paladin
+  - aggro_priest
+  - control_priest
+  - aggro_shaman
+  - control_shaman
+  - aggro_warlock
+  - control_warlock
+
+deck_selection: random_pair        # was "fixed"
+training_player_idx: 0             # initial value before first reset
+swap_training_player: true         # NEW: random p1/p2 per episode
 
 mulligan_policy: keep_low_cost
 mulligan_threshold: 3
@@ -29,7 +47,7 @@ hidden_dim: 128
 num_actions: 512
 
 curriculum:
-  switch_threshold: 0.80
+  switch_threshold: 0.65           # was 0.80; lowered for multi-deck
   early_stop_patience: 5
 
 self_play:
@@ -40,8 +58,12 @@ self_play:
   opponent_checkpoint_path: checkpoints/self_play_opponent.pt
 
 eval_every: 10
-eval_games: 50
+eval_games: 100                    # was 50; halve sampling noise (σ ≈ 0.05)
 max_actions_per_game: 1000
+
+# Milestone (round-robin subprocess; 0 disables)
+milestone_every: 100
+milestone_games_per_matchup: 5
 
 checkpoint_every: 25
 checkpoint_dir: checkpoints
