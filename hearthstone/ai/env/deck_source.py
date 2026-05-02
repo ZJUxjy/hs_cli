@@ -73,8 +73,11 @@ def load_deck(name: str) -> Deck:
         name=name, archetype=data["archetype"],
         hero_id=data["hero_id"], card_ids=tuple(card_ids),
     )
-    _validate_archetype_invariants(deck, fp_cards.db)
+    # Order: duplicate limits before archetype invariants. Synth test decks
+    # often violate both; checking duplicates first gives the more specific
+    # error message ("card X appears N times").
     _validate_duplicate_limits(deck, fp_cards.db)
+    _validate_archetype_invariants(deck, fp_cards.db)
     return deck
 
 
