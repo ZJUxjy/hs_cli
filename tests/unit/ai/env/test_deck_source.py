@@ -132,3 +132,29 @@ def test_legendary_duplicate_raises(tmp_path, monkeypatch):
     monkeypatch.setattr(ds, "DECK_DIRS", [str(tmp_path)])
     with pytest.raises(ValueError, match="LEGENDARY"):
         ds.load_deck("synth_legendary_dup")
+
+
+def test_load_decks_returns_list_in_order():
+    from hearthstone.ai.env.deck_source import load_decks
+    decks = load_decks(["aggro_mage", "control_warrior", "aggro_hunter"])
+    assert [d.name for d in decks] == ["aggro_mage", "control_warrior", "aggro_hunter"]
+
+
+def test_load_decks_propagates_failures_with_context():
+    from hearthstone.ai.env.deck_source import load_decks
+    with pytest.raises((FileNotFoundError, ValueError)):
+        load_decks(["aggro_mage", "nonexistent_deck"])
+
+
+def test_all_18_decks_load_successfully():
+    """Regression: all 18 archetype YAMLs satisfy validation. Acceptance gate
+    for PR-3 + PR-1."""
+    from hearthstone.ai.env.deck_source import load_decks
+    classes = ["mage", "warrior", "hunter", "druid", "rogue",
+               "paladin", "priest", "shaman", "warlock"]
+    names = [f"{a}_{c}" for c in classes for a in ("aggro", "control")]
+    decks = load_decks(names)
+    assert len(decks) == 18
+    for deck in decks:
+        assert deck.archetype in ("aggro", "control")
+        assert len(deck.card_ids) == 30
