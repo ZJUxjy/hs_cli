@@ -317,7 +317,7 @@ def run_training_loop(
                         hidden_dim=config.hidden_dim,
                         num_actions=config.num_actions,
                     )
-                    obs, _ = env.reset()  # restart episode against new opponent
+                    obs, info = env.reset()  # restart episode against new opponent
 
                 if event == CurriculumEvent.EARLY_STOP:
                     print(
