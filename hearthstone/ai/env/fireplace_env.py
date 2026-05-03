@@ -274,7 +274,12 @@ class FireplaceGymEnv(gym.Env):
                           drawn_ids: list) -> list:
         """Counterfactual alternative pool: deck contents at moment of
         draw, minus the cards actually drawn. Removes each drawn card
-        once (handles duplicates correctly)."""
+        once (handles duplicates correctly).
+
+        Complexity is O(n*m) where n=len(deck) (≤30) and m=len(drawn_ids)
+        (≤4 in multi-draw). At 2048 steps/rollout the absolute cost is
+        sub-millisecond — acceptable at this scale.
+        """
         alt = list(deck_before_ids)
         for did in drawn_ids:
             if did in alt:

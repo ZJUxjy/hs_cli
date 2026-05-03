@@ -259,12 +259,51 @@ def test_step_records_draw_event_when_hand_grows():
     assert isinstance(info["draw_event"], bool)
 
 
-def test_overdraw_burn_no_draw_event():
-    """A no-op step (no card drawn) leaves draw_event=False."""
+def test_draw_event_false_after_reset():
+    """Reset establishes a clean draw state — info['draw_event'] is False
+    and the related fields default appropriately. (Genuine overdraw burn
+    behaviour — drawn card destroyed because hand at 10 — is harder to
+    force in a unit test; the entity_id diff naturally excludes burns
+    because they never enter player.hand. v1 limitation: not directly
+    tested.)"""
     env = _build_simple_env()
     obs, info = env.reset()
-    # First step is from a known clean state. info['draw_event'] is False.
     assert info["draw_event"] is False
+
+
+def test_step_draw_event_eventually_fires():
+    """Repeatedly stepping (action 0 = end_turn or first valid) must
+    eventually produce info['draw_event']=True on training_player's
+    side, since every turn starts with an auto-draw.
+
+    Verifies the full draw-detection pipeline end-to-end:
+      - hand entity_id diff catches new draws
+      - draw_slot_idx is set to a valid hand slot
+      - deck_remaining_ids is a non-empty list
+      - n_drawn >= 1
+    """
+    from hearthstone.ai.env.observation import MAX_HAND
+    env = _build_simple_env(seed=42)
+    obs, info = env.reset()
+    saw_draw = False
+    for _ in range(50):
+        if env.game.ended:
+            break
+        if len(env.current_valid_actions) == 0:
+            break
+        obs, _, term, _, info = env.step(0)
+        if info["draw_event"]:
+            saw_draw = True
+            assert isinstance(info["draw_slot_idx"], int), (
+                f"draw_slot_idx not int: {info['draw_slot_idx']!r}"
+            )
+            assert 0 <= info["draw_slot_idx"] < MAX_HAND
+            assert isinstance(info["deck_remaining_ids"], list)
+            assert info["n_drawn"] >= 1
+            break
+        if term:
+            break
+    assert saw_draw, "No draw_event=True observed in 50 steps; detection broken"
 
 
 def test_compute_alt_pool_excludes_drawn_cards():
