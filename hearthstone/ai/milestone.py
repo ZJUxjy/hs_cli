@@ -9,7 +9,10 @@ the round-robin job. collect_completed() polls without blocking.
 
 Caveats:
 - max_workers=1 means the same worker process is reused across submits.
-  Imports run once per worker lifetime; cards.db re-init is idempotent.
+  Imports run once per worker lifetime, so cards.db.initialize() runs
+  once per worker (not once per game). NOTE: cards.db.initialize() itself
+  is NOT idempotent — it re-runs the XML merge on every call, ~10s each;
+  callers must ensure it's invoked exactly once per process.
 - On parent KeyboardInterrupt → shutdown(wait=False, cancel_futures=True):
   running subprocess survives parent death (not daemonic; concurrent.futures
   doesn't expose a kill API). User may need pkill -f _run_round_robin.
@@ -218,7 +221,9 @@ def _run_round_robin(
     os.replace(partial, output_path)
 
     # Write the sibling heatmap_draw.csv (same atomic .partial → rename pattern).
-    draw_path = output_path.replace("heatmap.csv", "heatmap_draw.csv")
+    draw_path = os.path.join(
+        os.path.dirname(output_path), "heatmap_draw.csv",
+    )
     draw_partial = draw_path + ".partial"
     with open(draw_partial, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=[
