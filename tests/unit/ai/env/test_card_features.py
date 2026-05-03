@@ -142,3 +142,35 @@ def test_card_features_in_unit_range():
     for cid, feat in _FEATURE_CACHE.items():
         assert (feat >= 0.0).all(), f"card {cid} has negative feature"
         assert (feat <= 1.0).all(), f"card {cid} exceeds 1.0"
+
+
+from hearthstone.ai.env.card_features import (
+    CardFeatureEncoder, SLOT_DIM, encode_hand_card_by_id,
+)
+
+
+def test_encode_hand_card_by_id_returns_slot_dim_array():
+    """encode_hand_card_by_id returns a SLOT_DIM-shaped float32 array."""
+    arr = encode_hand_card_by_id("CS2_023")  # Arcane Intellect (Mage)
+    assert arr.shape == (SLOT_DIM,)
+    assert arr.dtype == np.float32
+
+
+def test_encode_hand_card_by_id_matches_encoder_path():
+    """Result equals what CardFeatureEncoder().encode_hand_card(carddef) returns."""
+    from fireplace import cards
+    cards.db.initialize()
+    card_def = cards.db["CS2_023"]
+    via_helper = encode_hand_card_by_id("CS2_023")
+    via_direct = CardFeatureEncoder().encode_hand_card(card_def)
+    assert np.array_equal(via_helper, via_direct)
+
+
+def test_encode_hand_card_by_id_caches_encoder_singleton():
+    """Repeated calls reuse a single _DEFAULT_ENCODER instance."""
+    from hearthstone.ai.env import card_features as cf
+    cf._DEFAULT_ENCODER = None
+    encode_hand_card_by_id("CS2_023")
+    first = cf._DEFAULT_ENCODER
+    encode_hand_card_by_id("CS2_024")
+    assert cf._DEFAULT_ENCODER is first

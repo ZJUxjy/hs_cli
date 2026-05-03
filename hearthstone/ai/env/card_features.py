@@ -9,7 +9,7 @@ All features are clipped to [0.0, 1.0]. See spec section "CardFeatureEncoder".
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
@@ -24,6 +24,8 @@ SLOT_DIM = CARD_FEAT_DIM + MINION_STATE_DIM   # 90
 _FEATURE_CACHE: dict[str, np.ndarray] = {}
 _ZERO_STATIC = np.zeros(CARD_FEAT_DIM, dtype=np.float32)
 _ZERO_STATE = np.zeros(MINION_STATE_DIM, dtype=np.float32)
+
+_DEFAULT_ENCODER: Optional["CardFeatureEncoder"] = None
 
 
 def _clip_norm(x: float, max_val: float) -> float:
@@ -337,3 +339,20 @@ class CardFeatureEncoder:
         s[8] = 1.0 if getattr(minion, "exhausted", False) else 0.0
         # s[9] reserved
         return s
+
+
+def encode_hand_card_by_id(card_id: str) -> np.ndarray:
+    """Resolve card_id via fireplace.cards.db and encode as a hand-card slot.
+
+    Used by counterfactual synthesis where we have card_ids but no live
+    fireplace card objects. cards.db[card_id] returns a CardDef (a static
+    card definition); encode_hand_card reads only .id, which CardDefs
+    have, so this is safe — no minion-state attributes are touched.
+    """
+    global _DEFAULT_ENCODER
+    from fireplace import cards as fp_cards
+    fp_cards.db.initialize()
+    card_def = fp_cards.db[card_id]
+    if _DEFAULT_ENCODER is None:
+        _DEFAULT_ENCODER = CardFeatureEncoder()
+    return _DEFAULT_ENCODER.encode_hand_card(card_def)
