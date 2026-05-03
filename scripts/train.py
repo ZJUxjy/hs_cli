@@ -92,7 +92,7 @@ def _bootstrap_value(network: PolicyValueNetwork, obs: dict, device: str) -> flo
     """Forward-pass an observation through the value head; return scalar."""
     torch_obs = _build_obs_for_network(obs, device)
     with torch.no_grad():
-        _, value = network(torch_obs)
+        _, value, _ = network(torch_obs)
     return float(value[0, 0].item())
 
 

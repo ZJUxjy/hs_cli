@@ -55,6 +55,6 @@ class SelfPlayOpponent(OpponentPolicy):
         mask[: min(valid_n, self.num_actions)] = 1.0
 
         with torch.no_grad():
-            logits, _ = self.network(torch_obs)
+            logits, _, _ = self.network(torch_obs)
             logits = logits[0] + (1.0 - torch.from_numpy(mask)) * -1e9
             return int(torch.argmax(logits).item())

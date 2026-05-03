@@ -49,8 +49,9 @@ class PolicyValueNetwork(nn.Module):
         self.card_encoder = CardEncoder(slot_dim, hidden_dim)
         self.num_scalars = len(SCALAR_KEYS)  # 21
 
-        # hand (10*hidden) + 2 boards (2*7*hidden) + 21 scalars
-        flat_dim = 10 * hidden_dim + 2 * 7 * hidden_dim + self.num_scalars
+        # 10 hand + 2*7 board + 1 just_drawn_card slots, all sharing CardEncoder
+        # (intentional: just_drawn_card is conceptually a hand-card slot).
+        flat_dim = (10 + 2 * 7 + 1) * hidden_dim + self.num_scalars
 
         self.shared = nn.Sequential(
             nn.Linear(flat_dim, hidden_dim * 2),
@@ -64,20 +65,34 @@ class PolicyValueNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_dim // 2, 1),
         )
+        # NEW S2-B: same shape as value_head, sibling regression head.
+        self.aux_head = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Linear(hidden_dim // 2, 1),
+        )
 
     def forward(self, obs: dict):
+        """Returns (policy_logits, value, aux_advantage). All callers MUST
+        destructure 3 items even if they ignore aux."""
         batch_size = obs["player_health"].shape[0]
 
         hand_enc = self.card_encoder(obs["player_hand"])
         p_board_enc = self.card_encoder(obs["player_board"])
         o_board_enc = self.card_encoder(obs["opponent_board"])
+        # just_drawn_card: (B, slot_dim) → (B, 1, slot_dim) → encode → (B, 1, h)
+        drawn_enc = self.card_encoder(obs["just_drawn_card"].unsqueeze(1))
 
         hand_flat = hand_enc.reshape(batch_size, -1)
         p_board_flat = p_board_enc.reshape(batch_size, -1)
         o_board_flat = o_board_enc.reshape(batch_size, -1)
+        drawn_flat = drawn_enc.reshape(batch_size, -1)
 
         scalars = torch.cat([obs[k] for k in SCALAR_KEYS], dim=-1)  # (B, 21)
 
-        flat = torch.cat([hand_flat, p_board_flat, o_board_flat, scalars], dim=-1)
+        flat = torch.cat(
+            [hand_flat, p_board_flat, o_board_flat, drawn_flat, scalars],
+            dim=-1,
+        )
         h = self.shared(flat)
-        return self.policy_head(h), self.value_head(h)
+        return self.policy_head(h), self.value_head(h), self.aux_head(h)

@@ -59,7 +59,7 @@ class PPOTrainer:
 
         total = policy = value = entropy = 0.0
         for _ in range(self.ppo_epochs):
-            logits, values = self.network(obs)
+            logits, values, _aux_preds = self.network(obs)
             new_log_probs = self._log_probs(logits, actions)
             ent = self._entropy(logits)
 
@@ -105,7 +105,7 @@ class PPOTrainer:
         obs_d = {k: v.to(device) for k, v in obs.items()}
 
         with torch.no_grad():
-            logits, value = self.network(obs_d)
+            logits, value, _aux = self.network(obs_d)
             logits = logits[0]
             if action_mask is not None:
                 mask = torch.from_numpy(action_mask).float().to(device)

@@ -18,6 +18,7 @@ def make_dummy_rollout(batch_size: int = 16):
         "player_hand": rng.standard_normal((batch_size, 10, SLOT_DIM)).astype(np.float32) * 0.1,
         "player_board": rng.standard_normal((batch_size, 7, SLOT_DIM)).astype(np.float32) * 0.1,
         "opponent_board": rng.standard_normal((batch_size, 7, SLOT_DIM)).astype(np.float32) * 0.1,
+        "just_drawn_card": rng.standard_normal((batch_size, SLOT_DIM)).astype(np.float32) * 0.1,
     }
     for k in SCALAR_KEYS:
         obs[k] = rng.uniform(0, 1, (batch_size, 1)).astype(np.float32)
@@ -63,6 +64,7 @@ class TestPPOTrainer:
             "player_hand": torch.zeros(1, 10, SLOT_DIM),
             "player_board": torch.zeros(1, 7, SLOT_DIM),
             "opponent_board": torch.zeros(1, 7, SLOT_DIM),
+            "just_drawn_card": torch.zeros(1, SLOT_DIM),
         }
         for k in SCALAR_KEYS:
             torch_obs[k] = torch.zeros(1, 1)
