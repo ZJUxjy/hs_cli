@@ -50,12 +50,12 @@ class TestMetricsLogger:
         assert rows[0] == [
             "iter", "phase", "total_loss", "policy_loss", "value_loss",
             "entropy", "eval_winrate", "best_winrate", "plateau_count",
-            "cap_hit_count", "milestone_path",
+            "cap_hit_count", "milestone_path", "mean_abs_draw_advantage",
         ]
 
     def test_log_iter_blanks_trailing_columns(self, tmp_path):
-        """log_iter writes 6 fields then 5 trailing blanks (3 eval +
-        cap_hit_count + milestone_path)."""
+        """log_iter writes 6 fields then 6 trailing blanks (3 eval +
+        cap_hit_count + milestone_path + mean_abs_draw_advantage)."""
         path = tmp_path / "metrics.csv"
         logger = MetricsLogger(str(path))
         logger.log_iter(
@@ -65,17 +65,18 @@ class TestMetricsLogger:
         logger.close()
         rows = list(csv.reader(path.open()))
         assert rows[1][:6] == ["1", "RANDOM", "0.5", "0.1", "0.4", "4.2"]
-        assert rows[1][6:] == ["", "", "", "", ""]   # 5 trailing blanks
+        assert rows[1][6:] == ["", "", "", "", "", ""]   # 6 trailing blanks
+        assert len(rows[1]) == 12
 
-    def test_log_eval_fills_cap_hit_count(self, tmp_path):
-        """log_eval blanks loss cols, fills eval+best+plateau+cap_hit, blank
-        milestone_path."""
+    def test_log_eval_fills_cap_hit_count_and_aux(self, tmp_path):
+        """log_eval blanks loss cols, fills eval+best+plateau+cap_hit,
+        blank milestone_path, fills mean_abs_draw_advantage."""
         path = tmp_path / "metrics.csv"
         logger = MetricsLogger(str(path))
         logger.log_eval(
             iter=10, phase="RANDOM",
             eval_winrate=0.75, best_winrate=0.75, plateau_count=0,
-            cap_hit_count=3,
+            cap_hit_count=3, mean_abs_draw_advantage=0.42,
         )
         logger.close()
         rows = list(csv.reader(path.open()))
@@ -83,18 +84,25 @@ class TestMetricsLogger:
         assert rows[1][1] == "RANDOM"
         assert rows[1][2:6] == ["", "", "", ""]   # loss cols blank
         assert rows[1][6:9] == ["0.75", "0.75", "0"]
-        assert rows[1][9] == "3"     # cap_hit_count
-        assert rows[1][10] == ""     # milestone_path blank
+        assert rows[1][9] == "3"      # cap_hit_count
+        assert rows[1][10] == ""      # milestone_path blank
+        assert rows[1][11] == "0.42"  # mean_abs_draw_advantage
+        assert len(rows[1]) == 12
 
     def test_log_milestone_writes_csv_path(self, tmp_path):
         path = tmp_path / "metrics.csv"
         logger = MetricsLogger(str(path))
-        logger.log_milestone(iter_num=100, csv_path="milestones/iter_0100/heatmap.csv")
+        logger.log_milestone(
+            iter_num=100,
+            csv_path="milestones/iter_0100/heatmap.csv",
+        )
         logger.close()
         rows = list(csv.reader(path.open()))
         assert rows[1][0] == "100"
         assert rows[1][1:10] == [""] * 9
         assert rows[1][10] == "milestones/iter_0100/heatmap.csv"
+        assert rows[1][11] == ""    # mean_abs_draw_advantage blank
+        assert len(rows[1]) == 12
 
 
 class TestCheckpointing:

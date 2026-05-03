@@ -9,8 +9,9 @@ import torch
 _HEADER = [
     "iter", "phase", "total_loss", "policy_loss", "value_loss",
     "entropy", "eval_winrate", "best_winrate", "plateau_count",
-    "cap_hit_count",       # NEW (S2-A): filled on eval rows
-    "milestone_path",      # NEW (S2-A): filled on milestone rows
+    "cap_hit_count",
+    "milestone_path",
+    "mean_abs_draw_advantage",   # NEW (S2-B): filled on eval rows
 ]
 
 
@@ -35,8 +36,9 @@ class MetricsLogger:
     ) -> None:
         self._writer.writerow([
             iter, phase, total_loss, policy_loss, value_loss, entropy,
-            "", "", "",     # eval cols blank
-            "", "",         # cap_hit_count + milestone_path blank
+            "", "", "",       # eval cols blank
+            "", "",           # cap_hit_count + milestone_path blank
+            "",               # mean_abs_draw_advantage blank
         ])
         self._file.flush()
 
@@ -44,22 +46,25 @@ class MetricsLogger:
         self, iter: int, phase: str,
         eval_winrate: float, best_winrate: float, plateau_count: int,
         cap_hit_count: int = 0,
+        mean_abs_draw_advantage: float = 0.0,
     ) -> None:
         self._writer.writerow([
-            iter, phase, "", "", "", "",   # loss cols blank
+            iter, phase, "", "", "", "",    # loss cols blank
             eval_winrate, best_winrate, plateau_count,
-            cap_hit_count,                 # NEW
-            "",                            # milestone_path blank
+            cap_hit_count,
+            "",                              # milestone_path blank
+            mean_abs_draw_advantage,
         ])
         self._file.flush()
 
     def log_milestone(self, iter_num: int, csv_path: str) -> None:
         """Mark a milestone heatmap as completed at this iter."""
         self._writer.writerow([
-            iter_num, "", "", "", "", "",     # iter loss cols blank
-            "", "", "",                       # eval cols blank
-            "",                               # cap_hit_count blank
+            iter_num, "", "", "", "", "",
+            "", "", "",
+            "",                # cap_hit_count blank
             csv_path,
+            "",                # mean_abs_draw_advantage blank
         ])
         self._file.flush()
 
