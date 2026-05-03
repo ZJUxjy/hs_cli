@@ -395,6 +395,7 @@ class PolicyValueNetwork(nn.Module):
 | `scripts/train.py:95` (_bootstrap_value) | `_, value = network(torch_obs)` | `_, value, _ = network(torch_obs)` |
 | `scripts/train.py` (rollout loop, NEW) | n/a | `logits, value, _ = network(torch_obs)` |
 | `tests/unit/ai/test_network.py:22, 29, 39` | 2-tuple destructure asserts | 3-tuple + new aux shape assertion |
+| `tests/unit/ai/test_network.py:62, 63` (`test_uses_all_twenty_one_scalar_features`) | `_, v_a = net(obs_a)` / `_, v_b = net(obs_b)` | `_, v_a, _ = net(obs_a)` / `_, v_b, _ = net(obs_b)` |
 
 ### `observation.py` (modified)
 
@@ -429,18 +430,30 @@ def build_observation_for(env, perspective_player,
 
 ### `card_features.py` (modified)
 
-Adds:
+Adds a module-level cached encoder + a hand-card-by-id helper. The
+cached encoder avoids re-running `if not _FEATURE_CACHE` on every call
+(called K=4 times per draw event, 200-800 calls per rollout):
 
 ```python
+_DEFAULT_ENCODER: Optional["CardFeatureEncoder"] = None
+
+
 def encode_hand_card_by_id(card_id: str) -> np.ndarray:
     """Resolve card_id via fireplace.cards.db and encode as a hand-card slot.
     Used by counterfactual synthesis where we have card_ids but no live
-    fireplace card objects."""
+    fireplace card objects.
+
+    `cards.db[card_id]` returns a CardDef (a static card definition);
+    `encode_hand_card` reads only `.id`, which CardDefs have, so this
+    is safe — no minion-state attributes are touched.
+    """
+    global _DEFAULT_ENCODER
     from fireplace import cards as fp_cards
     fp_cards.db.initialize()
     card_def = fp_cards.db[card_id]
-    enc = CardFeatureEncoder()
-    return enc.encode_hand_card(card_def)
+    if _DEFAULT_ENCODER is None:
+        _DEFAULT_ENCODER = CardFeatureEncoder()
+    return _DEFAULT_ENCODER.encode_hand_card(card_def)
 ```
 
 ### `FireplaceGymEnv` (modified)
@@ -547,6 +560,20 @@ class FireplaceGymEnv(gym.Env):
   this last one is in the NEXT env.step). v1 records ONLY the last
   drawn card, attributes the FULL `V_after − baseline` to it.
   `info["n_drawn"] > 1` flags multi-draw events.
+  - **Chronological ordering assumption**: fireplace's `Player.hand` is
+    a list that's appended-to in draw order (`Player.draw()` and
+    `Player.give()` both append). So
+    `[c for c in hand_after if c.entity_id not in hand_before_ids]`
+    preserves chronological order, and `[-1]` is the actual "last
+    drew." If a future fireplace change inserts mid-list, this
+    assumption breaks; covered by `test_multi_draw_records_last_card_only`.
+- **Tracking-style discover-from-deck (Hunter spell)**: shows top 3
+  cards of deck, discover 1, burn the other 2. `_compute_alt_pool`
+  computes alts as `deck_before_ids − [discovered_card]`, which still
+  includes the 2 burned cards. Those burned cards weren't viable alt
+  draws — only the top-3 visible were — so the alt pool is slightly
+  wider than ideal. Net: minor noise added to baseline. v1 limitation;
+  documented and accepted.
 - **Overdraw burn** (hand at 10, draw resolves into burn): the drawn
   card never enters `player.hand`. `new_entities = []` → no draw event
   recorded → not part of aux training. Documented as known limitation.
@@ -628,28 +655,38 @@ for _ in range(config.rollout_steps):
 
 #### Worked timing example
 
+Under the counterfactual approach there's NO temporal pairing — every
+rollout step where `info["draw_event"]=True` independently produces an
+aux sample by synthesizing K alts from `info["deck_remaining_ids"]` and
+computing `target = V(obs_t) − mean_K(V(synth_alt_k))`. The only
+prerequisite is that `info` and `obs` arrived from the same env.step
+call (so `info` describes the draw that produced `obs`).
+
 ```
-t   action   env transition          info["draw_event"] coming OUT  aux pairing
-                                     of THIS step's env.step
-0   reset    reset; opp goes first   False (no draw yet on reset)   skip
-1   end_turn opp turn + my draw      True  (n_drawn=1, slot_idx=3)   skip (no prev)
-2   ply Arc  spell played, drew 2    True  (n_drawn=2, slot_idx=4)   compute target at t=2
-3   ply Coin coin played, no draw   False                            skip
-4   end_turn opp turn + my draw      True  (n_drawn=1, slot_idx=5)   compute target at t=4
+t   action       env transition         info coming OUT of env.step    aux sample
+0   (reset)      opp may go first       draw_event=False                no
+1   end_turn     opp turn + my draw     draw_event=True, n_drawn=1     yes: synth from deck_remaining_ids
+2   ply Arc.Int  spell played, drew 2  draw_event=True, n_drawn=2     yes (last drawn card attributed)
+3   ply Coin     coin played            draw_event=False                no
+4   end_turn     opp turn + my draw     draw_event=True, n_drawn=1     yes
 ...
 ```
 
-At t=1, `info["draw_event"]=True` from the env.step at t=0, but `prev_V`
-in our model is the V at t=0 (which is None / from reset). However,
-under the COUNTERFACTUAL approach we don't use prev_V at all — we
-compute `aux_target = V_t − baseline` where baseline is computed by
-synthesizing K alt obs from t's `info["deck_remaining_ids"]`. So the
-worked timing is simpler: every `t` where `info["draw_event"]=True`,
-synthesize K alternatives and compute baseline; that's our target.
+(Earlier drafts used a Temporal V delta scheme that needed pairing
+across two timesteps; that design was discarded — see Changelog.)
 
 ### `PPOTrainer` (modified)
 
 ```python
+# MODIFY: extend the obs filter so trainer.update doesn't try to feed
+# aux scalars into the network as obs tensors.
+_NON_OBS_KEYS = {
+    "actions", "rewards", "dones", "values",
+    "old_log_probs", "advantages", "returns",
+    "aux_target", "aux_mask",                       # NEW
+}
+
+
 class PPOTrainer:
     def __init__(self, network, lr, gamma, gae_lambda, clip_epsilon,
                  value_coef, entropy_coef, max_grad_norm, ppo_epochs,
@@ -768,6 +805,15 @@ def evaluate_pool(network, opponent_factory, decks, n_games=100,
         "n_draw_events": n_draw_events,             # NEW (informational)
     }
 ```
+
+**Coverage decision**: aux capture is gated by `current_player is training_player`,
+so we only score draws that occur on the agent's turn (its own start-of-turn
+draws + draws caused by its own card plays). Draws caused by the OPPONENT's
+plays (e.g., opponent plays Coldlight Oracle, both players draw) ARE training-
+player draws but are NOT captured because the opponent is the current player
+when they happen. This is intentional: the aux head is meant to evaluate the
+agent's own draw experience during its decision-making windows. Documented
+as v1 scope.
 
 ### `MetricsLogger` (modified, 12-column CSV)
 
@@ -919,6 +965,22 @@ def migrate(in_path: str, out_path: str) -> None:
 
 CLI: `python scripts/migrate_checkpoint.py --in old.pt --out new.pt`
 
+#### Migration fan-out
+
+After cutting over to S2-B, every checkpoint of the old shape that's
+still loaded by code paths needs migration:
+
+| File | Loaded by | Action |
+|---|---|---|
+| `checkpoints/best.pt` | `train.py` resume + `SelfPlayOpponent` snapshotting (when curriculum switches to SELF_PLAY phase) | run `migrate_checkpoint.py` |
+| `checkpoints/self_play_opponent.pt` (if present) | `SelfPlayOpponent.refresh()` | run `migrate_checkpoint.py` |
+| `runs/*/milestones/iter_*/checkpoint.pt` | only loaded ad-hoc (not by `train.py`); used by `analyze_draws.py` for replay against historical models | optional — migrate only the ones you want to replay |
+| `runs/*/iter_*/checkpoint.pt` (intermediate iter snapshots) | `train.py --resume <path>` | migrate the one you intend to resume from |
+
+If a stale unmigrated checkpoint is loaded, `load_state_dict(strict=True)`
+raises a clear shape-mismatch error pointing the user at the migration
+script.
+
 ## Configuration
 
 `configs/default.yaml` adds 4 keys at the bottom:
@@ -1063,8 +1125,11 @@ rg -n 'self\.network\(|network\(torch_obs|net\(' hearthstone/ scripts/ tests/
 
 - **PR-3: aux_warmup_iters interaction with smoke tests**. With
   `max_iters=2` and `aux_warmup_iters=100` (default), warmup covers the
-  whole smoke test → `aux_loss=0`. Smoke test must `--override
-  aux_warmup_iters=0` to exercise the aux-loss code path.
+  whole smoke test → `aux_loss=0`. `tests/unit/ai/test_train_smoke.py`
+  builds a `TrainConfig(...)` literal directly (not via `--override`),
+  so the fix is to add `aux_warmup_iters=0` (and the other 3 new fields:
+  `aux_loss_coef=0.5, aux_counterfactual_k=4, draw_advantage_threshold=0.15`)
+  to the dataclass kwargs in that test.
 
 - **PR-3: counterfactual synthesis K forward passes batched**. `synth_batch`
   is `torch.stack([...])`'d into one tensor before `network()` — do NOT
@@ -1090,9 +1155,14 @@ rg -n 'self\.network\(|network\(torch_obs|net\(' hearthstone/ scripts/ tests/
   - 3-tuple forward: complete caller list in Section 2; tests added.
   - `_HEADER` 12 columns: iter, phase, total_loss, policy_loss, value_loss,
     entropy, eval_winrate, best_winrate, plateau_count, cap_hit_count,
-    milestone_path, mean_abs_draw_advantage. log_iter writes 6+6 blanks;
-    log_eval writes 9+1 blank+aux value; log_milestone writes 1+8 blanks
-    +path+1 blank.
+    milestone_path, mean_abs_draw_advantage. Per-row totals (each = 12):
+    - `log_iter`: 6 filled + 6 trailing blanks (eval cols + cap_hit_count
+      + milestone_path + mean_abs_draw_advantage all blank)
+    - `log_eval`: 2 filled (iter, phase) + 4 loss blanks + 3 eval filled +
+      1 cap_hit_count + 1 milestone_path blank + 1 mean_abs_draw_advantage
+    - `log_milestone`: 1 filled (iter) + 5 loss blanks + 3 eval blanks +
+      1 cap_hit_count blank + 1 milestone_path filled + 1 mean_abs_draw_advantage
+      blank
   - Multi-draw policy: take LAST card. Documented in Section 2; flagged
     as v1 limitation.
 - **Scope check.** Single sub-project (S2-B). Includes paths 1+2+3 +
@@ -1113,6 +1183,39 @@ rg -n 'self\.network\(|network\(torch_obs|net\(' hearthstone/ scripts/ tests/
     observe in their own runs.
 
 ### Changelog
+
+- **rev 2 (2026-05-03)**: second subagent review pass — folded in 3
+  blockers + 6 important findings.
+  - 3-tuple caller checklist extended with `test_network.py:62, 63`
+    (`test_uses_all_twenty_one_scalar_features`) which was missed in rev 1.
+  - Worked timing example simplified — removed leftover "skip (no prev)"
+    annotations from the discarded Temporal V delta scheme. The
+    counterfactual approach uses no temporal pairing.
+  - `encode_hand_card_by_id` now uses a module-level
+    `_DEFAULT_ENCODER` singleton instead of constructing a new
+    `CardFeatureEncoder()` per call (200-800 calls/rollout). Added
+    explicit note that `cards.db[card_id]` returns a CardDef and
+    `encode_hand_card` only reads `.id`, so it's safe.
+  - Tracking-style discover-from-deck documented as a v1 limitation
+    in multi-draw / overdraw semantics — alt pool is slightly wider
+    than ideal because burned cards remain in `deck_before_ids`.
+  - PR-3 smoke-test guidance corrected: `test_train_smoke.py` builds
+    a `TrainConfig` literal directly (not via `--override`), so the
+    fix is adding the 4 new dataclass kwargs in that test.
+  - CSV column count prose tightened — now lists each row layout as
+    a per-column tally (12 elements each) instead of an ambiguous
+    summary.
+  - Multi-draw chronological ordering invariant documented
+    (`Player.hand` appends draws in order; `[-1]` is "last drew").
+  - `evaluate_pool` aux-capture coverage decision documented:
+    only training-player-turn draws are scored; opponent-caused
+    training-player draws (e.g., Coldlight) are not captured.
+  - `_NON_OBS_KEYS` extended with `aux_target` and `aux_mask` so
+    `trainer.update`'s obs filter doesn't try to feed scalars into
+    the network.
+  - Checkpoint migration fan-out section added: best.pt, self-play
+    opponent snapshot, milestone snapshots, resumable iter snapshots
+    all need migration where loaded.
 
 - **rev 1 (2026-05-03)**: initial draft post brainstorming + 1 round of
   subagent self-review.
