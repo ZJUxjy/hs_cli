@@ -81,6 +81,8 @@ def evaluate_pool(
 
     wins = 0
     cap_hit_count = 0
+    abs_advantages: list = []
+    n_draw_events = 0
     seen = set()
     for g, (i, j, tp_idx) in enumerate(sampler):
         env = FireplaceGymEnv(
@@ -89,14 +91,25 @@ def evaluate_pool(
             seed=(seed + g) if seed is not None else None,
         )
         opp = opponent_factory()
-        env.reset()
+        obs, info = env.reset()
         action_count = 0
         while not env.game.ended and action_count < max_actions_per_game:
             if env.game.current_player is env.training_player:
+                # Capture aux on draws that occur on the agent's turn.
+                if info.get("draw_event", False):
+                    import torch as _torch
+                    torch_obs = {
+                        k: _torch.from_numpy(v).unsqueeze(0)
+                        for k, v in obs.items()
+                    }
+                    with _torch.no_grad():
+                        _, _, aux = network(torch_obs)
+                    abs_advantages.append(abs(float(aux[0, 0].item())))
+                    n_draw_events += 1
                 idx = eval_agent.act(env)
             else:
                 idx = opp.act(env)
-            env.step(idx)
+            obs, _, _, _, info = env.step(idx)
             action_count += 1
         if action_count >= max_actions_per_game and not env.game.ended:
             cap_hit_count += 1
@@ -105,9 +118,14 @@ def evaluate_pool(
         seen.add((i, j, tp_idx))
         env.close()
 
+    mean_abs = (sum(abs_advantages) / len(abs_advantages)
+                if abs_advantages else 0.0)
+
     return {
         "winrate": wins / n_games,
         "n_games": n_games,
         "matchups_seen": len(seen),
         "cap_hit_count": cap_hit_count,
+        "mean_abs_draw_advantage": float(mean_abs),
+        "n_draw_events": int(n_draw_events),
     }
