@@ -63,7 +63,7 @@ def test_observation_card_features_in_unit_range(env_started):
     from hearthstone.ai.env.observation import build_observation_for
     game, p1, _ = env_started
     obs = build_observation_for(game, p1)
-    for k in ("player_hand", "player_board", "opponent_board"):
+    for k in ("player_hand", "player_board", "opponent_board", "just_drawn_card"):
         v = obs[k]
         assert (v >= 0).all()
         assert (v <= 1).all()
