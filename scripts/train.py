@@ -23,6 +23,7 @@ from hearthstone.ai.config import (
 )
 from hearthstone.ai.curriculum import CurriculumEvent, CurriculumFSM, Phase
 from hearthstone.ai.evaluate import evaluate_pool
+from hearthstone.ai.env.counterfactual import sample_counterfactual_baseline
 from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
 from hearthstone.ai.env.opponent_env import OpponentEnv
 from hearthstone.ai.env.opponents import RandomOpponent, SelfPlayOpponent
@@ -196,21 +197,43 @@ def run_training_loop(
         )
 
     # 7. Main loop
-    obs, _ = env.reset()
+    obs, info = env.reset()
     it = start_iter - 1  # in case the loop body never runs
     try:
         for it in range(start_iter, config.max_iters + 1):
             # --- Collect rollout ---
             buffer.reset()
             for _ in range(config.rollout_steps):
+                # If THIS obs has a draw event (came from prior step), compute
+                # the counterfactual baseline by synthesizing K hypothetical
+                # post-draw obs and forwarding V on each.
+                if info.get("draw_event", False):
+                    baseline, n_sampled = sample_counterfactual_baseline(
+                        obs, info, network, device,
+                        K=config.aux_counterfactual_k,
+                    )
+                else:
+                    baseline, n_sampled = 0.0, 0
+
                 mask = _action_mask(env, n_actions=config.num_actions)
                 torch_obs = _build_obs_for_network(obs, device)
                 action, log_prob, value = trainer.select_action(torch_obs, mask)
-                next_obs, reward, terminated, truncated, _ = env.step(action)
-                buffer.add(obs, action, reward, value, log_prob, terminated)
+
+                if n_sampled > 0:
+                    aux_target = float(value) - baseline
+                    aux_mask = True
+                else:
+                    aux_target = 0.0
+                    aux_mask = False
+
+                next_obs, reward, terminated, truncated, info = env.step(action)
+                buffer.add(
+                    obs, action, reward, value, log_prob, terminated,
+                    aux_target=aux_target, aux_mask=aux_mask,
+                )
                 obs = next_obs
                 if terminated or truncated:
-                    obs, _ = env.reset()
+                    obs, info = env.reset()
             # --- Bootstrap final value ---
             last_value = _bootstrap_value(network, obs, device)
             buffer.compute_returns_and_advantages(last_value)
@@ -218,7 +241,7 @@ def run_training_loop(
             # --- Update ---
             try:
                 batch = buffer.get()
-                losses = trainer.update(batch)
+                losses = trainer.update(batch, current_iter=it)
             except RuntimeError as e:
                 logger.warning("buffer.get() failed: %s; skipping update", e)
                 continue
@@ -244,7 +267,8 @@ def run_training_loop(
                 f"total_loss={losses['total_loss']:.4f} "
                 f"policy={losses['policy_loss']:.4f} "
                 f"value={losses['value_loss']:.4f} "
-                f"entropy={losses['entropy']:.4f}",
+                f"entropy={losses['entropy']:.4f} "
+                f"aux={losses['aux_loss']:.4f} (n_aux={int(losses['aux_n_samples'])})",
                 flush=True,
             )
 
