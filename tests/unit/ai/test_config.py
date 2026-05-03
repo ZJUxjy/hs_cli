@@ -207,3 +207,54 @@ class TestParseCli:
         ])
         assert args.resume == "checkpoints/iter_0250.pt"
         assert args.device == "cuda"
+
+
+def test_trainconfig_has_aux_defaults():
+    """The 4 new S2-B fields default to spec values."""
+    from hearthstone.ai.config import (
+        CardFeaturesConfig, CurriculumConfig, SelfPlayConfig, TrainConfig,
+    )
+    cfg = TrainConfig(
+        seed=1, max_iters=1, rollout_steps=8, ppo_epochs=1,
+        deck_pool=["aggro_mage", "control_warrior"],
+        deck_selection="random_pair", training_player_idx=0,
+        swap_training_player=True,
+        mulligan_policy="keep_low_cost", mulligan_threshold=3,
+        discover_policy="first", choose_one_policy="first",
+        lr=3e-4, gamma=0.99, gae_lambda=0.95, clip_epsilon=0.2,
+        value_coef=0.5, entropy_coef=0.01, max_grad_norm=0.5,
+        slot_dim=90, hidden_dim=128, num_actions=512,
+        curriculum=CurriculumConfig(switch_threshold=0.65, early_stop_patience=5),
+        self_play=SelfPlayConfig(
+            refresh_threshold=0.8, refresh_eval_games=4, refresh_every=2,
+            random_opponent_prob=0.2,
+            opponent_checkpoint_path="x.pt",
+        ),
+        eval_every=2, eval_games=4, max_actions_per_game=200,
+        milestone_every=0, milestone_games_per_matchup=1,
+        checkpoint_every=5, checkpoint_dir="ckpt",
+        best_checkpoint_path="best.pt", runs_dir="runs",
+        card_features=CardFeaturesConfig(log_coverage=False),
+    )
+    assert cfg.aux_loss_coef == 0.5
+    assert cfg.aux_warmup_iters == 100
+    assert cfg.aux_counterfactual_k == 4
+    assert cfg.draw_advantage_threshold == 0.15
+
+
+def test_load_config_picks_up_aux_keys_from_yaml(tmp_path):
+    """aux_* keys in YAML override defaults."""
+    import yaml
+    from hearthstone.ai.config import load_config
+    yaml_path = tmp_path / "cfg.yaml"
+    base = yaml.safe_load(open("configs/default.yaml"))
+    base["aux_loss_coef"] = 0.25
+    base["aux_warmup_iters"] = 0
+    base["aux_counterfactual_k"] = 2
+    base["draw_advantage_threshold"] = 0.05
+    yaml_path.write_text(yaml.safe_dump(base))
+    cfg = load_config(str(yaml_path))
+    assert cfg.aux_loss_coef == 0.25
+    assert cfg.aux_warmup_iters == 0
+    assert cfg.aux_counterfactual_k == 2
+    assert cfg.draw_advantage_threshold == 0.05

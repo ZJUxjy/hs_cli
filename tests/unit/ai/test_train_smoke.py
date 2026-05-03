@@ -37,6 +37,10 @@ def test_two_iter_train_smoke(tmp_path):
         best_checkpoint_path=str(tmp_path / "checkpoints" / "best.pt"),
         runs_dir=str(tmp_path / "runs"),
         card_features=CardFeaturesConfig(log_coverage=False),
+        aux_loss_coef=0.5,
+        aux_warmup_iters=0,
+        aux_counterfactual_k=2,
+        draw_advantage_threshold=0.15,
     )
     from scripts.train import run_training_loop
     run_dir = run_training_loop(cfg, resume_path=None, device="cpu")

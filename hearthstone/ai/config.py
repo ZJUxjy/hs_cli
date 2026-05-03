@@ -100,6 +100,12 @@ class TrainConfig:
 
     card_features: CardFeaturesConfig
 
+    # === S2-B aux head (defaults if missing from YAML) ===
+    aux_loss_coef: float = 0.5
+    aux_warmup_iters: int = 100
+    aux_counterfactual_k: int = 4
+    draw_advantage_threshold: float = 0.15
+
 
 def apply_overrides(raw: dict, overrides: List[str]) -> dict:
     """Apply --override key=value pairs to a raw config dict in-place."""

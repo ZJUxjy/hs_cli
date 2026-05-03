@@ -73,3 +73,9 @@ runs_dir: runs
 
 card_features:
   log_coverage: true
+
+# === S2-B aux head ===
+aux_loss_coef: 0.5
+aux_warmup_iters: 100
+aux_counterfactual_k: 4
+draw_advantage_threshold: 0.15
