@@ -37,6 +37,7 @@ SCALAR_BOUNDS = {
 
 OBS_KEYS = (
     "player_hand", "player_board", "opponent_board",
+    "just_drawn_card",
 ) + SCALAR_KEYS
 
 
@@ -45,6 +46,7 @@ def make_observation_space() -> spaces.Dict:
         "player_hand": spaces.Box(0.0, 1.0, shape=(MAX_HAND, SLOT_DIM), dtype=np.float32),
         "player_board": spaces.Box(0.0, 1.0, shape=(MAX_BOARD, SLOT_DIM), dtype=np.float32),
         "opponent_board": spaces.Box(0.0, 1.0, shape=(MAX_BOARD, SLOT_DIM), dtype=np.float32),
+        "just_drawn_card": spaces.Box(0.0, 1.0, shape=(SLOT_DIM,), dtype=np.float32),
         **{
             k: spaces.Box(low=lo, high=hi, shape=(1,), dtype=np.float32)
             for k, (lo, hi) in SCALAR_BOUNDS.items()
@@ -56,7 +58,7 @@ def _clip(value: float, lo: float, hi: float) -> float:
     return float(min(max(value, lo), hi))
 
 
-def build_observation_for(game, perspective_player) -> dict:
+def build_observation_for(game, perspective_player, latest_drawn_card_obj=None) -> dict:
     enc = CardFeatureEncoder()
     me = perspective_player
     opp = me.opponent
@@ -71,6 +73,11 @@ def build_observation_for(game, perspective_player) -> dict:
         [enc.encode_minion(m) for m in opp.field[:MAX_BOARD]], MAX_BOARD, enc,
     )
 
+    if latest_drawn_card_obj is not None:
+        just_drawn_card = enc.encode_hand_card(latest_drawn_card_obj)
+    else:
+        just_drawn_card = np.zeros(SLOT_DIM, dtype=np.float32)
+
     weapon_me = me.weapon
     weapon_op = opp.weapon
 
@@ -78,6 +85,7 @@ def build_observation_for(game, perspective_player) -> dict:
         "player_hand": player_hand,
         "player_board": player_board,
         "opponent_board": opponent_board,
+        "just_drawn_card": just_drawn_card,
     }
     obs.update(_scalars_from(game, me, opp, weapon_me, weapon_op))
     return obs

@@ -67,3 +67,61 @@ def test_observation_card_features_in_unit_range(env_started):
         v = obs[k]
         assert (v >= 0).all()
         assert (v <= 1).all()
+
+
+def test_obs_keys_include_just_drawn_card():
+    from hearthstone.ai.env.observation import OBS_KEYS
+    assert "just_drawn_card" in OBS_KEYS
+
+
+def test_observation_space_has_just_drawn_card():
+    from hearthstone.ai.env.observation import make_observation_space
+    from hearthstone.ai.env.card_features import SLOT_DIM
+    space = make_observation_space()
+    assert "just_drawn_card" in space.spaces
+    box = space.spaces["just_drawn_card"]
+    assert box.shape == (SLOT_DIM,)
+    assert box.dtype.name == "float32"
+
+
+def test_build_observation_for_just_drawn_card_zero_when_kwarg_absent():
+    """When latest_drawn_card_obj=None, the slot is all-zeros."""
+    import numpy as np
+    from fireplace import cards as fp_cards
+    from fireplace.game import Game
+    from fireplace.player import Player
+    from hearthstone.ai.env.observation import build_observation_for
+    from hearthstone.ai.env.card_features import SLOT_DIM
+
+    fp_cards.db.initialize()
+    deck = ["CS2_023"] * 30
+    p1 = Player("p1", deck, "HERO_08")
+    p2 = Player("p2", deck, "HERO_08")
+    g = Game(players=[p1, p2], seed=42)
+    g.start()
+    obs = build_observation_for(g, p1)  # no kwarg
+    assert obs["just_drawn_card"].shape == (SLOT_DIM,)
+    assert np.all(obs["just_drawn_card"] == 0.0)
+
+
+def test_build_observation_for_just_drawn_card_filled_when_kwarg_passed():
+    """When latest_drawn_card_obj is a fireplace card, slot encodes it."""
+    import numpy as np
+    from fireplace import cards as fp_cards
+    from fireplace.game import Game
+    from fireplace.player import Player
+    from hearthstone.ai.env.observation import build_observation_for
+    from hearthstone.ai.env.card_features import (
+        encode_hand_card_by_id, SLOT_DIM,
+    )
+
+    fp_cards.db.initialize()
+    deck = ["CS2_023"] * 30
+    p1 = Player("p1", deck, "HERO_08")
+    p2 = Player("p2", deck, "HERO_08")
+    g = Game(players=[p1, p2], seed=42)
+    g.start()
+    drawn = p1.hand[0]
+    obs = build_observation_for(g, p1, latest_drawn_card_obj=drawn)
+    expected = encode_hand_card_by_id(drawn.id)
+    assert np.array_equal(obs["just_drawn_card"], expected)
