@@ -3,7 +3,7 @@ import numpy as np
 
 from hearthstone.ai.env.card_features import SLOT_DIM, encode_hand_card_by_id
 from hearthstone.ai.env.counterfactual import synthesize_obs
-from hearthstone.ai.env.observation import OBS_KEYS, MAX_HAND, MAX_BOARD
+from hearthstone.ai.env.observation import MAX_HAND, MAX_BOARD
 
 
 def _make_dummy_obs():
@@ -51,23 +51,35 @@ def test_synthesize_obs_replaces_just_drawn_card():
 
 
 def test_synthesize_obs_does_not_mutate_input():
-    """synthesize_obs returns a deep copy; the input obs is untouched."""
+    """synthesize_obs returns a deep copy; ALL input keys are unchanged
+    after the call (boards, scalars, hand, just_drawn_card)."""
     obs = _make_dummy_obs()
-    obs["just_drawn_card"] = np.zeros(SLOT_DIM, dtype=np.float32)
-    obs_hand_before = obs["player_hand"][3].copy()
-    obs_drawn_before = obs["just_drawn_card"].copy()
+    obs["just_drawn_card"] = np.full(SLOT_DIM, 0.42, dtype=np.float32)
+    obs["player_board"][2] = np.full(SLOT_DIM, 0.5, dtype=np.float32)
+    obs["opponent_board"][1] = np.full(SLOT_DIM, 0.7, dtype=np.float32)
+    saved = {k: v.copy() for k, v in obs.items()}
     _ = synthesize_obs(obs, draw_slot_idx=3, alt_card_id="CS2_023")
-    assert np.array_equal(obs["player_hand"][3], obs_hand_before)
-    assert np.array_equal(obs["just_drawn_card"], obs_drawn_before)
+    for k, saved_v in saved.items():
+        assert np.array_equal(obs[k], saved_v), (
+            f"input obs[{k!r}] was mutated by synthesize_obs"
+        )
 
 
 def test_synthesize_obs_copies_all_other_keys():
-    """All non-target keys appear in the output (deep-copied)."""
+    """All non-target keys appear in the output AND are deep-copied
+    (output values are independent ndarray instances from input)."""
     obs = _make_dummy_obs()
     obs["just_drawn_card"] = np.zeros(SLOT_DIM, dtype=np.float32)
     out = synthesize_obs(obs, draw_slot_idx=3, alt_card_id="CS2_023")
     for k in obs:
-        assert k in out
+        assert k in out, f"key {k!r} missing from output"
+        # The two write sites are intentionally rebound; for all OTHER
+        # keys, output must be a distinct ndarray (writing to out[k]
+        # must not corrupt obs[k]).
+        if k not in ("player_hand", "just_drawn_card"):
+            assert out[k] is not obs[k], (
+                f"key {k!r} shares array reference with input — copy failed"
+            )
 
 
 def test_synthesize_obs_asserts_slot_idx_in_range():
