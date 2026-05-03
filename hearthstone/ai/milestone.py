@@ -147,6 +147,7 @@ def _run_round_robin(
     # recoverable from cleanup.
     partial = output_path + ".partial"
     rows = []
+    draw_rows = []
     for i, deck_a in enumerate(decks):
         for j, deck_b in enumerate(decks):
             if i == j:
@@ -154,6 +155,8 @@ def _run_round_robin(
             for tp_idx in (0, 1):
                 wins = 0
                 cap_hits = 0
+                abs_advantages: list = []
+                n_draw_events = 0
                 for g in range(games_per_matchup):
                     matchup_seed = (i * 31 + j * 17 + tp_idx * 7 + g) & 0x7FFFFFFF
                     env = FireplaceGymEnv(
@@ -163,15 +166,26 @@ def _run_round_robin(
                         training_player_idx=tp_idx,
                         seed=matchup_seed,
                     )
-                    env.reset()
+                    obs, info = env.reset()
                     opp = RandomOpponent()
                     action_count = 0
                     while not env.game.ended and action_count < 1000:
                         if env.game.current_player is env.training_player:
+                            if info.get("draw_event", False):
+                                torch_obs = {
+                                    k: torch.from_numpy(v).unsqueeze(0)
+                                    for k, v in obs.items()
+                                }
+                                with torch.no_grad():
+                                    _, _, aux = net(torch_obs)
+                                abs_advantages.append(
+                                    abs(float(aux[0, 0].item()))
+                                )
+                                n_draw_events += 1
                             idx = agent.act(env)
                         else:
                             idx = opp.act(env)
-                        env.step(idx)
+                        obs, _, _, _, info = env.step(idx)
                         action_count += 1
                     if action_count >= 1000 and not env.game.ended:
                         cap_hits += 1
@@ -184,6 +198,15 @@ def _run_round_robin(
                     "winrate": wins / games_per_matchup,
                     "cap_hit_count": cap_hits,
                 })
+                mean_abs = (sum(abs_advantages) / len(abs_advantages)
+                            if abs_advantages else 0.0)
+                draw_rows.append({
+                    "deck_a": deck_a.name, "deck_b": deck_b.name,
+                    "training_player_idx": tp_idx,
+                    "n_games": games_per_matchup,
+                    "mean_abs_draw_advantage": round(mean_abs, 4),
+                    "n_draw_events": n_draw_events,
+                })
 
     with open(partial, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=[
@@ -193,3 +216,15 @@ def _run_round_robin(
         w.writeheader()
         w.writerows(rows)
     os.replace(partial, output_path)
+
+    # Write the sibling heatmap_draw.csv (same atomic .partial → rename pattern).
+    draw_path = output_path.replace("heatmap.csv", "heatmap_draw.csv")
+    draw_partial = draw_path + ".partial"
+    with open(draw_partial, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=[
+            "deck_a", "deck_b", "training_player_idx",
+            "n_games", "mean_abs_draw_advantage", "n_draw_events",
+        ])
+        w.writeheader()
+        w.writerows(draw_rows)
+    os.replace(draw_partial, draw_path)
