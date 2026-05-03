@@ -243,6 +243,7 @@ class FireplaceGymEnv(gym.Env):
             "n_drawn": self._last_n_drawn,
             "draw_slot_idx": self._last_draw_slot_idx,
             "deck_remaining_ids": list(self._last_deck_remaining_ids),
+            "drawn_card_obj": self._last_drawn_card_obj,
         }
 
     def _auto_resolve_choices(self) -> None:

@@ -136,6 +136,8 @@ def run_training_loop(
         entropy_coef=config.entropy_coef,
         max_grad_norm=config.max_grad_norm,
         ppo_epochs=config.ppo_epochs,
+        aux_loss_coef=config.aux_loss_coef,
+        aux_warmup_iters=config.aux_warmup_iters,
     )
     buffer = RolloutBuffer(
         capacity=config.rollout_steps,

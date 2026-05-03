@@ -116,6 +116,27 @@ class _StubNetwork:
         return logits, values, aux
 
 
+class _VaryingStubNetwork:
+    """Returns 3-tuple where each row of `values` is a distinct, predictable
+    number (row i → 0.1 * (i + 1)). Used to verify that
+    sample_counterfactual_baseline computes the MEAN — a constant stub
+    can't distinguish mean() from values[0]."""
+
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, obs_batch):
+        self.calls.append(obs_batch)
+        b = obs_batch["player_hand"].shape[0]
+        logits = torch.zeros(b, 512)
+        # Row i → 0.1 * (i + 1): [0.1, 0.2, 0.3, 0.4, ...]
+        values = torch.tensor(
+            [[0.1 * (i + 1)] for i in range(b)], dtype=torch.float32,
+        )
+        aux = torch.zeros(b, 1)
+        return logits, values, aux
+
+
 def test_sample_counterfactual_baseline_returns_zero_when_no_alts():
     """No alternatives in deck → baseline=0.0, n_sampled=0."""
     obs = _make_dummy_obs()
@@ -191,3 +212,28 @@ def test_sample_counterfactual_baseline_returns_mean_value():
     )
     assert n == 4
     assert abs(baseline - 0.25) < 1e-6
+
+
+def test_sample_counterfactual_baseline_actually_means_not_first_or_last():
+    """Use a varying-value stub so mean() can be distinguished from
+    values[0] / values[-1] / values.max() / values.min(). With 4 values
+    [0.1, 0.2, 0.3, 0.4], mean=0.25, first=0.1, last=0.4, max=0.4,
+    min=0.1. Only mean() produces 0.25."""
+    obs = _make_dummy_obs()
+    obs["just_drawn_card"] = np.zeros(SLOT_DIM, dtype=np.float32)
+    info = {
+        "deck_remaining_ids": ["CS2_023", "CS2_024", "CS2_025", "CS2_026"],
+        "draw_slot_idx": 3,
+    }
+    net = _VaryingStubNetwork()
+    baseline, n = sample_counterfactual_baseline(
+        obs, info, network=net, device="cpu", K=4,
+        rng=random.Random(0),
+    )
+    assert n == 4
+    # mean of [0.1, 0.2, 0.3, 0.4] = 0.25
+    assert abs(baseline - 0.25) < 1e-6, (
+        f"baseline={baseline} — expected 0.25 (mean). "
+        f"If 0.1: returns first; if 0.4: returns last/max; "
+        f"if 1.0: returns sum, not mean."
+    )

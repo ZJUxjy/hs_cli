@@ -88,7 +88,7 @@ def run_analysis(
         while not env.game.ended and action_count < max_actions_per_game:
             if env.game.current_player is env.training_player:
                 if info.get("draw_event", False):
-                    drawn = env._last_drawn_card_obj
+                    drawn = info.get("drawn_card_obj")
                     torch_obs = {
                         k: torch.from_numpy(v).unsqueeze(0)
                         for k, v in obs.items()

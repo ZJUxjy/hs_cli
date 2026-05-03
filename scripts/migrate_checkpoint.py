@@ -77,6 +77,13 @@ def migrate(in_path: str, out_path: str) -> None:
 
     ckpt["network"] = new_sd
 
+    # Drop optimizer state. Adam keys its `state` by parameter id; after the
+    # network shape change, loading the old optimizer state would fail on
+    # shared.0.weight (or worse, alias state to the wrong tensor). Resume
+    # after migration starts with a fresh optimizer; the first few iters
+    # will rebuild momentum.
+    ckpt["optimizer"] = {}
+
     # Inject S2-B aux defaults if absent.
     cfg = dict(ckpt.get("config", {}))
     for key, default_val in _AUX_DEFAULTS.items():
@@ -84,7 +91,10 @@ def migrate(in_path: str, out_path: str) -> None:
     ckpt["config"] = cfg
 
     torch.save(ckpt, out_path)
-    print(f"migrated {in_path} → {out_path} (S2-A → S2-B network shape)")
+    print(
+        f"migrated {in_path} → {out_path} (S2-A → S2-B network shape; "
+        f"optimizer state dropped — resume will start with fresh Adam)"
+    )
 
 
 def main(argv=None) -> int:
