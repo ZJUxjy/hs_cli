@@ -66,5 +66,7 @@ def sample_counterfactual_baseline(
         for k in keys
     }
     with torch.no_grad():
+        # network returns (logits, values, aux) — see PR-2 (Task 2.3) for the
+        # 3-tuple forward; until then this function has no production callers.
         _, values, _ = network(batched)
     return float(values.mean().item()), len(sampled_ids)
