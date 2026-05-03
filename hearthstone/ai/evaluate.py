@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from typing import Callable, Optional
 
+import torch
+
 from hearthstone.enums import PlayState
 
 from hearthstone.ai.network import PolicyValueNetwork
@@ -97,12 +99,11 @@ def evaluate_pool(
             if env.game.current_player is env.training_player:
                 # Capture aux on draws that occur on the agent's turn.
                 if info.get("draw_event", False):
-                    import torch as _torch
                     torch_obs = {
-                        k: _torch.from_numpy(v).unsqueeze(0)
+                        k: torch.from_numpy(v).unsqueeze(0)
                         for k, v in obs.items()
                     }
-                    with _torch.no_grad():
+                    with torch.no_grad():
                         _, _, aux = network(torch_obs)
                     abs_advantages.append(abs(float(aux[0, 0].item())))
                     n_draw_events += 1
