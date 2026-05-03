@@ -151,7 +151,10 @@ def test_trainer_aux_loss_nonzero_when_mask_true():
 
 
 def test_trainer_warmup_zeros_aux_coef():
-    """During warmup, effective_aux_coef=0 → aux_head weights don't move."""
+    """During warmup: aux_head weights don't move (aux loss has zero coef),
+    AND shared trunk DOES move (policy/value losses still flow through it).
+    Documents the intentional gradient routing: aux is gated, the rest
+    trains normally."""
     import torch
     from hearthstone.ai.network import PolicyValueNetwork
     from hearthstone.ai.ppo_trainer import PPOTrainer
@@ -159,11 +162,21 @@ def test_trainer_warmup_zeros_aux_coef():
     trainer = PPOTrainer(net, ppo_epochs=1, aux_warmup_iters=100,
                          aux_loss_coef=0.5)
     batch = _make_dummy_batch_with_aux(with_aux=True)
+    # Make rewards/advantages nonzero so policy_loss + value_loss have a
+    # gradient signal to push through the shared trunk.
+    batch["advantages"] = np.full(4, 0.5, dtype=np.float32)
+    batch["returns"] = np.full(4, 0.5, dtype=np.float32)
     aux_w_before = net.aux_head[0].weight.clone()
+    shared_w_before = net.shared[0].weight.clone()
     trainer.update(batch, current_iter=0)  # below warmup threshold
     aux_w_after = net.aux_head[0].weight.clone()
+    shared_w_after = net.shared[0].weight.clone()
     assert torch.equal(aux_w_before, aux_w_after), (
         "aux_head weights changed during warmup — aux gradient leaked through"
+    )
+    assert not torch.equal(shared_w_before, shared_w_after), (
+        "shared trunk did not change during warmup — policy/value gradient "
+        "flow is broken (aux gating should not stop other losses)"
     )
 
 
