@@ -34,3 +34,37 @@ def synthesize_obs(obs: dict, draw_slot_idx: int, alt_card_id: str) -> dict:
     out["player_hand"][draw_slot_idx] = enc
     out["just_drawn_card"] = enc
     return out
+
+
+def sample_counterfactual_baseline(
+    obs: dict, info: dict, network, device: str,
+    K: int = 4, rng: Optional[random.Random] = None,
+) -> tuple[float, int]:
+    """Sample up to K alternative cards from info['deck_remaining_ids']
+    and compute the mean V over the synthesized hypothetical post-draw obs.
+
+    Returns (baseline, n_sampled). n_sampled = min(K, len(deck_remaining)).
+    Returns (0.0, 0) if no alternatives are available (deck empty / no
+    draw event recorded).
+
+    The network forward is BATCHED into a single call of shape (n_sampled, ...)
+    — do not Python-loop K calls.
+    """
+    rng = rng or random.Random()
+    deck_alt = info.get("deck_remaining_ids") or []
+    slot_idx = info.get("draw_slot_idx")
+    if not deck_alt or slot_idx is None:
+        return 0.0, 0
+
+    sampled_ids = rng.sample(deck_alt, min(K, len(deck_alt)))
+    synth_obs_list = [
+        synthesize_obs(obs, slot_idx, alt_id) for alt_id in sampled_ids
+    ]
+    keys = list(synth_obs_list[0].keys())
+    batched = {
+        k: torch.from_numpy(np.stack([o[k] for o in synth_obs_list])).to(device)
+        for k in keys
+    }
+    with torch.no_grad():
+        _, values, _ = network(batched)
+    return float(values.mean().item()), len(sampled_ids)

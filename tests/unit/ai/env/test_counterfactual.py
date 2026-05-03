@@ -91,3 +91,103 @@ def test_synthesize_obs_asserts_slot_idx_in_range():
         synthesize_obs(obs, draw_slot_idx=MAX_HAND, alt_card_id="CS2_023")
     with pytest.raises(AssertionError):
         synthesize_obs(obs, draw_slot_idx=-1, alt_card_id="CS2_023")
+
+
+import random
+import torch
+
+from hearthstone.ai.env.counterfactual import sample_counterfactual_baseline
+
+
+class _StubNetwork:
+    """Returns 3-tuple where value is a constant Tensor of shape (B, 1).
+    Mimics the post-S2-B network forward signature."""
+
+    def __init__(self, return_value: float = 0.42):
+        self._v = float(return_value)
+        self.calls = []
+
+    def __call__(self, obs_batch):
+        self.calls.append(obs_batch)
+        b = obs_batch["player_hand"].shape[0]
+        logits = torch.zeros(b, 512)
+        values = torch.full((b, 1), self._v)
+        aux = torch.zeros(b, 1)
+        return logits, values, aux
+
+
+def test_sample_counterfactual_baseline_returns_zero_when_no_alts():
+    """No alternatives in deck → baseline=0.0, n_sampled=0."""
+    obs = _make_dummy_obs()
+    obs["just_drawn_card"] = np.zeros(SLOT_DIM, dtype=np.float32)
+    info = {"deck_remaining_ids": [], "draw_slot_idx": 3}
+    net = _StubNetwork(return_value=1.0)
+    baseline, n = sample_counterfactual_baseline(
+        obs, info, network=net, device="cpu", K=4,
+    )
+    assert baseline == 0.0
+    assert n == 0
+    assert net.calls == []
+
+
+def test_sample_counterfactual_baseline_returns_zero_when_slot_none():
+    """Missing draw_slot_idx → no synthesis."""
+    obs = _make_dummy_obs()
+    obs["just_drawn_card"] = np.zeros(SLOT_DIM, dtype=np.float32)
+    info = {"deck_remaining_ids": ["CS2_023"], "draw_slot_idx": None}
+    net = _StubNetwork()
+    baseline, n = sample_counterfactual_baseline(
+        obs, info, network=net, device="cpu", K=4,
+    )
+    assert baseline == 0.0
+    assert n == 0
+
+
+def test_sample_counterfactual_baseline_caps_K_at_deck_size():
+    """When K > len(deck_remaining), n_sampled = len(deck_remaining)."""
+    obs = _make_dummy_obs()
+    obs["just_drawn_card"] = np.zeros(SLOT_DIM, dtype=np.float32)
+    info = {"deck_remaining_ids": ["CS2_023", "CS2_024"], "draw_slot_idx": 3}
+    net = _StubNetwork(return_value=0.7)
+    baseline, n = sample_counterfactual_baseline(
+        obs, info, network=net, device="cpu", K=4,
+        rng=random.Random(0),
+    )
+    assert n == 2
+    assert abs(baseline - 0.7) < 1e-6
+
+
+def test_sample_counterfactual_baseline_uses_batched_forward():
+    """The K alts are batched into a single network call (not K calls)."""
+    obs = _make_dummy_obs()
+    obs["just_drawn_card"] = np.zeros(SLOT_DIM, dtype=np.float32)
+    info = {
+        "deck_remaining_ids": ["CS2_023", "CS2_024", "CS2_025", "CS2_026"],
+        "draw_slot_idx": 3,
+    }
+    net = _StubNetwork()
+    sample_counterfactual_baseline(
+        obs, info, network=net, device="cpu", K=4,
+        rng=random.Random(0),
+    )
+    assert len(net.calls) == 1, (
+        f"Expected 1 batched forward call, got {len(net.calls)}"
+    )
+    assert net.calls[0]["player_hand"].shape[0] == 4
+
+
+def test_sample_counterfactual_baseline_returns_mean_value():
+    """Baseline = mean of the K values returned by network forward."""
+    obs = _make_dummy_obs()
+    obs["just_drawn_card"] = np.zeros(SLOT_DIM, dtype=np.float32)
+    info = {
+        "deck_remaining_ids": ["CS2_023", "CS2_024", "CS2_025", "CS2_026"],
+        "draw_slot_idx": 3,
+    }
+    net = _StubNetwork(return_value=0.25)
+    baseline, n = sample_counterfactual_baseline(
+        obs, info, network=net, device="cpu", K=4,
+        rng=random.Random(0),
+    )
+    assert n == 4
+    assert abs(baseline - 0.25) < 1e-6
