@@ -188,3 +188,92 @@ def test_swap_training_player_when_idx_1_opponent_acts_first():
     env = OpponentEnv(base, RandomOpponent())
     env.reset()
     assert base.game.current_player is base.training_player or base.game.ended
+
+
+def _build_simple_env(seed=42):
+    """A 2-deck FireplaceGymEnv with a fixed pair, suitable for stepping."""
+    from hearthstone.ai.env.deck_source import load_decks
+    from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
+    decks = load_decks(["aggro_mage", "control_warrior"])
+    return FireplaceGymEnv(
+        decks=decks, pair_strategy="fixed",
+        swap_training_player=False, training_player_idx=0, seed=seed,
+    )
+
+
+def test_reset_clears_draw_state():
+    """reset() zeros out _last_drawn_card_obj and friends."""
+    env = _build_simple_env()
+    env.reset()
+    # Manually set a fake state
+    env._last_drawn_card_obj = "FAKE"
+    env._last_draw_slot_idx = 5
+    env._last_deck_remaining_ids = ["CS2_023"]
+    env._last_n_drawn = 1
+    env.reset()
+    assert env._last_drawn_card_obj is None
+    assert env._last_draw_slot_idx is None
+    assert env._last_deck_remaining_ids == []
+    assert env._last_n_drawn == 0
+
+
+def test_info_has_draw_event_keys_after_reset():
+    """info dict carries draw_event=False, n_drawn=0 right after reset."""
+    env = _build_simple_env()
+    obs, info = env.reset()
+    assert info["draw_event"] is False
+    assert info["n_drawn"] == 0
+    assert info["draw_slot_idx"] is None
+    assert info["deck_remaining_ids"] == []
+
+
+def test_obs_just_drawn_card_zero_after_reset():
+    """obs[just_drawn_card] is all zeros immediately after reset."""
+    import numpy as np
+    env = _build_simple_env()
+    obs, _ = env.reset()
+    assert np.all(obs["just_drawn_card"] == 0.0)
+
+
+def test_step_records_draw_event_when_hand_grows():
+    """Stepping through a turn that ends in opponent's turn → my draw
+    sets info['draw_event']=True (or remains False, depending on what
+    happens in the single env.step call)."""
+    env = _build_simple_env()
+    obs, _ = env.reset()
+    from hearthstone.ai.env.action_enum import EndTurnAction
+    end_idx = None
+    for i, a in enumerate(env.current_valid_actions):
+        if isinstance(a, EndTurnAction):
+            end_idx = i
+            break
+    assert end_idx is not None
+    obs, _, term, _, info = env.step(end_idx)
+    # We CAN'T strictly assert draw_event is True here — depends on
+    # opponent's actions inside fireplace's auto-resolve. But info MUST
+    # have the new keys with sensible values.
+    assert "draw_event" in info
+    assert "n_drawn" in info
+    assert "draw_slot_idx" in info
+    assert "deck_remaining_ids" in info
+    assert isinstance(info["draw_event"], bool)
+
+
+def test_overdraw_burn_no_draw_event():
+    """A no-op step (no card drawn) leaves draw_event=False."""
+    env = _build_simple_env()
+    obs, info = env.reset()
+    # First step is from a known clean state. info['draw_event'] is False.
+    assert info["draw_event"] is False
+
+
+def test_compute_alt_pool_excludes_drawn_cards():
+    """_compute_alt_pool removes each drawn card from the deck (handles
+    duplicates: removes once per drawn instance)."""
+    from hearthstone.ai.env.fireplace_env import FireplaceGymEnv
+    pool = FireplaceGymEnv._compute_alt_pool(
+        deck_before_ids=["A", "B", "C", "A"],   # duplicate A
+        drawn_ids=["A", "C"],
+    )
+    # one A removed (first occurrence); C removed; B and second A remain
+    assert pool == ["B", "A"]

@@ -97,6 +97,13 @@ class FireplaceGymEnv(gym.Env):
         self._current_p2_deck_name: Optional[str] = None
         self._current_fireplace_seed: Optional[int] = None
 
+        # S2-B draw event tracking: cleared on every reset(), updated on
+        # every step() that produces a hand-size growth.
+        self._last_drawn_card_obj = None
+        self._last_draw_slot_idx: Optional[int] = None
+        self._last_deck_remaining_ids: list = []
+        self._last_n_drawn: int = 0
+
     def reset(self, *, seed: Optional[int] = None, options=None):
         from fireplace import cards as fp_cards
         from fireplace.game import Game
@@ -138,6 +145,13 @@ class FireplaceGymEnv(gym.Env):
         self.current_valid_actions = enumerate_valid_actions(
             self.game.current_player, self.choose_one_policy,
         )
+
+        # S2-B: explicitly clear all draw state at every reset.
+        self._last_drawn_card_obj = None
+        self._last_draw_slot_idx = None
+        self._last_deck_remaining_ids = []
+        self._last_n_drawn = 0
+
         return self._build_observation(), self._info()
 
     def step(self, action_idx: int):
@@ -149,11 +163,37 @@ class FireplaceGymEnv(gym.Env):
             info["invalid_action"] = True
             return obs, -0.01, bool(self.game.ended), False, info
 
+        # Snapshot hand entity_ids and deck contents BEFORE dispatch so we
+        # can detect draw events post-dispatch.
+        hand_before_ids = {c.entity_id for c in self.training_player.hand}
+        deck_before_ids = [c.id for c in self.training_player.deck]
+
         before = self._reward_snapshot()
         dispatch(valid[action_idx], self.game)
         self._auto_resolve_choices()
         after = self._reward_snapshot()
         reward = self._reward_fn.calc(before, after, self.training_player)
+
+        # Detect draw events by hand entity_id diff. Multi-draw: take last
+        # appended (chronological order). Overdraw burns: card never enters
+        # hand → not in new_entities → no draw event.
+        hand_after = list(self.training_player.hand)
+        new_entities = [
+            c for c in hand_after if c.entity_id not in hand_before_ids
+        ]
+        if new_entities:
+            self._last_drawn_card_obj = new_entities[-1]
+            self._last_n_drawn = len(new_entities)
+            self._last_draw_slot_idx = hand_after.index(new_entities[-1])
+            drawn_ids = [c.id for c in new_entities]
+            self._last_deck_remaining_ids = self._compute_alt_pool(
+                deck_before_ids, drawn_ids,
+            )
+        else:
+            self._last_drawn_card_obj = None
+            self._last_draw_slot_idx = None
+            self._last_deck_remaining_ids = []
+            self._last_n_drawn = 0
 
         terminated = bool(self.game.ended)
         if terminated:
@@ -183,7 +223,10 @@ class FireplaceGymEnv(gym.Env):
         return self.game.players[1 - self._training_player_idx]
 
     def _build_observation(self) -> dict:
-        return build_observation_for(self.game, self.training_player)
+        return build_observation_for(
+            self.game, self.training_player,
+            latest_drawn_card_obj=self._last_drawn_card_obj,
+        )
 
     def build_observation_for(self, player) -> dict:
         return build_observation_for(self.game, player)
@@ -196,6 +239,10 @@ class FireplaceGymEnv(gym.Env):
             "p2_deck_name": self._current_p2_deck_name,
             "training_player_idx": self._training_player_idx,
             "fireplace_seed": self._current_fireplace_seed,
+            "draw_event": self._last_n_drawn > 0,
+            "n_drawn": self._last_n_drawn,
+            "draw_slot_idx": self._last_draw_slot_idx,
+            "deck_remaining_ids": list(self._last_deck_remaining_ids),
         }
 
     def _auto_resolve_choices(self) -> None:
@@ -221,3 +268,15 @@ class FireplaceGymEnv(gym.Env):
     def _reward_snapshot(self) -> dict:
         from .reward import reward_snapshot
         return reward_snapshot(self)
+
+    @staticmethod
+    def _compute_alt_pool(deck_before_ids: list,
+                          drawn_ids: list) -> list:
+        """Counterfactual alternative pool: deck contents at moment of
+        draw, minus the cards actually drawn. Removes each drawn card
+        once (handles duplicates correctly)."""
+        alt = list(deck_before_ids)
+        for did in drawn_ids:
+            if did in alt:
+                alt.remove(did)
+        return alt
