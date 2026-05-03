@@ -28,6 +28,8 @@ class RolloutBuffer:
         self._values: list[float] = []
         self._log_probs: list[float] = []
         self._dones: list[bool] = []
+        self._aux_target: list[float] = []
+        self._aux_mask: list[bool] = []
         self._advantages: Optional[np.ndarray] = None
         self._returns: Optional[np.ndarray] = None
 
@@ -39,6 +41,8 @@ class RolloutBuffer:
         value: float,
         log_prob: float,
         done: bool,
+        aux_target: float = 0.0,
+        aux_mask: bool = False,
     ) -> None:
         if len(self._observations) >= self.capacity:
             raise RuntimeError("RolloutBuffer is full; call reset() before adding more")
@@ -48,6 +52,8 @@ class RolloutBuffer:
         self._values.append(float(value))
         self._log_probs.append(float(log_prob))
         self._dones.append(bool(done))
+        self._aux_target.append(float(aux_target))
+        self._aux_mask.append(bool(aux_mask))
         self._advantages = None
         self._returns = None
 
@@ -97,6 +103,8 @@ class RolloutBuffer:
         batch["dones"] = np.asarray(self._dones, dtype=np.float32)
         batch["old_log_probs"] = np.asarray(self._log_probs, dtype=np.float32)
         batch["values"] = np.asarray(self._values, dtype=np.float32)
+        batch["aux_target"] = np.asarray(self._aux_target, dtype=np.float32)
+        batch["aux_mask"] = np.asarray(self._aux_mask, dtype=bool)
 
         adv = self._advantages
         if normalize_advantages and len(adv) > 1:
@@ -114,6 +122,8 @@ class RolloutBuffer:
         self._dones.clear()
         self._advantages = None
         self._returns = None
+        self._aux_target.clear()
+        self._aux_mask.clear()
 
     def __len__(self) -> int:
         return len(self._observations)

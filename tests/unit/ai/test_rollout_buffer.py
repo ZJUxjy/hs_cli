@@ -89,3 +89,64 @@ class TestRolloutBuffer:
         buf.add(make_dummy_obs(), 0, 0.1, 0.5, -1.0, False)
         with pytest.raises(RuntimeError, match="compute_returns_and_advantages"):
             buf.get()
+
+
+def test_aux_target_aux_mask_round_trip():
+    """add() with aux kwargs → get() returns them in batch dict."""
+    import numpy as np
+    from hearthstone.ai.rollout_buffer import RolloutBuffer
+    buf = RolloutBuffer(capacity=4, gamma=0.99, gae_lambda=0.95)
+    obs = {
+        "player_hand": np.zeros((10, 90), dtype=np.float32),
+        "player_board": np.zeros((7, 90), dtype=np.float32),
+        "opponent_board": np.zeros((7, 90), dtype=np.float32),
+        "just_drawn_card": np.zeros((90,), dtype=np.float32),
+        "is_my_turn": np.array([1.0], dtype=np.float32),
+    }
+    buf.add(obs, action=0, reward=0.0, value=0.5, log_prob=-1.0, done=False,
+            aux_target=0.7, aux_mask=True)
+    buf.add(obs, action=0, reward=0.0, value=0.5, log_prob=-1.0, done=False,
+            aux_target=0.0, aux_mask=False)
+    buf.compute_returns_and_advantages(last_value=0.0)
+    batch = buf.get(normalize_advantages=False)
+    assert "aux_target" in batch and "aux_mask" in batch
+    np.testing.assert_array_equal(batch["aux_target"], np.array([0.7, 0.0], dtype=np.float32))
+    np.testing.assert_array_equal(batch["aux_mask"], np.array([True, False]))
+
+
+def test_aux_defaults_to_zero_and_false():
+    """add() without aux kwargs → aux_target=0, aux_mask=False."""
+    import numpy as np
+    from hearthstone.ai.rollout_buffer import RolloutBuffer
+    buf = RolloutBuffer(capacity=4, gamma=0.99, gae_lambda=0.95)
+    obs = {
+        "player_hand": np.zeros((10, 90), dtype=np.float32),
+        "player_board": np.zeros((7, 90), dtype=np.float32),
+        "opponent_board": np.zeros((7, 90), dtype=np.float32),
+        "just_drawn_card": np.zeros((90,), dtype=np.float32),
+        "is_my_turn": np.array([1.0], dtype=np.float32),
+    }
+    buf.add(obs, action=0, reward=0.0, value=0.0, log_prob=0.0, done=False)
+    buf.compute_returns_and_advantages(last_value=0.0)
+    batch = buf.get(normalize_advantages=False)
+    assert batch["aux_target"][0] == 0.0
+    assert batch["aux_mask"][0] == False
+
+
+def test_reset_clears_aux_fields():
+    """reset() clears aux_target and aux_mask along with everything else."""
+    import numpy as np
+    from hearthstone.ai.rollout_buffer import RolloutBuffer
+    buf = RolloutBuffer(capacity=4, gamma=0.99, gae_lambda=0.95)
+    obs = {
+        "player_hand": np.zeros((10, 90), dtype=np.float32),
+        "player_board": np.zeros((7, 90), dtype=np.float32),
+        "opponent_board": np.zeros((7, 90), dtype=np.float32),
+        "just_drawn_card": np.zeros((90,), dtype=np.float32),
+        "is_my_turn": np.array([1.0], dtype=np.float32),
+    }
+    buf.add(obs, action=0, reward=0.0, value=0.5, log_prob=-1.0, done=False,
+            aux_target=1.0, aux_mask=True)
+    buf.reset()
+    assert buf._aux_target == []
+    assert buf._aux_mask == []
