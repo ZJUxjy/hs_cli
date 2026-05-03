@@ -293,11 +293,15 @@ def run_training_loop(
                     best_winrate=fsm.best_winrate,
                     plateau_count=fsm.plateau_count,
                     cap_hit_count=eval_result["cap_hit_count"],
+                    mean_abs_draw_advantage=eval_result.get(
+                        "mean_abs_draw_advantage", 0.0,
+                    ),
                 )
                 print(
                     f"[iter {it:04d}] phase={fsm.phase.value} "
                     f"eval winrate={winrate:.3f} (best={fsm.best_winrate:.3f}, "
-                    f"plateau={fsm.plateau_count})",
+                    f"plateau={fsm.plateau_count}) "
+                    f"mean_abs_draw_adv={eval_result.get('mean_abs_draw_advantage', 0.0):.3f}",
                     flush=True,
                 )
 
