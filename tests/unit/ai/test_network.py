@@ -84,12 +84,17 @@ class TestPolicyValueNetwork:
                 f"Network output is invariant to {key} — feature is not wired in"
 
     def test_aux_head_gradient_propagates(self):
-        """Backprop on aux output flows gradient into shared body params."""
+        """Backprop on aux output flows gradient into BOTH shared body
+        params AND aux_head's own params."""
         net = PolicyValueNetwork()
         obs = _make_dummy_obs(batch_size=2)
         _, _, aux = net(obs)
         loss = aux.pow(2).mean()
         loss.backward()
-        # The first shared linear weight should have a non-zero grad.
+        # Shared body sees gradient (verifies aux_head is connected to body).
         assert net.shared[0].weight.grad is not None
         assert torch.any(net.shared[0].weight.grad != 0)
+        # aux_head's own weights also see gradient (verifies aux_head is
+        # not accidentally detached, e.g., wrapped in .detach()).
+        assert net.aux_head[0].weight.grad is not None
+        assert torch.any(net.aux_head[0].weight.grad != 0)

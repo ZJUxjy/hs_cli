@@ -1,4 +1,4 @@
-"""Shared-body Policy and Value network."""
+"""Shared-body Policy + Value + Aux network (S2-B)."""
 from __future__ import annotations
 
 import torch
@@ -34,7 +34,10 @@ class CardEncoder(nn.Module):
 
 
 class PolicyValueNetwork(nn.Module):
-    """Shared body with policy head (logits) and value head (scalar)."""
+    """Shared body with three heads: policy (logits), value (scalar),
+    and aux (draw-advantage scalar). forward returns 3-tuple
+    (policy_logits, value, aux). The aux head predicts the counterfactual
+    advantage of the most recently drawn card (S2-B)."""
 
     def __init__(
         self,
