@@ -38,7 +38,7 @@ def migrate(in_path: str, out_path: str) -> None:
     just_drawn_card position; leaves aux_head random-initialized; injects
     the 4 new aux config defaults if missing.
     """
-    ckpt = torch.load(in_path, map_location="cpu")
+    ckpt = torch.load(in_path, map_location="cpu", weights_only=False)
     cfg = ckpt.get("config", {})
     slot_dim = int(cfg.get("slot_dim", 90))
     hidden_dim = int(cfg.get("hidden_dim", 128))
@@ -55,6 +55,13 @@ def migrate(in_path: str, out_path: str) -> None:
             continue   # leave random-init
         if k == "shared.0.weight":
             old_w = old_sd[k]   # (h*2, OLD_FLAT_DIM)
+            expected_old_cols = (10 + 2 * 7) * hidden_dim + 21
+            assert old_w.shape[1] == expected_old_cols, (
+                f"shared.0.weight has {old_w.shape[1]} columns; expected "
+                f"{expected_old_cols} for an S2-A checkpoint with "
+                f"hidden_dim={hidden_dim}. Already migrated, corrupted, "
+                f"or wrong hidden_dim."
+            )
             zeros = torch.zeros(
                 old_w.shape[0], hidden_dim, dtype=old_w.dtype,
             )
