@@ -149,20 +149,60 @@ def encode_hand_card_by_id(card_id: str) -> np.ndarray:
     fireplace card objects. cards.db[card_id] returns a CardDef (a static
     card definition); encode_hand_card reads only .id, which CardDefs
     have, so this is safe — no minion-state attributes are touched.
+
+    NOTE: fireplace's CardDB.initialize() lacks an idempotency guard
+    (~10 s per call). We rely on CardFeatureEncoder.__init__ →
+    build_card_feature_cache() to call cards.db.initialize once via
+    the guarded `if not _FEATURE_CACHE` branch.
     """
     global _DEFAULT_ENCODER
-    from fireplace import cards as fp_cards
-    fp_cards.db.initialize()
-    card_def = fp_cards.db[card_id]
     if _DEFAULT_ENCODER is None:
         _DEFAULT_ENCODER = CardFeatureEncoder()
+    from fireplace import cards as fp_cards
+    card_def = fp_cards.db[card_id]
     return _DEFAULT_ENCODER.encode_hand_card(card_def)
+```
+
+- [ ] **Step 4b: Add regression test against db.initialize re-entry**
+
+Append to `tests/unit/ai/env/test_card_features.py`:
+
+```python
+def test_encode_hand_card_by_id_does_not_reinitialize_db():
+    """Repeated calls do not re-run fireplace's expensive cards.db.initialize().
+
+    fireplace's CardDB.initialize() lacks an idempotency guard (sets
+    self.initialized = True but never checks it before re-running the
+    XML merge), costing ~10 s per call. encode_hand_card_by_id MUST NOT
+    call it on every invocation.
+    """
+    from unittest.mock import patch
+    from hearthstone.ai.env import card_features as cf
+
+    # Force-warm the encoder + db so subsequent calls hit the cached path.
+    encode_hand_card_by_id("CS2_023")
+
+    # Now monkey-patch initialize to detect any further calls.
+    from fireplace import cards as fp_cards
+    call_count = []
+    original = fp_cards.db.initialize
+    def counting_init(*a, **kw):
+        call_count.append(1)
+        return original(*a, **kw)
+    with patch.object(fp_cards.db, "initialize", counting_init):
+        encode_hand_card_by_id("CS2_024")
+        encode_hand_card_by_id("CS2_025")
+        encode_hand_card_by_id("CS2_023")
+    assert len(call_count) == 0, (
+        f"db.initialize() called {len(call_count)} times during cached path; "
+        "expected 0 (encoder + cache should already be warm)"
+    )
 ```
 
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `pytest tests/unit/ai/env/test_card_features.py -v`
-Expected: 3 new tests PASS, all existing tests still PASS.
+Expected: 4 new tests PASS (3 original + 1 regression), all existing tests still PASS.
 
 - [ ] **Step 6: Commit**
 

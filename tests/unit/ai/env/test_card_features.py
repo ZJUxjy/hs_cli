@@ -174,3 +174,34 @@ def test_encode_hand_card_by_id_caches_encoder_singleton():
     first = cf._DEFAULT_ENCODER
     encode_hand_card_by_id("CS2_024")
     assert cf._DEFAULT_ENCODER is first
+
+
+def test_encode_hand_card_by_id_does_not_reinitialize_db():
+    """Repeated calls do not re-run fireplace's expensive cards.db.initialize().
+
+    fireplace's CardDB.initialize() lacks an idempotency guard (sets
+    self.initialized = True but never checks it before re-running the
+    XML merge), costing ~10 s per call. encode_hand_card_by_id MUST NOT
+    call it on every invocation.
+    """
+    from unittest.mock import patch
+    from hearthstone.ai.env import card_features as cf
+
+    # Force-warm the encoder + db so subsequent calls hit the cached path.
+    encode_hand_card_by_id("CS2_023")
+
+    # Now monkey-patch initialize to detect any further calls.
+    from fireplace import cards as fp_cards
+    call_count = []
+    original = fp_cards.db.initialize
+    def counting_init(*a, **kw):
+        call_count.append(1)
+        return original(*a, **kw)
+    with patch.object(fp_cards.db, "initialize", counting_init):
+        encode_hand_card_by_id("CS2_024")
+        encode_hand_card_by_id("CS2_025")
+        encode_hand_card_by_id("CS2_023")
+    assert len(call_count) == 0, (
+        f"db.initialize() called {len(call_count)} times during cached path; "
+        "expected 0 (encoder + cache should already be warm)"
+    )

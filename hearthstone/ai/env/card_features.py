@@ -348,11 +348,15 @@ def encode_hand_card_by_id(card_id: str) -> np.ndarray:
     fireplace card objects. cards.db[card_id] returns a CardDef (a static
     card definition); encode_hand_card reads only .id, which CardDefs
     have, so this is safe — no minion-state attributes are touched.
+
+    NOTE: fireplace's CardDB.initialize() lacks an idempotency guard
+    (~10 s per call). We rely on CardFeatureEncoder.__init__ →
+    build_card_feature_cache() to call cards.db.initialize once via
+    the guarded `if not _FEATURE_CACHE` branch.
     """
     global _DEFAULT_ENCODER
-    from fireplace import cards as fp_cards
-    fp_cards.db.initialize()
-    card_def = fp_cards.db[card_id]
     if _DEFAULT_ENCODER is None:
         _DEFAULT_ENCODER = CardFeatureEncoder()
+    from fireplace import cards as fp_cards
+    card_def = fp_cards.db[card_id]
     return _DEFAULT_ENCODER.encode_hand_card(card_def)
