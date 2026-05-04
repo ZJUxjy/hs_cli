@@ -110,7 +110,14 @@ class FireplaceGymEnv(gym.Env):
         from fireplace.player import Player
         from .reward import RewardFunction
 
-        fp_cards.db.initialize()
+        # fireplace's CardDB.initialize() is NOT idempotent — it always
+        # re-runs the XML merge (~10s per call). reset() is called every
+        # episode, so without this guard training overhead becomes 30-100s
+        # per rollout iter just from re-merging the card database. The
+        # CardDB is a dict subclass; truthiness check skips re-init once
+        # populated.
+        if not fp_cards.db:
+            fp_cards.db.initialize()
         if seed is not None:
             self._rng = np.random.default_rng(seed)
 
