@@ -100,13 +100,17 @@ def run_analysis(
                     # tp_idx tells us which is the agent.
                     deck_agent_name = decks[i].name if tp_idx == 0 else decks[j].name
                     deck_opp_name = decks[j].name if tp_idx == 0 else decks[i].name
+                    # Live Card/Minion objects from Player.hand expose name
+                    # via .data.name (the wrapped CardXML), NOT a top-level
+                    # .name attribute. Cost is mirrored on both.
+                    drawn_data = getattr(drawn, "data", None)
                     rows.append({
                         "game_idx": g, "turn": env.game.turn,
                         "deck_agent": deck_agent_name,
                         "deck_opponent": deck_opp_name,
                         "training_player_idx": tp_idx,
                         "drawn_card_id": getattr(drawn, "id", "?"),
-                        "drawn_card_name": getattr(drawn, "name", "?"),
+                        "drawn_card_name": getattr(drawn_data, "name", "?"),
                         "drawn_card_cost": getattr(drawn, "cost", 0),
                         "draw_advantage_score": round(score, 4),
                         "label": label_from_score(score, threshold=threshold),
