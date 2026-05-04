@@ -37,6 +37,16 @@ Thumbs.db
 # Worktrees
 .worktrees/
 
+# JS / npm
+node_modules/
+
+# Claude Code session/cache state
+.claude/
+
+# Training artifacts
+checkpoints/
+runs/
+
 # Misc
 *.log
 .env.local
