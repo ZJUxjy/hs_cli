@@ -279,7 +279,10 @@ def build_card_feature_cache() -> None:
     if _FEATURE_CACHE:
         return
     from fireplace import cards
-    cards.db.initialize()
+    # CardDB.initialize() is NOT idempotent — guard against re-running
+    # the XML merge if some other code path already populated cards.db.
+    if not cards.db:
+        cards.db.initialize()
     fp_actions = _get_fp_actions()
     n_total = 0
     n_unknown = 0

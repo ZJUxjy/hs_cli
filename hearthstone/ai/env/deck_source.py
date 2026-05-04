@@ -58,7 +58,12 @@ def load_deck(name: str) -> Deck:
         )
 
     from fireplace import cards as fp_cards
-    fp_cards.db.initialize()
+    # CardDB.initialize() is NOT idempotent — re-runs the XML merge ~10s
+    # each call. load_decks() calls this 18× at startup; without the guard
+    # that's ~180s of wasted re-merging. Truthiness check on the dict
+    # subclass skips work once populated.
+    if not fp_cards.db:
+        fp_cards.db.initialize()
     if data["hero_id"] not in fp_cards.db:
         raise ValueError(
             f"Deck '{name}': hero_id '{data['hero_id']}' not in cards.db"
